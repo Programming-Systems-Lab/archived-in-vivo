@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <stdio.h>
-#include "helloNative.h"
+#include <stdlib.h>
 
 JNIEXPORT jint JNICALL
 Java_Forker_doFork ( JNIEnv* env, jobject obj ) 
