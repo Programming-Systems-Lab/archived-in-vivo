@@ -1,0 +1,68 @@
+package com.invite.drivers;
+
+public class IntFields {
+	public static double MAJOR_SWING_PROBABILITY = 0.7;
+
+	private int field1;
+	private int field2;
+	private int field3;
+	private int field4;
+
+	private int oldField1;
+	private int oldField3;
+	
+	private Integer field5;
+	private Integer field6;
+
+	public IntFields( int a, int b, int c, int d ) {
+		field1 = a;
+		field2 = b;
+		field3 = c;
+		field4 = d;
+
+		oldField1 = field1;
+		oldField3 = field3;
+		
+		field5 = new Integer( a );
+		field6 = new Integer( b );
+	}
+	
+	public void increment() {
+		oldField1 = field1;
+		field1++;
+		field2++;
+		field3++;
+		field4++;
+	}
+
+	// returns true on fail
+	public boolean inviteTestDecrement() {
+		if ( Math.abs( field1 - oldField1 ) > 100 )
+			return true;
+		return false;
+	}
+	
+	public void decrement() {
+		oldField1 = field1;
+		if ( Math.random() <= MAJOR_SWING_PROBABILITY )
+			field1 -= 200;
+		else
+			field1--;
+		field2--;
+		field3--;
+		field4--;
+	}
+
+	public static String myStaticMethod() {
+		return "static string";
+	}
+	
+	public IntFields copy() {
+		return new IntFields( field1, field2, field3, field4 );
+	}
+	
+	public String toString() {
+		return "[ " + Integer.toString(field1) + ", " + Integer.toString(field2) + ", " +
+				Integer.toString(field3) + ", " + Integer.toString( field4 ) + "]";
+	}
+}
