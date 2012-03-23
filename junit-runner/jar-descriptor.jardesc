@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="MacRoman" standalone="no"?>
+<jardesc>
+    <jar path="invivo-junit-tester/lib/invivo-junit.jar"/>
+    <options buildIfNeeded="true" compress="false" descriptionLocation="/invivo-junit-runner/jar-descriptor.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/invivo-junit-runner/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=invivo-junit-runner/src"/>
+        <file path="/invivo-junit-runner/.project"/>
+        <file path="/invivo-junit-runner/.classpath"/>
+        <folder path="/invivo-junit-runner/META-INF"/>
+        <folder path="/invivo-junit-runner/lib"/>
+    </selectedElements>
+</jardesc>
