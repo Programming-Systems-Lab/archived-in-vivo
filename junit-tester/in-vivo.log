@@ -1,0 +1,3 @@
+[in-vivo - main (2012-03-23 10:58:05,161)] INFO edu.columbia.cs.psl.invivo.runtime.visitor.InterceptingClassVisitor.visitEnd(57) | Actually rewrote class: edu.columbia.cs.psl.invivo.junit.SimpleExample
+[in-vivo - main (2012-03-23 10:58:05,363)] INFO edu.columbia.cs.psl.invivo.junit.Interceptor.onExit(79) | 	Child2 finished
+[in-vivo - main (2012-03-23 10:58:05,363)] INFO edu.columbia.cs.psl.invivo.junit.Interceptor.onExit(81) | Invocation result: [Invocation on method multiply with params 34 returning 12 on object edu.columbia.cs.psl.invivo.junit.SimpleExample@4e99353f.  Children: [[Invocation on method multiply with params 34 returning 12 on object edu.columbia.cs.psl.invivo.junit.SimpleExample@2fdb4ce5.  Children: [] ],] ]
