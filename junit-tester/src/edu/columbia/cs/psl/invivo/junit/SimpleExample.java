@@ -1,7 +1,7 @@
 package edu.columbia.cs.psl.invivo.junit;
 
 public class SimpleExample {
-	@Tested
+	@Tested(testClass = "edu.columbia.cs.psl.invivo.junit.SimpleExampleTest")
 	public int multiply(int x, int y)
 	{
 		return x * y;
