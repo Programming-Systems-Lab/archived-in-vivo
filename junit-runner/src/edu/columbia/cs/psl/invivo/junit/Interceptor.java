@@ -5,10 +5,11 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
+import edu.columbia.cs.psl.invivo.runtime.AbstractDeepCloningInterceptor;
 import edu.columbia.cs.psl.invivo.runtime.AbstractInterceptor;
 import edu.columbia.cs.psl.invivo.struct.MethodInvocation;
 
-public class Interceptor extends AbstractInterceptor{
+public class Interceptor extends AbstractDeepCloningInterceptor{
 	public Interceptor(Object intercepted) {
 		super(intercepted);
 	}
