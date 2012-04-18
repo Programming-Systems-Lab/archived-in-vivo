@@ -1,7 +1,12 @@
 package edu.columbia.cs.psl.invivo.junit;
 
+
+import edu.columbia.cs.psl.invivo.junit.annotation.Tested;
+import edu.columbia.cs.psl.invivo.junit.annotation.TestCase;
+import edu.columbia.cs.psl.invivo.junit.annotation.VariableReplacement;
+
 public class SimpleExample {
-	@Tested(testClass = "edu.columbia.cs.psl.invivo.junit.SimpleExampleTest")
+	@Tested(cases = {@TestCase(clazz =SimpleExampleTest.class, method = "testMultiply", replacements = {@VariableReplacement(from="tester", to ="3"), @VariableReplacement(from="otherNumber", to="4")})})
 	public int multiply(int x, int y)
 	{
 		return x * y;
