@@ -78,8 +78,7 @@ public class InVivoReplacementCompiler {
 	private void raiseError(String msg, Element source) {
 		this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Metamorphic error: " + msg, source);
 	}
-//	private java.net.URLClassLoader fInternalClassLoader = java.net.URLClassLoader.newInstance(
-//			new java.net.URL[0], InVivoReplacementCompiler.class.getClassLoader());
+
 
 	public void compileTestCode(MetamorphicClassFile c) {
 		c.markDone();
@@ -138,14 +137,14 @@ public static  void testmultiply() {
 					
 					buf.append("private static java.lang.reflect.Method ");
 					buf.append(testCase.method());
-					buf.append("method = edu.columbia.cs.psl.invivo.runtime.AbstractInterceptor.getMethod(\"");
-					buf.append(m.getSimpleName());
+					buf.append("method"+i+" = edu.columbia.cs.psl.invivo.runtime.AbstractInterceptor.getMethod(\"");
+					buf.append(testCase.method());
 					buf.append("\", ");
 					buf.append(testClassName);
 					buf.append(".class);\n");
 					buf.append("@SuppressWarnings(\"all\")\npublic static ");
 					buf.append(" void ");
-					buf.append("test" + m.getSimpleName() + "() {");
+					buf.append("test" + m.getSimpleName() +i+ "() {");
 
 					
 					
@@ -158,7 +157,7 @@ public static  void testmultiply() {
 					{
 						buf.append("try{\n");
 						buf.append(testCase.method());
-						buf.append("method.invoke(new ");
+						buf.append("method"+i+".invoke(new ");
 						buf.append(testClassName);
 						buf.append("()");
 						String[] params = null;

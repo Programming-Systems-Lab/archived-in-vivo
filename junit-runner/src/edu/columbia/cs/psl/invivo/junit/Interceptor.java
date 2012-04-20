@@ -51,14 +51,14 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 			inv.children[i].parent = inv;
 
 			try {
-				Class cl = cases[i].clazz();
-				Method testMethod = getMethod(cases[i].method(), cl);
+				Class cl = Class.forName(callee.getClass().getName()+"_InvivoJUnitTests");
+				Method testMethod = getMethod("test"+method.getName()+i, cl);
 				inv.children[i].callee = cl.newInstance();
 				inv.children[i].method = testMethod;
 			} catch (Exception ex) {
 				logger.error("Error creating child: " + ex);
 			}
-			inv.children[i].params = null;
+			inv.children[i].params = new Object[0];
 
 			inv.children[i].thread = createChildThread(inv.children[i]);
 			inv.children[i].thread.start();
