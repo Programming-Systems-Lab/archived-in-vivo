@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ClassNameFinder {
-	static String apiHome = "/Users/miriammelnick/Desktop/research/classes";
+	static String apiHome = "/Users/miriammelnick/Desktop/research/classes/java/io";
 	static ArrayList<String> pathNames = new ArrayList<String>();
 	static ArrayList<String> classNames = new ArrayList<String>();
 	static ArrayList<String> properClassNames = new ArrayList<String>();
 	
-	
+	 // TODO reimplement with JAR load
 	public static void main(String[] args) throws IOException {
 		ClassNameFinder.pathNames.add(apiHome);
 		
@@ -18,7 +18,7 @@ public class ClassNameFinder {
 			ClassNameFinder.parseDirectory(ClassNameFinder.pathNames.get(0)); //pop the first item off the arraylist
 			ClassNameFinder.pathNames.remove(0);					// finish that pop
 		}
-		
+
 		ClassNameFinder.formatClasses();
 		System.out.println("All classes parsed. " + ClassNameFinder.classNames.size() + " classes found.");
 	}
@@ -44,14 +44,19 @@ public class ClassNameFinder {
 	public static void formatClasses() {
 		for (String clazz: classNames) {
 			String className = clazz.substring(46);		
-			className = className.substring(0,className.length()-6);	
-			className = className.replace('/', '.');
+			if (className.endsWith(".class") && !className.contains("$")) {		// TODO do I sometimes need to keep these $ classes?
+				className = className.substring(0,className.length()-6);	     //delete ".class"
 			
-			if (className.contains("$"))
-				className = className.substring(0,className.indexOf("$"));
-			
-			System.out.println(className);
-			properClassNames.add(className);
+		//		if (className.contains("$"))
+		//			className = className.substring(0,className.indexOf("$"));
+				if (className.endsWith(".prop"))
+					className = className.substring(0,className.lastIndexOf("."));
+				
+			//	className = className.replace('/', '.');
+
+				//System.out.println(className);
+				properClassNames.add(className);
+			}
 		}
 	}
 	

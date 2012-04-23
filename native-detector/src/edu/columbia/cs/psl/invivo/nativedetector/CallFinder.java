@@ -12,8 +12,14 @@ public class CallFinder {
 		int cnfLength = ClassNameFinder.properClassNames.size();
 		for (int i = 0; i < cnfLength; i++) {
 			String className = ClassNameFinder.properClassNames.get(i);
-			ClassReader cr = new ClassReader(className);
-			cr.accept(new CallFindingClassVisitor(Opcodes.ASM4, null, className), 0);
+			try {
+				ClassReader cr = new ClassReader(className);
+				cr.accept(new CallFindingClassVisitor(Opcodes.ASM4, null, className), 0);
+			} catch (IOException ioe) {
+				System.err.println(className);
+				ioe.printStackTrace();
+			}
+			
 		}
 	}
 	
