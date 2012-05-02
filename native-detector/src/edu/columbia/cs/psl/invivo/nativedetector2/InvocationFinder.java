@@ -83,7 +83,19 @@ public class InvocationFinder {
         }
     }
 
-
+    private HashMap<MethodInstance,HashSet<MethodInstance>> methodsThatCallMethods;
+    public HashSet<MethodInstance> findMethodsThatCallMethod(MethodInstance m)
+    {
+    	if(methodsThatCallMethods == null)
+    	{
+    		buildCache();
+    	}
+    	return methodsThatCallMethods.get(m);
+    }
+    public void buildCache()
+    {
+    	
+    }
     public HashSet<Method> findCallingMethodsInJar(String jarPath, String newTargetClass,
                                         Method newTargetMethod) throws Exception {
 

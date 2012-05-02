@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -24,13 +25,13 @@ public class NativeDetector {
 //	HashMap<String,Method> openMethodMap = new HashMap<String,Method>();
 //	HashMap<String,Method> closedMethodMap = new HashMap<String, Method>();
 	
-	HashSet<String>	openClasses = new HashSet<String>();
+	LinkedList<String>	openClasses = new LinkedList<String>();
 	@Deprecated
 	HashSet<Method> openMethods = new HashSet<Method>();
-	HashMap<Method,String> openMethodsWithClasses = new HashMap<Method,String>();
+	LinkedList<MethodInstance> openMethodsWithClasses = new LinkedList<MethodInstance>();
 	@Deprecated
 	HashSet<String> closedMethods = new HashSet<String>();
-	HashMap<Method,String> closedMethodsWithClasses = new HashMap<Method,String>();
+	HashSet<MethodInstance> closedMethodsWithClasses = new HashSet<MethodInstance>();
 
 	//	HashSet<Method> closedMethods = new HashSet<Method>();
 	private static Logger logger = Logger.getLogger(NativeDetector.class);
@@ -41,7 +42,7 @@ public class NativeDetector {
 	}
 
 	void getAllClasses() throws IOException {
-		HashSet<String> classList = new HashSet<String>();
+		LinkedList<String> classList = new LinkedList<String>();
 		JarFile classJar = new JarFile(jarPath);
 		Enumeration<JarEntry> jarContents = classJar.entries();
 		while (jarContents.hasMoreElements())
@@ -53,9 +54,12 @@ public class NativeDetector {
 	}
 
 	void findNativesFromClasses() throws IOException {
-		Iterator<String> it = openClasses.iterator();
-		while ( it.hasNext() ) {
-			String curClassName= it.next();
+		/*
+		 * Takes the list of openClasses
+		 * Finds every native method in openClasses
+		 */
+		while ( !openClasses.isEmpty() ) {
+			String curClassName= openClasses.pop();
 			if (curClassName.endsWith(".class")){ 
 				curClassName = curClassName.substring(0, curClassName.length()-6);   //remove ".class"
 
@@ -72,8 +76,7 @@ public class NativeDetector {
 				while (methodIt.hasNext()) {
 					Method m = methodIt.next();
 				//	logger.info("looking at method: " + m.getName());
-					openClasses.remove(curClassName);
-					openMethodsWithClasses.put(m, curClassName);
+					openMethodsWithClasses.add(new MethodInstance(m, curClassName));
 				//	logger.error("length of openMethods: " + openMethodsWithClasses.size());
 				}
 				
@@ -85,16 +88,15 @@ public class NativeDetector {
 	
 	void findNativesFromMethods() throws Exception {
 	//	logger.info("a");
-		Iterator<Entry<Method, String>> mapIt = openMethodsWithClasses.entrySet().iterator();
 	//	logger.info("b");
-		while (mapIt.hasNext()) {
+		while (!openMethodsWithClasses.isEmpty()) {
 		//	logger.info("c");
-			Entry<Method,String> entry = mapIt.next();
-			Method m = entry.getKey();
-			String className = entry.getValue();
+			MethodInstance entry = openMethodsWithClasses.pop();
+			Method m = entry.getMethod();
+			String className = entry.getClazz();
 		//	logger.info(m.getName() +"\t" +  className);
 		//	logger.info("closedMethodsWithClasses.containsKey(m) = " + closedMethodsWithClasses.containsKey(m));
-			if (!closedMethodsWithClasses.containsKey(m)) {
+			if (!closedMethodsWithClasses.contains(entry)) {
 				//logger.info("entering 'if' for "+m.getName());
 				InvocationFinder ifinder = new InvocationFinder();
 				ifinder.findCallingMethodsInJar(jarPath, className, m);
