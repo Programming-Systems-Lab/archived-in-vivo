@@ -244,6 +244,18 @@ public class NativeDetector {
 	}
 	
 	/**
+	 * Debugging method to display how many methods are in each category.
+	 * @see NativeDetector#allMethods
+	 * @see NativeDetector#openMethods
+	 * @see NativeDetector#closedMethods
+	 */
+	public void logStats(String id) {
+		String semids = ";  ";
+		logger.info(id + "   allMethods: " + allMethods.size() + semids + "openMethods: " + openMethods.size() + semids + "closedMethods: " + closedMethods.size());		
+
+	}
+	
+	/**
 	 * Returns the exact MethodInstance that is in allMethods. 
 	 * Ensures that attributes are assigned to the correct instantiations.
 	 * @param clazz			String			name of class owning method
