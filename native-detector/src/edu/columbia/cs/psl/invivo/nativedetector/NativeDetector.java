@@ -98,10 +98,12 @@ public class NativeDetector {
 		MethodInstance listCaller = (allMethods.contains(caller)) ? allMethods.get(allMethods.indexOf(caller)) : caller;
 		MethodInstance listCallee = (allMethods.contains(callee)) ? allMethods.get(allMethods.indexOf(callee)) : callee;
 		listCallee.addCaller(listCaller);
-		if (!allMethods.contains(listCaller)) 
-				allMethods.add(listCaller);
+		if (!openMethods.contains(listCaller))  // TODO is this logically right?
+				openMethods.add(listCaller);
 		
 	}
+	
+	
 	
 	/**
 	 * Reads in the jar file and populates openClasses with class names.
@@ -146,17 +148,17 @@ public class NativeDetector {
 		}
 	}
 	
-	// callfindingclassvisitor
+	// use callfindingclassvisitor
 	/**
 	 * TODO comment findAllInvokers
 	 * @throws IOException 
 	 */
 	public void findAllInvokers() throws IOException {
-		LinkedList<MethodInstance> listOfAllMethods = new LinkedList<MethodInstance>(); //TODO is there a more efficient way to do this? cloning?
+		LinkedList<MethodInstance> listOfAllMethods = new LinkedList<MethodInstance>(); 
+		listOfAllMethods.addAll(allMethods); //TODO is there a more efficient way to do this? cloning?
 		while (!listOfAllMethods.isEmpty()) {
 			MethodInstance mi = listOfAllMethods.pop();
 
-		//	MethodInstance mi = new MethodInstance("_getInstance", "()J", "java/awt/SplashScreen");
 			ClassReader cr = new ClassReader(mi.getClazz());
 			CallFindingClassVisitor cfcv = new CallFindingClassVisitor(Opcodes.ASM4, null, mi.getClazz(), this);
 			cr.accept(cfcv, 0);
@@ -173,6 +175,7 @@ public class NativeDetector {
 		while (!allMethods.isEmpty()) {
 			MethodInstance mi = allMethods.pop();
 			if ((mi.getAccess() & Opcodes.ACC_NATIVE) != 0) {
+				logger.info(mi.getClazz()+"."+mi.getMethod()+" appears to be native");
 				if ((!openMethods.contains(mi)) && (!closedMethods.contains(mi))) {
 					logStats();
 					openMethods.add(mi);

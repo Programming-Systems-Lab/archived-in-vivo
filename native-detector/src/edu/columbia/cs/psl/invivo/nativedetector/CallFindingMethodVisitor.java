@@ -24,7 +24,7 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	 */
 	public NativeDetector engine;
 	
-	//TODO delete or comment logger
+	//TODO comment logger in CallFindingMethodVisitor
 	private static Logger logger = Logger.getLogger(CallFindingMethodVisitor.class);
 	int count = 0;
 	/**
@@ -58,13 +58,16 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	 * @see CallFindingMethodVisitor#methodInstance
 	 */
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-		logger.info(this.count++ + "  " + owner + "  " + name + "  " + desc);
+		//logger.info(owner + "." + name);
+		//engine.logStats();
+		this.engine.addCaller(this.methodInstance, new MethodInstance(owner, name, desc)); //TODO is this logically right?
+		/*//logger.info(this.count++ + "  " + owner + "  " + name + "  " + desc);
 		MethodInstance callee = this.engine.getMethodInstance(owner, name, desc);
-		logger.info(this.methodInstance.getMethod());
+		//logger.info(this.methodInstance.getMethod());
 		callee.addCaller(this.methodInstance);
 		if (this.engine.openMethods.contains(callee)) {
 			this.engine.addCaller(this.methodInstance, callee);
-		}
+		} */
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 	

@@ -31,11 +31,11 @@ public class NativeDetectorTester {
 			engine.findAllInvokers();
 			engine.logStats();
 			
-//			engine.getAllMethods();	// populates allMethods (179891)
-//			engine.logStats();
+			engine.getAllMethods();	// populates allMethods (179891)
+			engine.logStats();
 
 			
-			engine.selectNativeMethods();
+			engine.selectNativeMethods(); //populates openMethods
 			engine.logStats();
 			
 			engine.findNativeInvokers();
