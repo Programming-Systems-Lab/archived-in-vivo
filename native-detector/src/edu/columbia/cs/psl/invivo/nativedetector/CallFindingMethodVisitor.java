@@ -18,11 +18,6 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	 */
 	public MethodInstance methodInstance;
 	
-	/**
-	 * public NativeDetector engine
-	 * @see NativeDetector
-	 */
-	public NativeDetector engine;
 	
 	//TODO comment logger in CallFindingMethodVisitor
 	private static Logger logger = Logger.getLogger(CallFindingMethodVisitor.class);
@@ -39,10 +34,9 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	 * @see Opcodes#ASM4
 	 * @see MethodVisitor
 	 */
-	public CallFindingMethodVisitor(int api, MethodVisitor mv, MethodInstance mi, NativeDetector nd) {
+	public CallFindingMethodVisitor(int api, MethodVisitor mv, MethodInstance mi) {
 		super(api, mv);
 		this.methodInstance = mi; // this is the one from allMethods
-		this.engine = nd;
 	}
 
 	@Override
@@ -60,14 +54,7 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		//logger.info(owner + "." + name);
 		//engine.logStats();
-		this.engine.addCaller(this.methodInstance, new MethodInstance(owner, name, desc)); //TODO is this logically right?
-		/*//logger.info(this.count++ + "  " + owner + "  " + name + "  " + desc);
-		MethodInstance callee = this.engine.getMethodInstance(owner, name, desc);
-		//logger.info(this.methodInstance.getMethod());
-		callee.addCaller(this.methodInstance);
-		if (this.engine.openMethods.contains(callee)) {
-			this.engine.addCaller(this.methodInstance, callee);
-		} */
+		NativeDetector.getMethodInstance(owner, name, desc).addCaller(this.methodInstance);
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 	

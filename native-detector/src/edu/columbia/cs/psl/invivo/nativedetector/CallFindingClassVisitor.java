@@ -41,7 +41,7 @@ public class CallFindingClassVisitor extends ClassVisitor{
 	public MethodVisitor visitMethod(int access, String name, String desc,
 			String signature, String[] exceptions) {
 		//logger.info(className + ": " + name);
-		engine.logStats();
+//		engine.logStats();
 		//MethodInstance mi = this.engine.getMethodInstance(this.className, name, desc);
 		MethodInstance mi = new MethodInstance(this.className, name, desc, access); //TODO undebug
 		return new CallFindingMethodVisitor(api, super.visitMethod(

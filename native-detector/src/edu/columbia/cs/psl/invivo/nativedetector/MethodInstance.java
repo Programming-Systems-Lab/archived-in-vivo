@@ -12,6 +12,12 @@ import org.objectweb.asm.commons.Method;
  */
 public class MethodInstance {
 	
+	
+	@Override
+	public String toString() {
+		return "MethodInstance [method=" + method + ", clazz=" + clazz + ", access=" + access + ", calledBy=" + calledBy + "]";
+	}
+
 	/**
 	 * ASM method at the core of this MethodInstance object.
 	 * private Method method
@@ -158,7 +164,7 @@ public class MethodInstance {
 	public boolean equals(Object obj) {
 		if (obj.getClass().equals(this.getClass())) {
 			MethodInstance other = (MethodInstance) obj;
-			if ((other.getClazz().equals(this.getClazz())) && (other.getMethod().equals(this.getMethod())))
+			if ((other.getClazz().equals(this.getClazz())) && (other.getMethod().getName().equals(this.getMethod().getName()) && other.getMethod().getDescriptor().equals(this.getMethod().getDescriptor())))
 				return true;
 		}
 		return false;
@@ -170,7 +176,7 @@ public class MethodInstance {
 	 */
 	@Override
 	public int hashCode() {
-		return this.getClazz().hashCode() * this.getMethod().hashCode();
+		return this.getClazz().hashCode() * this.getMethod().getName().hashCode() * this.getMethod().getDescriptor().hashCode();
 	}
 
 	/**
@@ -187,6 +193,10 @@ public class MethodInstance {
 	 */
 	public void setAccess(int access) {
 		this.access = access;
+	}
+
+	public void setCallers(LinkedList<MethodInstance> calledBy) {
+		this.calledBy = calledBy;
 	}
 
 	

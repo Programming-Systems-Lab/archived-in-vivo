@@ -32,9 +32,11 @@ public class CompleteClassVisitor extends ClassVisitor {
 	public MethodVisitor visitMethod(int access, String name, String desc,
 			String signature, String[] exceptions) {
 
-		this.allMethods.add(new MethodInstance(name, desc, this.className, access));
-		return new DummyMethodVisitor(api, super.visitMethod(
-				access, name, desc, signature, exceptions)); 
+		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
+		this.allMethods.add(mi);
+		return new CallFindingMethodVisitor(access, super.visitMethod(access, name, desc, signature, exceptions), mi);
+//		return new DummyMethodVisitor(api, super.visitMethod(
+//				access, name, desc, signature, exceptions)); 
 	}
 
 

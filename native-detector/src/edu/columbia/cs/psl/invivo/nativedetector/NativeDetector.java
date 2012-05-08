@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,6 +14,7 @@ import java.util.jar.JarFile;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.Method;
 
 
 /**
@@ -43,8 +45,9 @@ public class NativeDetector {
 	 * @see NativeDetector#getAllMethods()
 	 * @see NativeDetector#findNativeInvokers()
 	 */
-	LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
-
+	 static LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
+	static HashMap<MethodInstance, MethodInstance> allMethodsLookup = new HashMap<MethodInstance, MethodInstance>();
+	
 //TODO uncomment	private LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
 	
 	/**
@@ -86,23 +89,6 @@ public class NativeDetector {
 	}
 
 
-	/**
-	 * Record that caller calls callee. This uses the MethodInstances that are in allMethods, 
-	 * but the parameters can be created with new MethodInstance().
-	 * @see MethodInstance
-	 * @param caller			MethodInstance		the method making the call
-	 * @param callee			MethodInstance		the method being called
-	 */
-	public void addCaller(MethodInstance caller, MethodInstance callee) {
-		
-		MethodInstance listCaller = (allMethods.contains(caller)) ? allMethods.get(allMethods.indexOf(caller)) : caller;
-		MethodInstance listCallee = (allMethods.contains(callee)) ? allMethods.get(allMethods.indexOf(callee)) : callee;
-		listCallee.addCaller(listCaller);
-		if (!openMethods.contains(listCaller))  // TODO is this logically right?
-				openMethods.add(listCaller);
-		
-	}
-	
 	
 	
 	/**
@@ -143,11 +129,46 @@ public class NativeDetector {
 				CompleteClassVisitor ccv = new CompleteClassVisitor(Opcodes.ASM4, null, clazz);
 				cr.accept(ccv, 0);
 				
-				allMethods.addAll(ccv.allMethods);
+//				allMethods.addAll(ccv.allMethods);
+				for(MethodInstance mi : ccv.allMethods)
+				{
+					if(allMethodsLookup.containsKey(mi))
+					{
+						allMethods.add(allMethodsLookup.get(mi));
+					}
+					else
+					{
+						allMethodsLookup.put(mi, mi);
+						allMethods.add(mi);
+					}
+				}
 			}
 		}
+		
+		//Follow the chain down to recursively add all callers
+//		for(MethodInstance mi : allMethods)
+//		{
+//			if((mi.getAccess() & Opcodes.ACC_NATIVE) != 0)
+//			{
+		MethodInstance mi = getMethodInstance("java/io/FileSystem", "getFileSystem", "()Ljava/io/FileSystem;");
+				mi.setCallers(findAllCallers(mi,new HashSet<MethodInstance>()));
+//			}
+//		}
 	}
-	
+	private LinkedList<MethodInstance> findAllCallers(MethodInstance mi, HashSet<MethodInstance> expanded)
+	{
+		if(expanded.contains(mi))
+			return new LinkedList<MethodInstance>();
+		LinkedList<MethodInstance> ret = new LinkedList<MethodInstance>();
+		expanded.add(mi);
+
+		ret.addAll(mi.getCallers());
+		for(MethodInstance caller : mi.getCallers())
+		{
+			ret.addAll(findAllCallers(caller,expanded));
+		}
+		return ret;
+	}
 	// use callfindingclassvisitor
 	/**
 	 * TODO comment findAllInvokers
@@ -165,51 +186,9 @@ public class NativeDetector {
 		}
 	}
 	
+
 	
-	/**
-	 * Checks access attribute of each methodinstance in allMethods. NOT recursive.
-	 * @see NativeDetector#allMethods
-	 * @see MethodInstance#getAccess()
-	 */
-	public void selectNativeMethods() {
-		while (!allMethods.isEmpty()) {
-			MethodInstance mi = allMethods.pop();
-			if ((mi.getAccess() & Opcodes.ACC_NATIVE) != 0) {
-				logger.info(mi.getClazz()+"."+mi.getMethod()+" appears to be native");
-				if ((!openMethods.contains(mi)) && (!closedMethods.contains(mi))) {
-					logStats();
-					openMethods.add(mi);
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * Finds all functions that call native methods.
-	 * Requires openMethods to be populated with (all of the) native methods. This handles recursion.
-	 * In each iteration, adds any new methods to openMethods and moves the just-investigated one to closedMethods.
-	 * @see NativeDetector#openMethods
-	 * @see NativeDetector#closedMethods
-	 * @see MethodInstance#getCallers()
-	 */
-	public void findNativeInvokers() {
-		while (!openMethods.isEmpty()) {
-			MethodInstance nativeMethod = openMethods.pop();
-			logStats();
-			LinkedList<MethodInstance> callers = nativeMethod.getCallers();
-			logger.info(callers.size() + " callers of " + nativeMethod.getClazz() + "." + nativeMethod.getMethod().getName());
-			while (!callers.isEmpty()) {
-				MethodInstance caller = callers.pop();
-				if ((!closedMethods.contains(caller)) && (!openMethods.contains(caller))) {
-					openMethods.add(caller);
-					assert(!closedMethods.contains(nativeMethod));
-				}
-			}
-			closedMethods.add(nativeMethod);
-		}
-	}
-	
+
 	
 	/**
 	 * Saves contents of closedMethods to a file.
@@ -222,15 +201,27 @@ public class NativeDetector {
 	 */
 	public void writeClosedMethods(String filename) throws FileNotFoundException {
 		PrintWriter out = new PrintWriter(filename);
-		Iterator<MethodInstance> it = closedMethods.iterator();
-		while (it.hasNext()) {
-			MethodInstance mi = it.next();
-			out.write(mi.getClazz() + "\t\t" + mi.getMethod() + "\n");
+//		Iterator<MethodInstance> it = closedMethods.iterator();
+//		while (it.hasNext()) {
+//			MethodInstance mi = it.next();
+//			out.write(mi.getClazz() + "\t\t" + mi.getMethod() + "\n");
+//		}
+		for(MethodInstance mi : allMethods)
+		{
+			if((mi.getAccess() & Opcodes.ACC_NATIVE) != 0)
+			{
+				out.write(mi.getClazz() + "\t\t" + mi.getMethod() + "\n");
+				for(MethodInstance child : mi.getCallers())
+				{
+					out.write("\t\t"+child.getClazz() + "\t\t" + child.getMethod()+"\n");
+				}
+			}
 		}
 		out.close();
 		logger.info("done with writeClosedMethods");
 	}
 
+	
 	/**
 	 * Debugging method to display how many methods are in each category.
 	 * @see NativeDetector#allMethods
@@ -239,18 +230,9 @@ public class NativeDetector {
 	 */
 	public void logStats() {
 		String semids = ";  ";
-		logger.info("allMethods: " + allMethods.size() + semids + "openMethods: " + openMethods.size() + semids + "closedMethods: " + closedMethods.size());		
-
-	}
-	
-	/**
-	 * Debugging method to display how many methods are in each category.
-	 * @see NativeDetector#allMethods
-	 * @see NativeDetector#openMethods
-	 * @see NativeDetector#closedMethods
-	 */
-	public void logStats(String id) {
-		String semids = ";  ";
+		Exception ex = new Exception();
+		StackTraceElement[] el = ex.getStackTrace();
+		String id = el[1].getClassName() + ". " + el[1].getMethodName() + ":"+el[1].getLineNumber();
 		logger.info(id + "   allMethods: " + allMethods.size() + semids + "openMethods: " + openMethods.size() + semids + "closedMethods: " + closedMethods.size());		
 
 	}
@@ -264,12 +246,16 @@ public class NativeDetector {
 	 * @return				MethodInstance		the corresponding MethodInstance from allMethods
 	 * @see NativeDetector#allMethods
 	 */
-	public MethodInstance getMethodInstance(String clazz, String name, String desc) {
+	public static MethodInstance getMethodInstance(String clazz, String name, String desc) {
 		MethodInstance dummy = new MethodInstance(name, desc, clazz);
-		if (allMethods.contains(dummy)) {
-			return allMethods.get(allMethods.indexOf(dummy));
+
+		MethodInstance ret = allMethodsLookup.get(dummy);
+		if(ret == null)
+		{
+			allMethodsLookup.put(dummy, dummy);
+			ret = dummy;
 		}
-		return null;
+		return ret;
 	}
 
 }
