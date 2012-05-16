@@ -33,4 +33,13 @@ public class JUnitTestCaseClassInspector extends ClassVisitor {
 	public HashMap<JUnitInvivoMethodDescription,JUnitInvivoMethodDescription> getMethodsFlagged() {
 		return methodsFlagged;
 	}
+	
+	private HashMap<JUnitInvivoMethodDescription,JUnitInvivoMethodDescription> testedMethods = new HashMap<JUnitInvivoMethodDescription,JUnitInvivoMethodDescription>();
+	public void addTestedMethod(JUnitInvivoMethodDescription method)
+	{
+		testedMethods.put(method,method);
+	}
+	public HashMap<JUnitInvivoMethodDescription,JUnitInvivoMethodDescription> getTestedMethods() {
+		return testedMethods;
+	}
 }

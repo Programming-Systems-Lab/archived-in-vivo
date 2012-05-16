@@ -11,7 +11,6 @@ public class JUnitInvivoMethodDescription {
 	public String name;
 	public String clazz;
 	public String desc;
-	public boolean isTestCase;
 	public ArrayList<VariableReplacement> replacements = new ArrayList<VariableReplacement>();
 	public static class VariableReplacement
 	{
@@ -67,7 +66,7 @@ public class JUnitInvivoMethodDescription {
 	}
 	@Override
 	public String toString() {
-		return "JUnitInvivoMethodDescription [name=" + name + ", clazz=" + clazz + ", desc=" + desc + ", isTestCase=" + isTestCase + ", replacements="
+		return "JUnitInvivoMethodDescription [name=" + name + ", clazz=" + clazz + ", desc=" + desc + ", replacements="
 				+ replacements + "]";
 	}
 	

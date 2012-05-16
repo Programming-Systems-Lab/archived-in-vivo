@@ -49,14 +49,13 @@ public class JUnitTestCaseMethodInspector extends MethodVisitor {
 		{
 			identifyVariableTypes = true;
 			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(this.name, this.desc);
-			jdesc.isTestCase = true;
 			classInspector.addMethodToProcess(jdesc);
 			return new JUnitTestCaseAnnotationInspector(api, super.visitAnnotation(desc, visible),classInspector,jdesc);
 		}
 		else if(desc.equals(Type.getDescriptor(Tested.class)))
 		{
 			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(null,null);
-			classInspector.addMethodToProcess(jdesc);
+			classInspector.addTestedMethod(jdesc);
 			return new JUnitTestedAnnotationInspector(api, super.visitAnnotation(desc, visible),classInspector,jdesc);
 		}
 		return super.visitAnnotation(desc, visible);

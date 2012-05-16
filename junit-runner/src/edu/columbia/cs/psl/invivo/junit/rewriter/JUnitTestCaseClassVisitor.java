@@ -26,7 +26,7 @@ public class JUnitTestCaseClassVisitor extends BuddyClassVisitor<JUnitTestCaseCl
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc)) && getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc)).isTestCase)
+		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc)))
 		{
 			JUnitInvivoMethodDescription method = getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc));
 			Type[] existingArgs = Type.getArgumentTypes(desc);

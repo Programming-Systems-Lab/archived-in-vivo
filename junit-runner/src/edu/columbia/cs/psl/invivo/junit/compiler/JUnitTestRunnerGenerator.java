@@ -12,13 +12,12 @@ public class JUnitTestRunnerGenerator extends TestRunnerGenerator<JUnitTestCaseC
 
 	@Override
 	public String generateTestRunner() {
-		if(cv.getMethodsFlagged().size() > 0)
+		if(cv.getTestedMethods().size() > 0)
 		{
 			System.out.println(cv.getClassName());
-			for(JUnitInvivoMethodDescription method : cv.getMethodsFlagged().keySet())
+			for(JUnitInvivoMethodDescription method : cv.getTestedMethods().keySet())
 			{
-				if(!method.isTestCase)
-					System.out.println(method);
+				System.out.println(method);
 			}
 		}
 		return null;
