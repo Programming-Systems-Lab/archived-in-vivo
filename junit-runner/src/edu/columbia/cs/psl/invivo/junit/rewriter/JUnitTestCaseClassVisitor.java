@@ -2,10 +2,12 @@ package edu.columbia.cs.psl.invivo.junit.rewriter;
 
 
 import org.apache.log4j.Logger;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import edu.columbia.cs.psl.invivo.junit.annotation.InvivoTest;
 import edu.columbia.cs.psl.invivo.junit.rewriter.JUnitInvivoMethodDescription.VariableReplacement;
 import edu.columbia.cs.psl.invivo.runtime.visitor.BuddyClassVisitor;
 
@@ -21,10 +23,10 @@ public class JUnitTestCaseClassVisitor extends BuddyClassVisitor<JUnitTestCaseCl
 		className = name;
 		super.visitOuterClass(owner, name, desc);
 	}
-	
+
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc)))
+		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc)) && getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc)).isTestCase)
 		{
 			JUnitInvivoMethodDescription method = getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc));
 			Type[] existingArgs = Type.getArgumentTypes(desc);
@@ -47,5 +49,12 @@ public class JUnitTestCaseClassVisitor extends BuddyClassVisitor<JUnitTestCaseCl
 			return new JUnitTestCaseMethodVisitor(access, super.visitMethod(access, name, desc, signature, exceptions), access, name, desc,method);
 		}
 		return super.visitMethod(access, name, desc, signature, exceptions);
+	}
+	
+	@Override
+	public void visitEnd() {
+		//Generate the new test case launcher class which will call the test case method with the appropriate parameters
+		//getBuddy().getMethodsFlagged() will return the methods that are test methods and what the rewrite parameters are
+		super.visitEnd();
 	}
 }

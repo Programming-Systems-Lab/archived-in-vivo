@@ -52,7 +52,7 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 
 			try {
 				Class cl = Class.forName(callee.getClass().getName()+"_InvivoJUnitTests");
-				Method testMethod = getMethod("test"+method.getName()+i, cl);
+				Method testMethod = getMethod("test"+method.getName(), cl);
 				inv.children[i].callee = cl.newInstance();
 				inv.children[i].method = testMethod;
 			} catch (Exception ex) {

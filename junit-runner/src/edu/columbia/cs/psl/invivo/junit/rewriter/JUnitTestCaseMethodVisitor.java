@@ -24,23 +24,17 @@ public class JUnitTestCaseMethodVisitor extends AdviceAdapter {
 		super(api, mv, access, name, desc);
 		this.jdesc = jdesc;
 		this.access = access;
-		System.out.println(desc);
         this.argumentTypes = Type.getArgumentTypes(desc);
         for(VariableReplacement r: jdesc.replacements)
         {
         	changed = true;
         	movedFirstLocal += r.type.getSize();
-        	System.out.println(r.from + " " + r.argIndx + " " + r.indx);
         }
-        System.out.println("Shifting locals back by " + movedFirstLocal);
-        System.out.println(Arrays.toString(this.argumentTypes));
-		System.out.println(jdesc);
 	}
 	
 	private HashSet<Integer> removedLocalVariables = new HashSet<Integer>();
 	@Override
 	public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-		System.out.println("See " + name + " at " + (index + (name.equals("this") ? 0 : movedFirstLocal)) + "size " + Type.getType(desc).getSize());
 			super.visitLocalVariable(name, desc, signature, start, end, index + (name.equals("this") ? 0 : movedFirstLocal));
 	}
    private int getArgIndex(final int arg) {
@@ -85,7 +79,7 @@ public void visitCode() {
 		start = new Label();
 		visitLabel(start);
 		firstLocal = getFirstLocal();
-		System.out.println("First local is at " + firstLocal);
+//		System.out.println("First local is at " + firstLocal);
 		if(argumentTypes.length > 0)
 		for(VariableReplacement s : jdesc.replacements)
 		{
@@ -103,7 +97,7 @@ public void visitCode() {
 //		if(opcode >= Opcodes.ISTORE && removedLocalVariables.contains(var)) //catch all stores that go into removed variables
 //			removeLastPush();
 //		else
-		System.out.println("visiting " + (var + ( ((access & Opcodes.ACC_STATIC) == 0 && var == 0)? 0 : firstLocal)) + " instead of " +var);
+//		System.out.println("visiting " + (var + ( ((access & Opcodes.ACC_STATIC) == 0 && var == 0)? 0 : firstLocal)) + " instead of " +var);
 			super.visitVarInsn(opcode, var + ( ((access & Opcodes.ACC_STATIC) == 0 && var == 0)? 0 : firstLocal));
 	}
 	@Override

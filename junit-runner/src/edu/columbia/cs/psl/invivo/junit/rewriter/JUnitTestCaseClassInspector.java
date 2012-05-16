@@ -7,7 +7,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class JUnitTestCaseClassInspector extends ClassVisitor {
-
+	private String className;
+	@Override
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		this.className = name;
+		super.visit(version, access, name, signature, superName, interfaces);
+	}
+	public String getClassName() {
+		return className;
+	}
 	public JUnitTestCaseClassInspector(int api, ClassVisitor cv) {
 		super(api, cv);
 	}

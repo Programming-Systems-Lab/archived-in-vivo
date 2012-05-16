@@ -9,7 +9,9 @@ import edu.columbia.cs.psl.invivo.junit.annotation.InvivoTest;
 
 public class JUnitInvivoMethodDescription {
 	public String name;
+	public String clazz;
 	public String desc;
+	public boolean isTestCase;
 	public ArrayList<VariableReplacement> replacements = new ArrayList<VariableReplacement>();
 	public static class VariableReplacement
 	{
@@ -22,6 +24,11 @@ public class JUnitInvivoMethodDescription {
 		public VariableReplacement(String from)
 		{
 			this.from = from;
+		}
+
+		@Override
+		public String toString() {
+			return "VariableReplacement [from=" + from + ", to=" + to + ", indx=" + indx + ", type=" + type + ", argIndx=" + argIndx + "]";
 		}
 	}
 	public JUnitInvivoMethodDescription(String name, String desc)
@@ -57,6 +64,11 @@ public class JUnitInvivoMethodDescription {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+	@Override
+	public String toString() {
+		return "JUnitInvivoMethodDescription [name=" + name + ", clazz=" + clazz + ", desc=" + desc + ", isTestCase=" + isTestCase + ", replacements="
+				+ replacements + "]";
 	}
 	
 }
