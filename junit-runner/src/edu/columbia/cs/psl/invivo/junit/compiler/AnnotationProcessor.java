@@ -30,7 +30,7 @@ public class AnnotationProcessor extends AbstractProcessor {
 		return getEnclosingClass(e.getEnclosingElement());
 
 	}
-
+	
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		Filer filer = processingEnv.getFiler();

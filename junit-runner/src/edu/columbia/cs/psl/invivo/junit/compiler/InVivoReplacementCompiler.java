@@ -209,7 +209,7 @@ public static  void testmultiply() {
 //					}
 //					
 //					buf.append(realParams);
-//					buf.append(c.getTypeElement().getSimpleName() + " " + Constants.TEST_OBJECT_PARAM_NAME + ", java.lang.reflect.Method "
+// 					buf.append(c.getTypeElement().getSimpleName() + " " + Constants.TEST_OBJECT_PARAM_NAME + ", java.lang.reflect.Method "
 //							+ Constants.TEST_METHOD_PARAM_NAME);
 //					buf.append(", ");
 //					buf.append(m.getReturnType());
@@ -281,6 +281,4 @@ public static  void testmultiply() {
 			return "Short";
 		return null;
 	}
-
-
 }
