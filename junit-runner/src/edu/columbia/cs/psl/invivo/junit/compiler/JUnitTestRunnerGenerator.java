@@ -13,8 +13,8 @@ public class JUnitTestRunnerGenerator extends TestRunnerGenerator<JUnitTestCaseC
 	@Override
 	public String generateTestRunner() {
 		if(cv.getTestedMethods().size() > 0)
-		{
-			System.out.println(cv.getClassName());
+		{	
+			System.out.println("Class name is" + cv.getClassName());
 			for(JUnitInvivoMethodDescription method : cv.getTestedMethods().keySet())
 			{
 				System.out.println(method);

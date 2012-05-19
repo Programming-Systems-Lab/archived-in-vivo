@@ -38,31 +38,30 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 		
 		// Create a new invocation object to store
 		final MethodInvocation inv = new MethodInvocation();
-		inv.params = params;
-		inv.method = method;
-		inv.callee = callee;
+		inv.setParams(params);
+		inv.setMethod(method);
+		inv.setCallee(callee);
 
 		invocations.put(retId, inv);
 
-		inv.children = new MethodInvocation[cases.length];
+		inv.setChildren(new MethodInvocation[cases.length]);
 		for(int i = 0; i<cases.length; i++)
 		{
-			inv.children[i] = new MethodInvocation();
-			inv.children[i].parent = inv;
+			inv.getChildren()[i] = new MethodInvocation();
+			inv.getChildren()[i].setParent(inv);
 
 			try {
 				Class cl = Class.forName(callee.getClass().getName()+"_InvivoJUnitTests");
 				Method testMethod = getMethod("test"+method.getName()+i, cl);
-				inv.children[i].callee = cl.newInstance();
-				inv.children[i].method = testMethod;
+				inv.getChildren()[i].setCallee(cl.newInstance());
+				inv.getChildren()[i].setMethod(testMethod);
 			} catch (Exception ex) {
 				logger.error("Error creating child: " + ex);
 			}
-			inv.children[i].params = new Object[0];
-
-			inv.children[i].thread = createChildThread(inv.children[i]);
-			inv.children[i].thread.start();
-
+			inv.getChildren()[i].setParams(new Object[0]);
+			
+			inv.getChildren()[i].setThread(createChildThread(inv.getChildren()[i]));
+			inv.getChildren()[i].getThread().start();
 		}
 		
 		return retId;
@@ -74,11 +73,11 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 			return;
 		try {
 			MethodInvocation inv = invocations.remove(id);
-			inv.returnValue = val;
+			inv.setReturnValue(val);
 
-			for (MethodInvocation i : inv.children) {
-				i.thread.join();
-				logger.info("\tChild" + getChildId(i.callee) + " finished");
+			for (MethodInvocation i : inv.getChildren()) {
+				i.getThread().join();
+				logger.info("\tChild" + getChildId(i.getCallee()) + " finished");
 			}
 			logger.info("Invocation result: " + inv);
 		} catch (Exception ex) {
