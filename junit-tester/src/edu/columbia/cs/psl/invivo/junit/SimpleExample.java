@@ -7,8 +7,9 @@ import edu.columbia.cs.psl.invivo.junit.annotation.VariableReplacement;
 public class SimpleExample {
 	@Tested(cases = { @TestCase(clazz = SimpleExampleTest.class, method = "testMultiply", replacements = {
 			@VariableReplacement(from = "tester", to = "new edu.columbia.cs.psl.invivo.junit.SimpleExample()"),
-			@VariableReplacement(from = "otherNumber", to = "x") }) })
+			@VariableReplacement(from = "otherNumber", to = "3") }) })
 	public int multiply(int x, int y) {
+		System.out.println("Multiplying " + x + ","+y);
 		return x * y;
 	}
 

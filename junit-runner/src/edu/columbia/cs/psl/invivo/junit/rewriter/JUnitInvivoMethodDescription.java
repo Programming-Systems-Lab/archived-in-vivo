@@ -9,8 +9,10 @@ import edu.columbia.cs.psl.invivo.junit.annotation.InvivoTest;
 
 public class JUnitInvivoMethodDescription {
 	public String name;
-	public String clazz;
+	public String className;
 	public String desc;
+	public String testMethodName;
+	public String testMethodClass;
 	public ArrayList<VariableReplacement> replacements = new ArrayList<VariableReplacement>();
 	public static class VariableReplacement
 	{
@@ -30,10 +32,11 @@ public class JUnitInvivoMethodDescription {
 			return "VariableReplacement [from=" + from + ", to=" + to + ", indx=" + indx + ", type=" + type + ", argIndx=" + argIndx + "]";
 		}
 	}
-	public JUnitInvivoMethodDescription(String name, String desc)
+	public JUnitInvivoMethodDescription(String name, String desc, String clazz)
 	{
 		this.name = name;
 		this.desc = desc;
+		this.className = clazz;
 	}
 	@Override
 	public int hashCode() {
@@ -41,6 +44,7 @@ public class JUnitInvivoMethodDescription {
 		int result = 1;
 		result = prime * result + ((desc == null) ? 0 : desc.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((className == null) ? 0 : className.hashCode());
 		return result;
 	}
 	@Override
@@ -62,12 +66,18 @@ public class JUnitInvivoMethodDescription {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
+		if(className == null) {
+			if(other.className != null)
+				return false;
+		} else if(!className.equals(other.className))
+			return false;
 		return true;
 	}
 	@Override
 	public String toString() {
-		return "JUnitInvivoMethodDescription [name=" + name + ", clazz=" + clazz + ", desc=" + desc + ", replacements="
-				+ replacements + "]";
+		return "JUnitInvivoMethodDescription [name=" + name + ", className=" + className + ", desc=" + desc + ", testMethodName=" + testMethodName
+				+ ", testMethodClass=" + testMethodClass + ", replacements=" + replacements + "]";
 	}
+
 	
 }

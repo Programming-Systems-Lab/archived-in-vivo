@@ -17,18 +17,19 @@ public class JUnitTestCaseClassVisitor extends BuddyClassVisitor<JUnitTestCaseCl
 		super(api, cv);
 	}
 
-	String className;
+	private String className;
 	@Override
-	public void visitOuterClass(String owner, String name, String desc) {
-		className = name;
-		super.visitOuterClass(owner, name, desc);
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+
+		this.className = name;
+		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc)))
+		if(getBuddy().getMethodsFlagged().containsKey(new JUnitInvivoMethodDescription(name, desc,className)))
 		{
-			JUnitInvivoMethodDescription method = getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc));
+			JUnitInvivoMethodDescription method = getBuddy().getMethodsFlagged().get(new JUnitInvivoMethodDescription(name, desc,className));
 			Type[] existingArgs = Type.getArgumentTypes(desc);
 			Type[] newArgs = new Type[existingArgs.length + method.replacements.size()];
 			for(int i = 0; i < existingArgs.length; i++)
