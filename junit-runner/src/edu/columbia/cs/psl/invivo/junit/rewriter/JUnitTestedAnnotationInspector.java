@@ -1,6 +1,7 @@
 package edu.columbia.cs.psl.invivo.junit.rewriter;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Type;
 
 import edu.columbia.cs.psl.invivo.junit.rewriter.JUnitInvivoMethodDescription.VariableReplacement;
 
@@ -23,9 +24,9 @@ public class JUnitTestedAnnotationInspector extends AnnotationVisitor{
 					public void visit(String name, Object value) {
 
 						if("clazz".equals(name))
-							method.clazz = value.toString();
+							method.testMethodClass = Type.getType(value.toString()).getInternalName();
 						else if("method".equals(name))
-							method.name = value.toString();
+							method.testMethodName= value.toString();
 					}
 					@Override
 					public AnnotationVisitor visitArray(String name) {

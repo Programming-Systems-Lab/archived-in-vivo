@@ -15,17 +15,19 @@ public class JUnitTestCaseMethodInspector extends MethodVisitor {
 	private JUnitTestCaseClassInspector classInspector;
 	private String name;
 	private String desc;
-	public JUnitTestCaseMethodInspector(int api, int access, MethodVisitor mv, JUnitTestCaseClassInspector classInspector, String name, String desc) {
+	private String className;
+	public JUnitTestCaseMethodInspector(int api, int access, MethodVisitor mv, JUnitTestCaseClassInspector classInspector, String name, String desc, String className) {
 		super(api,mv);
 		this.classInspector= classInspector;
 		this.name = name;
+		this.className = className;
 		this.desc = desc;
 	}
 	@Override
 	public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
 		if(identifyVariableTypes)
 		{
-			JUnitInvivoMethodDescription jdesc = classInspector.getMethodsFlagged().get(new JUnitInvivoMethodDescription(this.name, this.desc));
+			JUnitInvivoMethodDescription jdesc = classInspector.getMethodsFlagged().get(new JUnitInvivoMethodDescription(this.name, this.desc,this.className));
 			for(VariableReplacement s : jdesc.replacements)
 			{
 				if(s.from.equals(name))
@@ -48,13 +50,13 @@ public class JUnitTestCaseMethodInspector extends MethodVisitor {
 		if(desc.equals(Type.getDescriptor(InvivoTest.class)))
 		{
 			identifyVariableTypes = true;
-			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(this.name, this.desc);
+			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(this.name, this.desc,this.className);
 			classInspector.addMethodToProcess(jdesc);
 			return new JUnitTestCaseAnnotationInspector(api, super.visitAnnotation(desc, visible),classInspector,jdesc);
 		}
 		else if(desc.equals(Type.getDescriptor(Tested.class)))
 		{
-			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(null,null);
+			JUnitInvivoMethodDescription jdesc = new JUnitInvivoMethodDescription(this.name,this.desc,this.className);
 			classInspector.addTestedMethod(jdesc);
 			return new JUnitTestedAnnotationInspector(api, super.visitAnnotation(desc, visible),classInspector,jdesc);
 		}
