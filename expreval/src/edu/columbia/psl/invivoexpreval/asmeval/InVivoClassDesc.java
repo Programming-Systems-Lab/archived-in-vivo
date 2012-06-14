@@ -11,12 +11,12 @@ public class InVivoClassDesc {
     
     private String className;
     
-    private Map<InVivoMethodDesc, List<VariableReplacement>> classMethods;
+    private Map<InVivoMethodDesc, List<InVivoVariableReplacement>> classMethods;
     
     private List<InVivoIdentifierDesc> classFields;
     
     public InVivoClassDesc() {
-        classMethods = new HashMap<InVivoMethodDesc, List<VariableReplacement>>();
+        classMethods = new HashMap<InVivoMethodDesc, List<InVivoVariableReplacement>>();
     }
 
     public String getClassName() {
@@ -27,11 +27,11 @@ public class InVivoClassDesc {
         this.className = className;
     }
     
-    public void addMethod(InVivoMethodDesc method, List<VariableReplacement> replacements) {
+    public void addMethod(InVivoMethodDesc method, List<InVivoVariableReplacement> replacements) {
         this.classMethods.put(method, replacements);
     }
     
-    public Map<InVivoMethodDesc, List<VariableReplacement>> getClassMethods() {
+    public Map<InVivoMethodDesc, List<InVivoVariableReplacement>> getClassMethods() {
         return this.classMethods;
     }
 

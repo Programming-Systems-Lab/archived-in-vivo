@@ -164,7 +164,7 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
     }
 
     private void emitInVivoMethods(InVivoClassDesc cls, ASTParser parser) {
-        for (Entry<InVivoMethodDesc, List<VariableReplacement>> a : cls.getClassMethods()
+        for (Entry<InVivoMethodDesc, List<InVivoVariableReplacement>> a : cls.getClassMethods()
             .entrySet()) {
             this.insnStack.clear();
 
@@ -190,15 +190,15 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
              */
             this.currentIndex = this.currentMethod.getLocals().size();
 
-            for (VariableReplacement replacement : a.getValue()) {
+            for (InVivoVariableReplacement replacement : a.getValue()) {
                 // Declare the instance in a variable
-                if (!replacement.type.getClassName().equals("java.lang.Integer")) {
+                if (!replacement.getType().getClassName().equals("java.lang.Integer")) {
                     this.getMethodVisitor().visitTypeInsn(NEW,
-                        replacement.type.getClassName().replace('.', '/'));
+                        replacement.getType().getClassName().replace('.', '/'));
                     this.getMethodVisitor().visitInsn(DUP);
                 }
 
-                parser.setSource(replacement.to.toCharArray());
+                parser.setSource(replacement.getTo().toCharArray());
                 parser.setKind(ASTParser.K_EXPRESSION);
                 Expression expr = (Expression) parser.createAST(null);
                 expr.accept(this.asmVisitor);

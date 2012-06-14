@@ -67,7 +67,7 @@ public class InVivoMethodDesc {
         return this.methodReturnType;
     }
 
-    public void setMethodReturnType(String methodReturnType) {
+    private void setMethodReturnType(String methodReturnType) {
         this.methodReturnType = methodReturnType;
     }
 
@@ -80,7 +80,7 @@ public class InVivoMethodDesc {
     }
 
     public String getMethodTestMethod() {
-        return methodTestMethod;
+        return this.methodTestMethod;
     }
 
     public void setMethodTestMethod(String methodTestMethod) {
