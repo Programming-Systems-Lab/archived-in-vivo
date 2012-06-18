@@ -71,5 +71,10 @@ public class SimpleExampleTest {
 		Integer otherNumber = 50;
 		assertEquals(number, tester.multiply(otherNumber, 2));
 	}
+	
+	public void testMultipl(SimpleExample tester, int number) {
+		System.out.println("We are in test and the value passed is: " + number);
+		assertEquals(2 * number, tester.multiply(2, number));
+	}
 
 }

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -32,13 +33,14 @@ import org.eclipse.jdt.core.dom.Type;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.LocalVariableNode;
 
 public class InVivoAsmEval extends ClassLoader implements Opcodes {
 
-    public Stack<InsnType> insnStack;
+    public Stack<InsnType> insnStack = new Stack<InsnType>();
 
     private ClassWriter classWriter;
 
@@ -80,7 +82,7 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
     }
 
     public InVivoIdentifierDesc isCurrentClassField(String var) {
-        if (this.currentClass.getClassFields().isEmpty()) {
+        if (this.currentClass.getClassFields() == null) {
             List<InVivoIdentifierDesc> fieldNodes =
                 InferenceEngine.getClassFields(this.currentClass.getClassName());
             this.currentClass.setClassFields(fieldNodes);
@@ -146,7 +148,6 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
                 this.classWriter.toByteArray().length);
 
         try {
-            System.out.println(exampleClass.getMethods()[0]);
             exampleClass.getMethods()[0].invoke(exampleClass.newInstance(), 1, 2);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -161,6 +162,101 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
         }
 
         return this.classWriter.toByteArray();
+    }
+    
+    public void emitInterceptingInvivoInsn(Entry<InVivoMethodDesc, List<InVivoVariableReplacement>> mDesc, MethodVisitor mv) {
+        this.setMethodVisitor(mv);
+        this.insnStack.clear();
+        
+        /* Check if we are not repeating ourselves... */
+        mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService", "service", "Ledu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService;");
+        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getId", "()J");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "edu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService", "isRunning", "(J)Z");
+        Label l1 = new Label();
+        mv.visitJumpInsn(IFNE, l1);
+        
+        mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService", "service", "Ledu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService;");
+        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getId", "()J");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "edu/columbia/cs/psl/invivo/runtime/InterceptorExecutorService", "insertThis", "(J)V");
+        
+        ASTParser parser = ASTParser.newParser(AST.JLS3);
+        List<String> loadVals = new ArrayList<String>(); 
+        
+        InVivoMethodDesc d =
+            InferenceEngine.getMethodInfo(
+                mDesc.getKey().getMethodParentClass().substring(
+                    mDesc.getKey().getMethodParentClass().lastIndexOf('/') + 1),
+                mDesc.getKey().getMethodName(), "").get(0);
+
+        this.currentMethod = d;
+        
+        this.currentClass = mDesc.getKey().getMethodParentClassDesc();
+        
+        this.currentIndex = d.getLocals().size();
+
+        for (InVivoVariableReplacement replacement : mDesc.getValue()) {
+            // Declare the instance in a variable
+            if (!(replacement.getType().getClassName().equals("java.lang.Integer") ||
+                replacement.getType().getClassName().equals("java.lang.Double") ||
+                replacement.getType().getClassName().equals("java.lang.Float") ||
+                replacement.getType().getClassName().equals("java.lang.Long") ||
+                replacement.getType().getClassName().equals("int") ||
+                replacement.getType().getClassName().equals("double") ||
+                replacement.getType().getClassName().equals("float") ||
+                replacement.getType().getClassName().equals("long"))) {
+                this.getMethodVisitor().visitTypeInsn(NEW,
+                    replacement.getType().getClassName().replace('.', '/'));
+                this.getMethodVisitor().visitInsn(DUP);
+            }
+
+            parser.setSource(replacement.getTo().toCharArray());
+            parser.setKind(ASTParser.K_EXPRESSION);
+            Expression expr = (Expression) parser.createAST(null);
+            expr.accept(this.asmVisitor);
+
+            this.emitByteCode();
+
+            this.exprType = this.getExpressionType(expr);
+            if (this.exprType.equals("I")) {
+                this.getMethodVisitor().visitVarInsn(ISTORE, this.currentIndex);
+            } else if (this.exprType.equals("D"))
+                this.getMethodVisitor().visitVarInsn(DSTORE, this.currentIndex);
+            else if (this.exprType.equals("F"))
+                this.getMethodVisitor().visitVarInsn(FSTORE, this.currentIndex);
+            else {
+                this.getMethodVisitor().visitVarInsn(ASTORE, this.currentIndex);
+            }
+            loadVals.add(this.exprType);
+            this.currentIndex++;
+        }
+        
+        this.getMethodVisitor().visitTypeInsn(NEW, mDesc.getKey().getMethodTestClass());
+        this.getMethodVisitor().visitInsn(DUP);
+        this.getMethodVisitor().visitMethodInsn(INVOKESPECIAL, mDesc.getKey().getMethodTestClass(), "<init>", "()V");
+        
+        for (int i = d.getLocals().size(); i < currentIndex; i++) {
+            if (loadVals.get(i - d.getLocals().size()).equals("I")) {
+                this.getMethodVisitor().visitVarInsn(ILOAD, i);
+            } else if (loadVals.get(i - d.getLocals().size()).equals("D")) {
+                this.getMethodVisitor().visitVarInsn(DLOAD, i);
+            } else if (loadVals.get(i - d.getLocals().size()).equals("F")) {
+                this.getMethodVisitor().visitVarInsn(FLOAD, i);
+            } else if (loadVals.get(i - d.getLocals().size()).equals("L")) {
+                this.getMethodVisitor().visitVarInsn(LLOAD, i);
+            } else {
+                this.getMethodVisitor().visitVarInsn(ALOAD, i);
+            }
+        }
+        
+        this.getMethodVisitor().visitMethodInsn(INVOKEVIRTUAL, 
+            mDesc.getKey().getMethodTestClass(), 
+            "testMultipl", 
+            "(Ledu/columbia/cs/psl/invivo/junit/SimpleExample;I)V");
+        
+        mv.visitLabel(l1);
+        
     }
 
     private void emitInVivoMethods(InVivoClassDesc cls, ASTParser parser) {
@@ -382,17 +478,20 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
 
     private void emitPushInteger(int index) {
         switch (index) {
-        case 1:
+        case 0:
             this.getMethodVisitor().visitInsn(ICONST_0);
             break;
-        case 2:
+        case 1:
             this.getMethodVisitor().visitInsn(ICONST_1);
             break;
-        case 3:
+        case 2:
             this.getMethodVisitor().visitInsn(ICONST_2);
             break;
-        case 4:
+        case 3:
             this.getMethodVisitor().visitInsn(ICONST_3);
+            break;
+        case 4:
+            this.getMethodVisitor().visitInsn(ICONST_4);
             break;
         case 5:
             this.getMethodVisitor().visitInsn(ICONST_5);
@@ -678,7 +777,7 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
              */
             getMethodVisitor().visitMethodInsn(INVOKESTATIC, predName.replace('.', '/'),
                 methodName, // Method call itself
-                "(" + invocationDesc.toString() + ")L" + predName.replace('.', '/') + ";");
+                "(" + invocationDesc.toString() + ")" + this.getExpressionType(currentInsn.getInsn()));
         }
     }
 
@@ -752,6 +851,13 @@ public class InVivoAsmEval extends ClassLoader implements Opcodes {
                             invocationDesc.toString()).get(0);
                     InVivoAsmEval.this.exprType = methodDesc.getMethodReturnType();
                 } else {
+                    if (!varName.equals("")) {
+                        InVivoMethodDesc methodDesc =
+                            InferenceEngine.getMethodInfo(predName, methodName,
+                                invocationDesc.toString()).get(0);
+                        InVivoAsmEval.this.exprType = methodDesc.getMethodReturnType();
+                        return false;
+                    }
                     /**
                      * If its a static case, simply return the class name which
                      * has been suitably modified.

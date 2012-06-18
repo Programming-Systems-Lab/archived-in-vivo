@@ -39,6 +39,8 @@ public class JUnitTestRunnerGenerator extends TestRunnerGenerator<JUnitTestCaseC
 		dsc.setClassName(cv.getClassName());
 		for (JUnitInvivoMethodDescription m : cv.getTestedMethods().keySet()) {
 			InVivoMethodDesc mDesc = new InVivoMethodDesc();
+			mDesc.setMethodParentClassDesc(dsc);
+			mDesc.setMethodParentClass(m.className);
 			mDesc.setMethodDesc(m.desc);
 			mDesc.setMethodName(m.name);
 			mDesc.setMethodTestClass(m.testMethodClass);
