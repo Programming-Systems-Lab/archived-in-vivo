@@ -12,7 +12,7 @@ public class SimpleExample {
 	
 	@Tested(cases = { @TestCase(clazz = SimpleExampleTest.class, method = "testMultiply", replacements = {
 			@VariableReplacement(from = "tester", to = "new edu.columbia.cs.psl.invivo.junit.SimpleExample()"),
-			@VariableReplacement(from = "otherNumber", to = "x - y - 2*y") }) })
+			@VariableReplacement(from = "otherNumber", to = "x + y - 2*y") }) })
 	public int multiply(int x, int y) {
 		System.out.println("Multiplying " + x + ","+y);
 		return x * y;
