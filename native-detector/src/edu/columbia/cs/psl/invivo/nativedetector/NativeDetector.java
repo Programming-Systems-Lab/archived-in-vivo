@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Stack;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -132,17 +133,7 @@ public class NativeDetector {
 	}
 	
 	
-//
-//// parse classes into methods {
-//	// for each method foo in the class
-//		// is foo native or in dirty list?
-//			// maybeAddToDirtyList(foo)
-//		// else (foo not native && not in dirty list)
-//			// maybeAddToUnknownList(foo)
-//			// for each function A that foo calls
-//				// addUnknownCaller(A, foo)		
-//// }
-//
+
 //	
 //// maybeAddToDirtyList {
 //	// is foo already in the dirty table?
@@ -176,13 +167,69 @@ public class NativeDetector {
 //// }
 //	
 //	
-//	
-//	
-//	
-//	
-//	
-//	
-//	
+
+//
+////parse classes into methods {
+//	// for each method foo in the class
+//		// is foo native or in dirty list?
+//			// maybeAddToDirtyList(foo)
+//		// else (foo not native && not in dirty list)
+//			// maybeAddToUnknownList(foo)
+//			// for each function A that foo calls
+//				// addUnknownCaller(A, foo)		
+////}
+//
+	
+	public int addToUnknownList(String unknownFxn) {
+		if (dirtyList.containsKey(unknownFxn)) {
+			logger.error(unknownFxn + " already in dirtyList");
+			return 1;
+		} else if (!unknownList.containsKey(unknownFxn)) {
+			unknownList.put(unknownFxn, new ArrayList<String>());
+			return 0;
+		}
+		return 0;
+	}
+	
+	public int addToDirtyList(String dirtyFxn) {
+		if (!dirtyList.containsKey(dirtyFxn)) {
+			dirtyList.put(dirtyFxn, new ArrayList<String>());
+		}
+		return 0;
+	}
+	
+	public int addUnknownCaller(String fxn, String caller) {
+		if (unknownList.containsKey(fxn)) {
+			unknownList.get(fxn).add(caller);
+			return 0;
+		} else if (!dirtyList.containsKey(fxn)){
+			logger.error("[addUnknownCaller] neither list contains " + fxn);
+			return 1;
+		}
+		return 2;
+	}
+	
+	public int addDirtyCaller(String fxn, String caller) {
+		
+		if (unknownList.containsKey(fxn)) {
+			ArrayList<String> callerList = unknownList.get(fxn);
+			if (!callerList.contains(caller)) {
+				callerList.add(caller);
+			}
+			dirtyList.put(fxn, callerList);
+			return 0;
+		} else if (!dirtyList.containsKey(fxn)) {
+			logger.error("[addDirtyCaller] neither list contains " + fxn);
+			return 1;
+		}
+		return 2;
+	}
+	
+	
+	
+	
+	
+	
 //	
 //	
 //	
