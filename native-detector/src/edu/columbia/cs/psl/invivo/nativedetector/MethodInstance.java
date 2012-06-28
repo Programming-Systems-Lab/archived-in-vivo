@@ -12,6 +12,9 @@ import org.objectweb.asm.commons.Method;
  */
 public class MethodInstance {
 	
+	public static LinkedList<Integer> getCallersOf(int index) {
+		return NativeDetector.allMethods.get(index).calledBy;
+	}
 	
 	@Override
 	public String toString() {
@@ -39,13 +42,21 @@ public class MethodInstance {
 	private int access;
 	
 	/**
-	 * List of MethodInstances that invoke this method.
-	 * private LinkedList<MethodInstance> calledBy
+	 * List of MethodInstance indices that invoke this method.
+	 * private LinkedList<Integer> calledBy
 	 * @see MethodInstance#addCaller(MethodInstance)
 	 * @see MethodInstance#getCallers()
 	 * @see NativeDetector#addCaller(MethodInstance, MethodInstance)
 	 */
-	private LinkedList<MethodInstance> calledBy = new LinkedList<MethodInstance>();
+//	private LinkedList<MethodInstance> calledBy = new LinkedList<MethodInstance>();
+	private LinkedList<Integer> calledBy = new LinkedList<Integer>();
+
+	
+	
+	
+	// TODO comment calls list
+	@Deprecated
+	public LinkedList<Long> calls = new LinkedList<Long>();
 	
 	/**
 	 * Constructor for MethodInstance - accepts pre-formed method and a class name.
@@ -125,9 +136,15 @@ public class MethodInstance {
 	 * Attach a new invoker to this method.
 	 * @param caller			MethodInstance	method that calls this one
 	 * @see NativeDetector#addCaller(MethodInstance, MethodInstance)
-	 */
+	 
 	public void addCaller(MethodInstance caller) {
 		this.calledBy.add(caller);
+	}
+	*/
+	
+	 
+	public void addCaller(int callerIndex) {
+		this.calledBy.add(callerIndex);
 	}
 	
 	/**
@@ -137,7 +154,7 @@ public class MethodInstance {
 	 * @param caller			MethodInstance	method that might call this one
 	 * @return					boolean			true - yes, false - no
 	 */
-	public boolean calledBy(MethodInstance caller) {
+	public boolean calledBy(int caller) {
 		if (this.calledBy.contains(caller)) {
 			return true;
 		}
@@ -146,10 +163,11 @@ public class MethodInstance {
 	
 	/**
 	 * Get list of MethodInstances that invoke this one.
-	 * @return					LinkedList<MethodInstance>
+	 * @return					LinkedList<Integer>
 	 * @see MethodInstance#calledBy
 	 */
-	public LinkedList<MethodInstance> getCallers() {
+	@Deprecated
+	public LinkedList<Integer> getCallers() {
 		return this.calledBy;
 	}
 	
@@ -195,7 +213,7 @@ public class MethodInstance {
 		this.access = access;
 	}
 
-	public void setCallers(LinkedList<MethodInstance> calledBy) {
+	public void setCallers(LinkedList<Integer> calledBy) {
 		this.calledBy = calledBy;
 	}
 

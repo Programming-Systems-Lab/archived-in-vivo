@@ -1,7 +1,6 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.io.IOException;
-import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
@@ -19,11 +18,11 @@ public class InvocationFindingTester {
 		
 		nd.getAllClasses();
 		logger.info("getAllClasses done");
-		nd.logStats();
+	//	nd.logStats();
 		
 		nd.getAllMethods();
 		logger.info("getAllMethods done");
-		nd.logStats();
+	//	nd.logStats();
 		
 //		MethodInstance dummy = new MethodInstance("println", "(Ljava/lang/String;)V", "java/io/PrintStream");
 //		System.out.println(dummy.hashCode());
@@ -60,9 +59,9 @@ public class InvocationFindingTester {
 //		
 //		nd.findNativeInvokers();
 		logger.info("findNativeInvokers done");
-		nd.logStats();
+	//	nd.logStats();
 //		
-		nd.writeClosedMethods("test.txt");
+		//nd.writeClosedMethods("test.txt");
 
 	}
 

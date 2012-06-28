@@ -17,5 +17,7 @@ public class DummyMethodVisitor extends MethodVisitor{
 	 */
 	public DummyMethodVisitor(int api, MethodVisitor mv) {
 		super(api, mv);
+		NativeDetector.numMethodCalls++;
+
 	}
 }

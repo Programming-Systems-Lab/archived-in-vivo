@@ -1,6 +1,5 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
-import org.apache.log4j.Logger;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -18,9 +17,6 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	 */
 	public MethodInstance methodInstance;
 	
-	
-	//TODO comment logger in CallFindingMethodVisitor
-	private static Logger logger = Logger.getLogger(CallFindingMethodVisitor.class);
 	int count = 0;
 	/**
 	 * Constructor for CallFindingMethodVisitor. Its third argument is assumed to be the MethodInstance 
@@ -54,7 +50,9 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		//logger.info(owner + "." + name);
 		//engine.logStats();
-		NativeDetector.getMethodInstance(owner, name, desc).addCaller(this.methodInstance);
+		MethodInstance mi = new MethodInstance(name, desc, owner);
+		this.methodInstance.calls.add((long) NativeDetector.allMethods.indexOf(mi));
+		//		NativeDetector.getMethodInstance(owner, name, desc).addCaller(this.methodInstance);
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 	
