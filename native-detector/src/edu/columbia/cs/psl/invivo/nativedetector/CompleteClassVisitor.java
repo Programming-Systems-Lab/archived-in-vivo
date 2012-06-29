@@ -3,6 +3,7 @@ package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.util.LinkedList;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -11,6 +12,8 @@ import org.objectweb.asm.MethodVisitor;
  * TODO comment this
  */
 public class CompleteClassVisitor extends ClassVisitor {
+	
+	private static Logger logger = Logger.getLogger(CompleteClassVisitor.class);
 	private String className;
 	LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
 	LinkedList<String> allMethodNames = new LinkedList<String>();
@@ -33,7 +36,7 @@ public class CompleteClassVisitor extends ClassVisitor {
 			String signature, String[] exceptions) {
 
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
-		
+
 		NativeDetector.allMethods.add(mi);
 		
 	//	this.allMethods.add(mi);

@@ -3,6 +3,8 @@ package edu.columbia.cs.psl.invivo.nativedetector;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
 
 /**
  * @author miriammelnick
@@ -21,15 +23,23 @@ public class NativeDetectorTester {
 	/**
 	 * Main testing function. Requires no command line arguments.
 	 * @param args			String[]
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		NativeDetector engine = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 
+		engine.getAllClasses();
+		engine.getAllMethods();
+		
 		for (MethodInstance mi: NativeDetector.allMethods) {
 			engine.addLinksToChildren(mi);
 		}
-		engine.makeQueue();
-		engine.processQueue();
+		
+		logger.info("dM: " + engine.dirtyMap.size() + "; uM: " + engine.unprocessedMap.size() + "; q: " + engine.dirtyQueue.size() + "; uM=" + engine.unprocessedMap);
+		logger.info("dM=" + engine.dirtyMap);
+		
+	//	engine.makeQueue();
+	//	engine.processQueue();
 
 		logger.info("done with test.");
 		

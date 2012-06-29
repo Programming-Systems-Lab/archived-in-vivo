@@ -187,66 +187,66 @@ public class NativeDetector {
 //				// addUnknownCaller(A, foo)		
 ////}
 //
-	public LinkedList<MethodInstance> getMethodsInClass(String className) throws IOException {
-		ClassReader cr = new ClassReader(className);
-		CompleteClassVisitor cv = new CompleteClassVisitor(Opcodes.ASM4, null, className);
-		cr.accept(cv, 0);
-		return cv.allMethods;
-	}
-	
-	public void addMethodsToRightList(LinkedList<MethodInstance> methodList) {
-		for(MethodInstance mi : methodList) {
-			if (mi.isNative()) {
-				addToDirtyList(mi.getMethod().toString());
-			}
-		}
-		
-	}
-	
-	public int addToUnknownList(String unknownFxn) {
-		if (dirtyList.containsKey(unknownFxn)) {
-			logger.error(unknownFxn + " already in dirtyList");
-			return 1;
-		} else if (!unknownList.containsKey(unknownFxn)) {
-			unknownList.put(unknownFxn, new ArrayList<String>());
-			return 0;
-		}
-		return 0;
-	}
-	
-	public int addToDirtyList(String dirtyFxn) {
-		if (!dirtyList.containsKey(dirtyFxn)) {
-			dirtyList.put(dirtyFxn, new ArrayList<String>());
-		}
-		return 0;
-	}
-	
-	public int addUnknownCaller(String fxn, String caller) {
-		if (unknownList.containsKey(fxn)) {
-			unknownList.get(fxn).add(caller);
-			return 0;
-		} else if (!dirtyList.containsKey(fxn)){
-			logger.error("[addUnknownCaller] neither list contains " + fxn);
-			return 1;
-		}
-		return 2;
-	}
-	
-	public int addDirtyCaller(String fxn, String caller) {
-		
-		if (unknownList.containsKey(fxn)) {
-			ArrayList<String> callerList = unknownList.get(fxn);
-			if (!callerList.contains(caller)) {
-				callerList.add(caller);
-			}
-			dirtyList.put(fxn, callerList);
-			return 0;
-		} else if (!dirtyList.containsKey(fxn)) {
-			logger.error("[addDirtyCaller] neither list contains " + fxn);
-			return 1;
-		}
-		return 2;
-	}
+//	public LinkedList<MethodInstance> getMethodsInClass(String className) throws IOException {
+//		ClassReader cr = new ClassReader(className);
+//		CompleteClassVisitor cv = new CompleteClassVisitor(Opcodes.ASM4, null, className);
+//		cr.accept(cv, 0);
+//		return cv.allMethods;
+//	}
+//	
+//	public void addMethodsToRightList(LinkedList<MethodInstance> methodList) {
+//		for(MethodInstance mi : methodList) {
+//			if (mi.isNative()) {
+//				addToDirtyList(mi.getMethod().toString());
+//			}
+//		}
+//		
+//	}
+//	
+//	public int addToUnknownList(String unknownFxn) {
+//		if (dirtyList.containsKey(unknownFxn)) {
+//			logger.error(unknownFxn + " already in dirtyList");
+//			return 1;
+//		} else if (!unknownList.containsKey(unknownFxn)) {
+//			unknownList.put(unknownFxn, new ArrayList<String>());
+//			return 0;
+//		}
+//		return 0;
+//	}
+//	
+//	public int addToDirtyList(String dirtyFxn) {
+//		if (!dirtyList.containsKey(dirtyFxn)) {
+//			dirtyList.put(dirtyFxn, new ArrayList<String>());
+//		}
+//		return 0;
+//	}
+//	
+//	public int addUnknownCaller(String fxn, String caller) {
+//		if (unknownList.containsKey(fxn)) {
+//			unknownList.get(fxn).add(caller);
+//			return 0;
+//		} else if (!dirtyList.containsKey(fxn)){
+//			logger.error("[addUnknownCaller] neither list contains " + fxn);
+//			return 1;
+//		}
+//		return 2;
+//	}
+//	
+//	public int addDirtyCaller(String fxn, String caller) {
+//		
+//		if (unknownList.containsKey(fxn)) {
+//			ArrayList<String> callerList = unknownList.get(fxn);
+//			if (!callerList.contains(caller)) {
+//				callerList.add(caller);
+//			}
+//			dirtyList.put(fxn, callerList);
+//			return 0;
+//		} else if (!dirtyList.containsKey(fxn)) {
+//			logger.error("[addDirtyCaller] neither list contains " + fxn);
+//			return 1;
+//		}
+//		return 2;
+//	}
 	
 	
 	
@@ -414,6 +414,22 @@ public class NativeDetector {
 ////		}
 ////	}
 //	
+	public void getAllMethods() throws IOException {
+		LinkedList<String> listOfClasses = new LinkedList<String>();
+		listOfClasses.addAll(allClasses);
+		while (!listOfClasses.isEmpty()) {
+			String className = listOfClasses.pop();
+			
+			ClassReader cr = new ClassReader(className);
+			CompleteClassVisitor ccv = new CompleteClassVisitor(Opcodes.ASM4, null, className);
+			cr.accept(ccv, 0);
+			
+			allMethods.addAll(ccv.allMethods);
+			logger.info("methods: " + allMethods.size());
+		}
+	}
+	
+	
 //	/**
 //	 * Reads in openClasses and adds all methods from each class to allMethods.
 //	 * Relies on openClasses already being populated.

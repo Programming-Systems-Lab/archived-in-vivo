@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
+import java.util.LinkedList;
+
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -11,7 +13,7 @@ import org.objectweb.asm.MethodVisitor;
 public class DummyMethodVisitor extends MethodVisitor{
 
 	MethodInstance mi;
-	
+		
 	/**
 	 * Constructor for DummyMethodVisitor. Simply invokes superclass constructor.
 	 * @param api				int				Generally Opcodes.ASM4
