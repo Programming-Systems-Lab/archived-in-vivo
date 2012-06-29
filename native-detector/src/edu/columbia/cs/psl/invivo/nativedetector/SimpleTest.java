@@ -2,6 +2,7 @@ package edu.columbia.cs.psl.invivo.nativedetector;
 
 
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.Opcodes;
@@ -11,6 +12,10 @@ public class SimpleTest {
 	private static Logger logger = Logger.getLogger(SimpleTest.class);
 	
 	public static void main(String[] args) {
+		smallTest();
+	}
+		
+	private static Set<String> smallTest() {
 		NativeDetector nd = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 		/*
 		 * a
@@ -30,9 +35,12 @@ public class SimpleTest {
 		
 		MethodInstance ccc = new MethodInstance("methodC", "descC", "classC");
 		
+		nd.methodMap.put(a.getFullName(), a);
+		nd.methodMap.put(bb.getFullName(), bb);
+		nd.methodMap.put(ccc.getFullName(), ccc);
 		
-		a.functionsICall.add(bb.getFullName());
-		bb.functionsICall.add(ccc.getFullName());
+		nd.methodMap.get(a.getFullName()).functionsICall.add(bb.getFullName());
+		nd.methodMap.get(bb.getFullName()).functionsICall.add(ccc.getFullName());
 		
 		nd.unprocessedMap.put(bb.getFullName(), callsBB);
 		logger.info("dM: " + nd.dirtyMap.size() + "; uM: " + nd.unprocessedMap.size() + "; q: " + nd.dirtyQueue.size() + "; uM=" + nd.unprocessedMap);
@@ -56,5 +64,9 @@ public class SimpleTest {
 		
 		logger.info("done with test.");
 		
+		
+		logger.info(nd.dirtyMap.keySet());
+
+		return nd.dirtyMap.keySet();
 	}
 }

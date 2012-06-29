@@ -38,7 +38,7 @@ public class CallFindingClassVisitor extends ClassVisitor{
 
 		//logger.info(className + ": " + name);
 //		engine.logStats();
-		MethodInstance mi = NativeDetector.getMethodInstance(this.className, name, desc);
+	//	MethodInstance mi = NativeDetector.getMethodInstance(this.className, name, desc);
 		//MethodInstance mi = new MethodInstance(this.className, name, desc, access); //TODO undebug
 		return new CallFindingMethodVisitor(api, super.visitMethod(
 				access, name, desc, signature, exceptions), mi);

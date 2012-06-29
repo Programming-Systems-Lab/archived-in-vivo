@@ -51,7 +51,8 @@ public class CallFindingMethodVisitor extends MethodVisitor {
 		//logger.info(owner + "." + name);
 		//engine.logStats();
 		MethodInstance mi = new MethodInstance(name, desc, owner);
-		this.methodInstance.calls.add((long) NativeDetector.allMethods.indexOf(mi));
+		
+	//	this.methodInstance.calls.add((long) NativeDetector.allMethods.indexOf(mi));
 		//		NativeDetector.getMethodInstance(owner, name, desc).addCaller(this.methodInstance);
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}

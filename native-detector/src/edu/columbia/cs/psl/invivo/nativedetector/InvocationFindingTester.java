@@ -20,7 +20,7 @@ public class InvocationFindingTester {
 		logger.info("getAllClasses done");
 	//	nd.logStats();
 		
-		nd.getAllMethods();
+	//	nd.getAllMethods();
 		logger.info("getAllMethods done");
 	//	nd.logStats();
 		

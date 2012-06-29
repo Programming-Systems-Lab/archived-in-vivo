@@ -98,9 +98,10 @@ public class NativeDetector {
 		jarPath = jarURL;
 	}
 
-	HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>();
-	HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>();
+	HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
+	HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
 	LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
+	HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
 	
 	static HashMap<String,ArrayList<String>> dirtyList = new HashMap<String, ArrayList<String>>();
 	static HashMap<String,ArrayList<String>> unknownList = new HashMap<String, ArrayList<String>>();
@@ -319,13 +320,13 @@ public class NativeDetector {
 			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
 			logger.info("queue size: " + dirtyQueue.size());
 			logger.info(dirtyItem);
-			MethodInstance dirtyMethod = new MethodInstance(dirtyItem.fst);
-			logger.info(dirtyMethod);
-			LinkedList<String> array = dirtyMethod.functionsICall;
-			logger.info(array);
-			if (!dirtyMap.containsKey(dirtyItem.fst)) {
+			String dirtyName = dirtyItem.fst;
+			
+			LinkedList<String> functionsICall = methodMap.get(dirtyName).functionsICall;
+			logger.info(functionsICall);
+			//if (!dirtyMap.containsKey(dirtyItem.fst)) {
 				logger.info("inside if");
-				for (String y: array) {
+				for (String y: functionsICall) {
 					logger.info("inside for");
 					if (dirtyMap.containsKey(y)) {
 						dirtyMap.get(y).add(dirtyItem.fst);
@@ -333,7 +334,7 @@ public class NativeDetector {
 						addPairToDirtyMap(y, dirtyItem.fst);
 					}
 					addToQueue(y);
-				}
+			//	}
 			}
 			logger.info("queue size: " + dirtyQueue.size());
 

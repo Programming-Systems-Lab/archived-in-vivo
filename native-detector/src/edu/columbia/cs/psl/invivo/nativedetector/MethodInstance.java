@@ -34,7 +34,7 @@ public class MethodInstance {
 	
 	@Override
 	public String toString() {
-		return "MethodInstance [method=" + method + ", clazz=" + clazz + ", access=" + access + ", calledBy=" + calledBy + "]";
+		return "MethodInstance [method=" + method + ", class=" + clazz + ", fIC=" + functionsICall + "]";
 	}
 
 	/**

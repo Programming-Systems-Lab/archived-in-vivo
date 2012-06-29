@@ -33,11 +33,14 @@ public class CompleteClassVisitor extends ClassVisitor {
 			String signature, String[] exceptions) {
 
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
-		this.allMethods.add(mi);
-		this.allMethodNames.add(mi.getMethod().getDescriptor());
+		
+		NativeDetector.allMethods.add(mi);
+		
+	//	this.allMethods.add(mi);
+	//	this.allMethodNames.add(mi.getMethod().getDescriptor());
 	//	return new CallFindingMethodVisitor(access, super.visitMethod(access, name, desc, signature, exceptions), mi);
 		return new DummyMethodVisitor(api, super.visitMethod(
-				access, name, desc, signature, exceptions)); 
+				access, name, desc, signature, exceptions), mi); 
 	}
 	
 }

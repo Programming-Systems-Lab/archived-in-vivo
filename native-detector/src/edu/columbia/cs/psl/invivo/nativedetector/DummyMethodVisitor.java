@@ -10,14 +10,23 @@ import org.objectweb.asm.MethodVisitor;
  */
 public class DummyMethodVisitor extends MethodVisitor{
 
+	MethodInstance mi;
+	
 	/**
 	 * Constructor for DummyMethodVisitor. Simply invokes superclass constructor.
 	 * @param api				int				Generally Opcodes.ASM4
 	 * @param mv				MethodVisitor	MethodVisitor to extend (can be null)
 	 */
-	public DummyMethodVisitor(int api, MethodVisitor mv) {
+	public DummyMethodVisitor(int api, MethodVisitor mv, MethodInstance mi) {
 		super(api, mv);
-		NativeDetector.numMethodCalls++;
-
+		this.mi = mi;
+	}
+	
+	@Override
+	public void visitMethodInsn(int opcode, String owner, String name,
+			String desc) {
+		super.visitMethodInsn(opcode, owner, name, desc);
+		MethodInstance f = new MethodInstance(name, desc, owner);
+		mi.functionsICall.add(f.getFullName());
 	}
 }
