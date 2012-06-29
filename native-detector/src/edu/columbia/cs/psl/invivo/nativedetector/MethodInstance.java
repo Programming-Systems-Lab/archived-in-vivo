@@ -2,6 +2,7 @@ package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.util.LinkedList;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
@@ -12,6 +13,10 @@ import org.objectweb.asm.commons.Method;
  */
 public class MethodInstance {
 	
+	private static Logger logger = Logger.getLogger(MethodInstance.class);
+	
+	
+	
 	public static LinkedList<Integer> getCallersOf(int index) {
 		return NativeDetector.allMethods.get(index).calledBy;
 	}
@@ -20,8 +25,11 @@ public class MethodInstance {
 		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
 	}
 	
+	//TODO make private, add set/get methods
+	public LinkedList<String> functionsICall = new LinkedList<String>();
+	
 	public String getFullName() {
-		return this.method.getName() + " " + this.method.getDescriptor();
+		return this.clazz + "." + this.method.getName() + ":" + this.method.getDescriptor();
 	}
 	
 	@Override
@@ -109,6 +117,15 @@ public class MethodInstance {
 		this.method = new Method(name, desc);
 		this.clazz = clazz;
 		this.access = access;
+	}
+	
+	
+	public MethodInstance(String fullName) {
+		
+		String[] pieces = fullName.split("\\.|:");
+		clazz = pieces[0];
+		this.method = new Method(pieces[1], pieces[2]);
+		logger.info(pieces[0] + "  " + pieces[1] + "  " + pieces[2]);
 	}
 	
 	/**

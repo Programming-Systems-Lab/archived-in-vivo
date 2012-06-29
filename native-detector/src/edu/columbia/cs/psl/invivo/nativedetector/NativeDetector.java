@@ -4,16 +4,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
+
+import com.sun.tools.javac.util.Pair;
 
 
 /**
@@ -95,6 +98,10 @@ public class NativeDetector {
 		jarPath = jarURL;
 	}
 
+	HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>();
+	HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>();
+	LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
+	
 	static HashMap<String,ArrayList<String>> dirtyList = new HashMap<String, ArrayList<String>>();
 	static HashMap<String,ArrayList<String>> unknownList = new HashMap<String, ArrayList<String>>();
 
@@ -243,39 +250,102 @@ public class NativeDetector {
 	
 	
 
+	
+	
+	
+	
 	/*
 	 * (1) fetch a method x 
 	 * 		if x is native
-	 * 			add x to hash as dirty
+	 * 			add x to dirty hash
 	 * 		else
-	 * 			check if x is in the hash
-	 * 			add x to hash as unprocessed
-	 * 			and for each method y that x calls
-	 * 				find/add y in hash and add x to its list
-	 * 
-	 * (2) for each x in hash
-	 * 		if x is dirty
-	 * 			for each y in x.list
-	 * 				if y is not dirty, queue it
-	 * 
-	 * (3) for each x in queue
-	 * 		if x is not dirty
-	 * 			mark x as dirty
-	 * 			and for each y in x.list
-	 * 				queue y
+	 * 			for each method y that x calls
+	 * 				find/add y in called hash and add x to its list
 	 */
-	
-	// function 1
-	// takes a function and processes it
-	// return void?
-	
-	public void hashMethod(MethodInstance mi) {
-		if (mi.isNative()) {
-			//add x to hash as dirty
-			
+	public void addLinksToChildren(MethodInstance mi) {
+		if ((mi.getAccess() != 0) && mi.isNative()) {
+			dirtyMap.put(mi.getFullName(), new LinkedList<String>());
+		} else {
+			for (String f : mi.functionsICall) {
+				if (unprocessedMap.containsKey(f)) {
+					unprocessedMap.get(f).add(mi.getFullName());
+				} else {
+					addPairToUnprocessedMap(f, mi.getFullName());
+				}
+			}
 		}
 	}
 	
+	/* Takes fully qualified function names*/
+	private void addPairToUnprocessedMap(String f, String caller) {
+		LinkedList<String> list = new LinkedList<String>();
+		list.add(caller);
+		unprocessedMap.put(f, list);
+	}
+
+	/* Takes fully qualified function names*/
+	private void addPairToDirtyMap(String f, String caller) {
+		LinkedList<String> list = new LinkedList<String>();
+		list.add(caller);
+		dirtyMap.put(f, list);
+		logger.info(dirtyMap);
+	}
+	
+	/* (2) for each x in dirty hash
+	 * 		add to queue
+	 */
+	public void makeQueue() {
+		Set<Entry<String, LinkedList<String>>> dirtySet = dirtyMap.entrySet();
+		Iterator<Entry<String, LinkedList<String>>> dirtySetIt = dirtySet.iterator();
+		while (dirtySetIt.hasNext()) {
+			Entry<String, LinkedList<String>> dirtyItem = dirtySetIt.next();
+			Pair<String, LinkedList<String>> dirtyPair = new Pair<String, LinkedList<String>>(dirtyItem.getKey(), dirtyItem.getValue());
+			dirtyQueue.add(dirtyPair);
+		}
+		logger.info("queue size: " + dirtyQueue.size());
+	}
+	
+	/* (3) for each x in queue
+	 * 		[if in dirty, done]
+	 * 		if x is not dirty
+	 * 			for each y in x.list -- for each y that x calls
+	 * 				add y to dirty with x in list
+	 * 				queue y
+	 * 
+	 */
+	public void processQueue() {
+		while (!dirtyQueue.isEmpty()) {
+		
+			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
+			logger.info("queue size: " + dirtyQueue.size());
+			logger.info(dirtyItem);
+			MethodInstance dirtyMethod = new MethodInstance(dirtyItem.fst);
+			logger.info(dirtyMethod);
+			LinkedList<String> array = dirtyMethod.functionsICall;
+			logger.info(array);
+			if (!dirtyMap.containsKey(dirtyItem.fst)) {
+				logger.info("inside if");
+				for (String y: array) {
+					logger.info("inside for");
+					if (dirtyMap.containsKey(y)) {
+						dirtyMap.get(y).add(dirtyItem.fst);
+					} else {
+						addPairToDirtyMap(y, dirtyItem.fst);
+					}
+					addToQueue(y);
+				}
+			}
+			logger.info("queue size: " + dirtyQueue.size());
+
+		}
+	}
+		
+	private void addToQueue(String f) {
+		assert(dirtyMap.containsKey(f));
+		Pair<String, LinkedList<String>> pair = new Pair<String, LinkedList<String>>(f, dirtyMap.get(f));
+		dirtyQueue.push(pair);
+		logger.info("queue size: " + dirtyQueue.size());
+	}
 	
 //	
 //	
