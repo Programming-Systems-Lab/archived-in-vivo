@@ -168,7 +168,7 @@ public class NativeDetector {
 //	
 //	
 
-//
+
 ////parse classes into methods {
 //	// for each method foo in the class
 //		// is foo native or in dirty list?
@@ -179,6 +179,21 @@ public class NativeDetector {
 //				// addUnknownCaller(A, foo)		
 ////}
 //
+	public LinkedList<MethodInstance> getMethodsInClass(String className) throws IOException {
+		ClassReader cr = new ClassReader(className);
+		CompleteClassVisitor cv = new CompleteClassVisitor(Opcodes.ASM4, null, className);
+		cr.accept(cv, 0);
+		return cv.allMethods;
+	}
+	
+	public void addMethodsToRightList(LinkedList<MethodInstance> methodList) {
+		for(MethodInstance mi : methodList) {
+			if (mi.isNative()) {
+				addToDirtyList(mi.getMethod().toString());
+			}
+		}
+		
+	}
 	
 	public int addToUnknownList(String unknownFxn) {
 		if (dirtyList.containsKey(unknownFxn)) {
@@ -227,7 +242,39 @@ public class NativeDetector {
 	
 	
 	
+
+	/*
+	 * (1) fetch a method x 
+	 * 		if x is native
+	 * 			add x to hash as dirty
+	 * 		else
+	 * 			check if x is in the hash
+	 * 			add x to hash as unprocessed
+	 * 			and for each method y that x calls
+	 * 				find/add y in hash and add x to its list
+	 * 
+	 * (2) for each x in hash
+	 * 		if x is dirty
+	 * 			for each y in x.list
+	 * 				if y is not dirty, queue it
+	 * 
+	 * (3) for each x in queue
+	 * 		if x is not dirty
+	 * 			mark x as dirty
+	 * 			and for each y in x.list
+	 * 				queue y
+	 */
 	
+	// function 1
+	// takes a function and processes it
+	// return void?
+	
+	public void hashMethod(MethodInstance mi) {
+		if (mi.isNative()) {
+			//add x to hash as dirty
+			
+		}
+	}
 	
 	
 //	

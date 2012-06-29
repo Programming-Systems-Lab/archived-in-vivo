@@ -16,6 +16,14 @@ public class MethodInstance {
 		return NativeDetector.allMethods.get(index).calledBy;
 	}
 	
+	public boolean isNative() {
+		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
+	}
+	
+	public String getFullName() {
+		return this.method.getName() + " " + this.method.getDescriptor();
+	}
+	
 	@Override
 	public String toString() {
 		return "MethodInstance [method=" + method + ", clazz=" + clazz + ", access=" + access + ", calledBy=" + calledBy + "]";

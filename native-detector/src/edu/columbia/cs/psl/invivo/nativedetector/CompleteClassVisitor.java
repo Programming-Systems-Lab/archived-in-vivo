@@ -13,7 +13,7 @@ import org.objectweb.asm.MethodVisitor;
 public class CompleteClassVisitor extends ClassVisitor {
 	private String className;
 	LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
-
+	LinkedList<String> allMethodNames = new LinkedList<String>();
 	/**
 	 * TODO comment
 	 * @param api
@@ -34,10 +34,10 @@ public class CompleteClassVisitor extends ClassVisitor {
 
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
 		this.allMethods.add(mi);
+		this.allMethodNames.add(mi.getMethod().getDescriptor());
 	//	return new CallFindingMethodVisitor(access, super.visitMethod(access, name, desc, signature, exceptions), mi);
 		return new DummyMethodVisitor(api, super.visitMethod(
 				access, name, desc, signature, exceptions)); 
 	}
-
-
+	
 }
