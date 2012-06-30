@@ -1,6 +1,7 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
@@ -15,8 +16,9 @@ public class CompleteClassVisitor extends ClassVisitor {
 	
 	private static Logger logger = Logger.getLogger(CompleteClassVisitor.class);
 	private String className;
-	LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
-	LinkedList<String> allMethodNames = new LinkedList<String>();
+
+	public LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
+	
 	/**
 	 * TODO comment
 	 * @param api
@@ -37,13 +39,13 @@ public class CompleteClassVisitor extends ClassVisitor {
 
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
 
-		NativeDetector.allMethods.add(mi);
+		NativeDetector.methodMap.put(mi.getFullName(), mi);
 		
-	//	this.allMethods.add(mi);
+		this.allMethods.add(mi);
 	//	this.allMethodNames.add(mi.getMethod().getDescriptor());
 	//	return new CallFindingMethodVisitor(access, super.visitMethod(access, name, desc, signature, exceptions), mi);
 		return new DummyMethodVisitor(api, super.visitMethod(
-				access, name, desc, signature, exceptions), mi); 
+				access, name, desc, signature, exceptions), mi.getFullName()); 
 	}
 	
 }

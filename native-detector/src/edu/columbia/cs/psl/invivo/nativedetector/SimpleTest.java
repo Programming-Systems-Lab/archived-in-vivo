@@ -1,6 +1,9 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -13,8 +16,26 @@ public class SimpleTest {
 	
 	public static void main(String[] args) {
 		smallTest();
+//		writeTest();
 	}
 		
+	
+	private static void writeTest() {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/dirtymethods.txt"));
+			
+			bw.write("this is a test");
+			bw.newLine();
+			bw.write("and here is another");
+			bw.close();
+			logger.info("Done with writeTest");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
+	}
 	private static Set<String> smallTest() {
 		NativeDetector nd = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 		/*

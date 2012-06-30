@@ -1,7 +1,5 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
-import java.util.LinkedList;
-
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -19,9 +17,9 @@ public class DummyMethodVisitor extends MethodVisitor{
 	 * @param api				int				Generally Opcodes.ASM4
 	 * @param mv				MethodVisitor	MethodVisitor to extend (can be null)
 	 */
-	public DummyMethodVisitor(int api, MethodVisitor mv, MethodInstance mi) {
+	public DummyMethodVisitor(int api, MethodVisitor mv, String methodName) {
 		super(api, mv);
-		this.mi = mi;
+		this.mi = NativeDetector.methodMap.get(methodName);
 	}
 	
 	@Override

@@ -58,6 +58,7 @@ public class NativeDetector {
 	 * @see NativeDetector#findNativeInvokers()
 	 */
 	 static HashSet<MethodInstance> allMethods = new HashSet<MethodInstance>();
+	 //public static HashMap<String,MethodInstance> allMethodLookup = new HashMap<String,MethodInstance>();
 //	 
 //	 static HashMap<MethodInstance, MethodInstance> allMethodsLookup = new HashMap<MethodInstance, MethodInstance>();
 //	
@@ -102,7 +103,7 @@ public class NativeDetector {
 	HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
 	HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
 	LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
-	HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
+	static HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
 	
 	static HashMap<String,ArrayList<String>> dirtyList = new HashMap<String, ArrayList<String>>();
 	static HashMap<String,ArrayList<String>> unknownList = new HashMap<String, ArrayList<String>>();
@@ -131,7 +132,8 @@ public class NativeDetector {
 	private HashSet<String> cleanClasses(HashSet<String> dirtyClasses) {
 		int dirtyClassesSize = dirtyClasses.size();
 		HashSet<String> cleanClasses = new HashSet<String>();
-		String[] dirtyArray =  dirtyClasses.toArray(new String[dirtyClasses.size()]);
+		String[] dirtyArray =  dirtyClasses.toArray(new String[dirtyClassesSize]);
+
 		for (int i=0; i < dirtyClassesSize; i++) {
 			String clazz = dirtyArray[i];
 			if (clazz.endsWith(".class")) {
@@ -269,6 +271,7 @@ public class NativeDetector {
 		if ((mi.getAccess() != 0) && mi.isNative()) {
 			dirtyMap.put(mi.getFullName(), new LinkedList<String>());
 		} else {
+			logger.info(mi.functionsICall.size());
 			for (String f : mi.functionsICall) {
 				if (unprocessedMap.containsKey(f)) {
 					unprocessedMap.get(f).add(mi.getFullName());
@@ -342,6 +345,8 @@ public class NativeDetector {
 
 		}
 	}
+	
+	
 		
 	private void addToQueue(String f) {
 		assert(dirtyMap.containsKey(f));
@@ -419,7 +424,7 @@ public class NativeDetector {
 	public void getAllMethods() throws IOException {
 		int numClasses = allClasses.size();
 		String[] listOfClasses = allClasses.toArray(new String[numClasses]);
-		for (int i=0; i < 1000; i++) { //TODO change to numClasses
+		for (int i=0; i < numClasses; i++) { 
 			String className = listOfClasses[i];
 			ClassReader cr = new ClassReader(className);
 			CompleteClassVisitor ccv = new CompleteClassVisitor(Opcodes.ASM4, null, className);

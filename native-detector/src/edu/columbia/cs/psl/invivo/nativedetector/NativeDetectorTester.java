@@ -39,20 +39,24 @@ public class NativeDetectorTester {
 			engine.addLinksToChildren(mi);
 		}
 		
-		logger.info("dM: " + engine.dirtyMap.size() + "; uM: " + engine.unprocessedMap.size() + "; q: " + engine.dirtyQueue.size() + "; uM=" + engine.unprocessedMap);
-		logger.info("dM=" + engine.dirtyMap);
+		logger.info("dM: " + engine.dirtyMap.size() + "; uM: " + engine.unprocessedMap.size() + "; q: " + engine.dirtyQueue.size());
 		
 		engine.makeQueue();
 		engine.processQueue();
 		logger.info("writing to file");
 		
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/native-detector/dirtymethods.txt"));
+			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/dirtymethods.txt"));
 			Iterator<String> it = engine.dirtyMap.keySet().iterator();
+			int numDirties = engine.dirtyMap.keySet().size();
+			int count = 0;
 			while (it.hasNext()) {
 				bw.write(it.next());
 				bw.newLine();
+				count++;
+				logger.info(count + " of " + numDirties);
 			}
+			bw.close();
 		} catch (Exception e) {
 			logger.error("write out failure");
 		}
