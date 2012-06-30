@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class NativeDetector {
 	 * LinkedList<String> openClasses
 	 * @see NativeDetector#getAllClasses()
 	 */
-	ArrayList<String>	allClasses = new ArrayList<String>();
+	 HashSet<String>	allClasses = new HashSet<String>();
 	
 	/**
 	 * List of every method from every class. MethodInstances will be added through {@link NativeDetector#getAllMethods()} 
@@ -56,7 +57,7 @@ public class NativeDetector {
 	 * @see NativeDetector#getAllMethods()
 	 * @see NativeDetector#findNativeInvokers()
 	 */
-	 static ArrayList<MethodInstance> allMethods = new ArrayList<MethodInstance>();
+	 static HashSet<MethodInstance> allMethods = new HashSet<MethodInstance>();
 //	 
 //	 static HashMap<MethodInstance, MethodInstance> allMethodsLookup = new HashMap<MethodInstance, MethodInstance>();
 //	
@@ -114,7 +115,7 @@ public class NativeDetector {
 	 * @throws IOException			on jar file read failure
 	 */
 	public void getAllClasses() throws IOException {
-		ArrayList<String> classList = new ArrayList<String>();
+		HashSet<String> classList = new HashSet<String>();
 		JarFile classJar = new JarFile(jarPath);
 		Enumeration<JarEntry> jarContents = classJar.entries();
 		while (jarContents.hasMoreElements())
@@ -127,11 +128,12 @@ public class NativeDetector {
 	
 	
 	// gets rid of things that don't end in .class
-	private ArrayList<String> cleanClasses(ArrayList<String> dirtyClasses) {
+	private HashSet<String> cleanClasses(HashSet<String> dirtyClasses) {
 		int dirtyClassesSize = dirtyClasses.size();
-		ArrayList<String> cleanClasses = new ArrayList<String>();
+		HashSet<String> cleanClasses = new HashSet<String>();
+		String[] dirtyArray =  dirtyClasses.toArray(new String[dirtyClasses.size()]);
 		for (int i=0; i < dirtyClassesSize; i++) {
-			String clazz = dirtyClasses.get(i);
+			String clazz = dirtyArray[i];
 			if (clazz.endsWith(".class")) {
 				clazz = clazz.substring(0, clazz.length()-6);   //remove ".class"
 				cleanClasses.add(clazz);
@@ -415,15 +417,13 @@ public class NativeDetector {
 ////	}
 //	
 	public void getAllMethods() throws IOException {
-		LinkedList<String> listOfClasses = new LinkedList<String>();
-		listOfClasses.addAll(allClasses);
-		while (!listOfClasses.isEmpty()) {
-			String className = listOfClasses.pop();
-			
+		int numClasses = allClasses.size();
+		String[] listOfClasses = allClasses.toArray(new String[numClasses]);
+		for (int i=0; i < 1000; i++) { //TODO change to numClasses
+			String className = listOfClasses[i];
 			ClassReader cr = new ClassReader(className);
 			CompleteClassVisitor ccv = new CompleteClassVisitor(Opcodes.ASM4, null, className);
 			cr.accept(ccv, 0);
-			
 			allMethods.addAll(ccv.allMethods);
 			logger.info("methods: " + allMethods.size());
 		}

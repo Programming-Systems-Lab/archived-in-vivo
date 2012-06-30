@@ -17,9 +17,9 @@ public class MethodInstance {
 	
 	
 	
-	public static LinkedList<Integer> getCallersOf(int index) {
-		return NativeDetector.allMethods.get(index).calledBy;
-	}
+//	public static LinkedList<Integer> getCallersOf(int index) {
+//		return NativeDetector.allMethods.get(index).calledBy;
+//	}
 	
 	public boolean isNative() {
 		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);

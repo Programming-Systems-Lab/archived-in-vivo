@@ -1,6 +1,10 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
@@ -38,12 +42,24 @@ public class NativeDetectorTester {
 		logger.info("dM: " + engine.dirtyMap.size() + "; uM: " + engine.unprocessedMap.size() + "; q: " + engine.dirtyQueue.size() + "; uM=" + engine.unprocessedMap);
 		logger.info("dM=" + engine.dirtyMap);
 		
-	//	engine.makeQueue();
-	//	engine.processQueue();
+		engine.makeQueue();
+		engine.processQueue();
+		logger.info("writing to file");
+		
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/native-detector/dirtymethods.txt"));
+			Iterator<String> it = engine.dirtyMap.keySet().iterator();
+			while (it.hasNext()) {
+				bw.write(it.next());
+				bw.newLine();
+			}
+		} catch (Exception e) {
+			logger.error("write out failure");
+		}
 
 		logger.info("done with test.");
-		
-		logger.info(engine.dirtyMap.keySet());
+
+		//logger.info(engine.dirtyMap.keySet());
 		
 //		try {
 //			logger.info("calling getAllClasses()");
