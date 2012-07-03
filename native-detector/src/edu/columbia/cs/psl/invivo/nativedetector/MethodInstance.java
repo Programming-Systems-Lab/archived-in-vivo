@@ -15,12 +15,6 @@ public class MethodInstance {
 	
 	private static Logger logger = Logger.getLogger(MethodInstance.class);
 	
-	
-	
-//	public static LinkedList<Integer> getCallersOf(int index) {
-//		return NativeDetector.allMethods.get(index).calledBy;
-//	}
-	
 	public boolean isNative() {
 		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
 	}
@@ -123,9 +117,8 @@ public class MethodInstance {
 	public MethodInstance(String fullName) {
 		
 		String[] pieces = fullName.split("\\.|:");
-		clazz = pieces[0];
+		this.clazz = pieces[0];
 		this.method = new Method(pieces[1], pieces[2]);
-		logger.info(pieces[0] + "  " + pieces[1] + "  " + pieces[2]);
 	}
 	
 	/**

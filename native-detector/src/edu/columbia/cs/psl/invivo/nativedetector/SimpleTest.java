@@ -16,7 +16,7 @@ public class SimpleTest {
 	
 	public static void main(String[] args) {
 		smallTest();
-//		writeTest();
+		writeTest();
 	}
 		
 	
@@ -56,12 +56,12 @@ public class SimpleTest {
 		
 		MethodInstance ccc = new MethodInstance("methodC", "descC", "classC");
 		
-		nd.methodMap.put(a.getFullName(), a);
-		nd.methodMap.put(bb.getFullName(), bb);
-		nd.methodMap.put(ccc.getFullName(), ccc);
+		NativeDetector.methodMap.put(a.getFullName(), a);
+		NativeDetector.methodMap.put(bb.getFullName(), bb);
+		NativeDetector.methodMap.put(ccc.getFullName(), ccc);
 		
-		nd.methodMap.get(a.getFullName()).functionsICall.add(bb.getFullName());
-		nd.methodMap.get(bb.getFullName()).functionsICall.add(ccc.getFullName());
+		NativeDetector.methodMap.get(a.getFullName()).functionsICall.add(bb.getFullName());
+		NativeDetector.methodMap.get(bb.getFullName()).functionsICall.add(ccc.getFullName());
 		
 		nd.unprocessedMap.put(bb.getFullName(), callsBB);
 		logger.info("dM: " + nd.dirtyMap.size() + "; uM: " + nd.unprocessedMap.size() + "; q: " + nd.dirtyQueue.size() + "; uM=" + nd.unprocessedMap);
