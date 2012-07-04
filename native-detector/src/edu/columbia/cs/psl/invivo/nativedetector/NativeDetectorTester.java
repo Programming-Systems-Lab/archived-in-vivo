@@ -27,6 +27,7 @@ public class NativeDetectorTester {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
+		// Enter your own classes.jar location here
 		NativeDetector engine = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 
 		engine.getAllClasses();
@@ -43,6 +44,7 @@ public class NativeDetectorTester {
 		logger.info("writing to file");
 		
 		try {
+			// where do you want your output?
 			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/dirtymethods.txt"));
 			Iterator<String> it = engine.dirtyMap.keySet().iterator();
 			int numDirties = engine.dirtyMap.keySet().size();

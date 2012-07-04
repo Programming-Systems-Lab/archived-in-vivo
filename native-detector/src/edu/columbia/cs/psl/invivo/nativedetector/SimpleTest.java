@@ -16,16 +16,15 @@ public class SimpleTest {
 	private static Logger logger = Logger.getLogger(SimpleTest.class);
 	
 	public static void main(String[] args) {
-//		smallTest();
 		try {
+			smallTest();
 			writeTest();
-
 			preprocessingTest("java/awt/Container.getComponent:(I)Ljava/awt/Component;");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		logger.info("done with test");
+		logger.info("done with tests");
 	}
 		
 	

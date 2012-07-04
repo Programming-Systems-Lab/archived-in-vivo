@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 
@@ -49,16 +48,12 @@ public class NativeDetector {
 	 * @see NativeDetector#findNativeInvokers()
 	 */
 	 static HashSet<MethodInstance> allMethods = new HashSet<MethodInstance>();
+     static HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
 
 	 BufferedWriter bw;
-	 
-	 
-	/**
-	 * Logger for NativeDetector class (log4j).
-	 * private static Logger logger
-	 * @see Logger
-	 */
-	private static Logger logger = Logger.getLogger(NativeDetector.class);
+	 HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
+	 HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
+	 LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
 	
 	/**
 	 * Constructor for a NativeDetector object
@@ -69,11 +64,6 @@ public class NativeDetector {
 		jarPath = jarURL;
 	}
 
-	HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
-	HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
-	LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
-	static HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
-		
 	
 	/**
 	 * Reads in the jar file and populates allClasses with class names.
@@ -89,7 +79,6 @@ public class NativeDetector {
 		classJar.close();
 		
 		allClasses = cleanClasses(classList);
-		logger.info("allClasses.size() = " + allClasses.size());
 	}
 	
 	
@@ -122,42 +111,16 @@ public class NativeDetector {
 	 */
 	public void addLinksToChildren(MethodInstance mi) {
 		String miName = mi.getFullName();
-//		logger.info(miName);
-//		logger.warn(miName + " " + mi.getAccess());
 		if (mi.isNative()) {
-//			logger.info("inside if");
-//			logger.info(dirtyMap);
 			dirtyMap.put(miName, new LinkedList<String>());
-//			logger.info(dirtyMap);
 		} else {
-//			logger.info("inside else");
 			MethodInstance real = methodMap.get(miName);
-//			logger.info(real);
-//			logger.info(real.functionsICall);
-//			int count = 0;
 			for (String f : real.functionsICall) {
-//				count++;
-//				logger.info("inside for loop: "+ count);
 				if (unprocessedMap.containsKey(f)) {
-//					logger.info("inside nested if");
-//					logger.info("before: " +unprocessedMap.get(f).size());
-					
 					unprocessedMap.get(f).add(miName);
-//					logger.info("after: " +unprocessedMap.get(f).size());
-
-//					logger.info(unprocessedMap);
 				} else {
-//					logger.info("inside nested for");
-//					logger.info(unprocessedMap);
-//					logger.info("before: " +unprocessedMap.size());
-
 					addPairToUnprocessedMap(f, miName);
-//					logger.info("after: " +unprocessedMap.size());
-
-//					logger.info(unprocessedMap);
-					
 				}
-//				logger.info("done with iteration "+count);
 			}
 		}
 	}
@@ -174,15 +137,6 @@ public class NativeDetector {
 		LinkedList<String> list = new LinkedList<String>();
 		list.add(caller);
 		dirtyMap.put(f, list);
-		try {
-			logger.info("writing");
-			bw.write(f + "\t\t" + caller);
-			bw.newLine();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 	}
 	
 	/* (2) for each x in dirty hash
@@ -192,18 +146,8 @@ public class NativeDetector {
 		Set<Entry<String, LinkedList<String>>> dirtySet = dirtyMap.entrySet();
 		Iterator<Entry<String, LinkedList<String>>> dirtySetIt = dirtySet.iterator();
 		while (dirtySetIt.hasNext()) {
-			Entry<String, LinkedList<String>> dirtyItem = dirtySetIt.next();
-			Pair<String, LinkedList<String>> dirtyPair = new Pair<String, LinkedList<String>>(dirtyItem.getKey(), dirtyItem.getValue());
-			addToQueue(dirtyItem.getKey());
-//			try {
-//				bw.write(dirtyPair.fst + "\t\t" + dirtyPair.snd);
-//				bw.newLine();
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			addToQueue(dirtySetIt.next().getKey());
 		}
-		logger.info("queue size: " + dirtyQueue.size());
 	}
 	
 	/* (3) for each x in queue
@@ -216,49 +160,21 @@ public class NativeDetector {
 	 */
 	public void processQueue() {
 		while (dirtyQueue.size() != 0) {
-				
-				Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
-				String dirtyName = dirtyItem.fst;
+			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
+			String dirtyName = dirtyItem.fst;
 
-				if (!unprocessedMap.containsKey(dirtyName)) {
-					unprocessedMap.put(dirtyName, dirtyItem.snd);
+			if (!unprocessedMap.containsKey(dirtyName)) {
+				unprocessedMap.put(dirtyName, dirtyItem.snd);
+			}
+			LinkedList<String> callers = unprocessedMap.get(dirtyName); //mark these dirty
+			for (String y: callers) {
+				if (dirtyMap.containsKey(y)) {
+					dirtyMap.get(y).add(dirtyName);
+				} else {
+					addPairToDirtyMap(y, dirtyName);
 				}
-			
-				LinkedList<String> callers = unprocessedMap.get(dirtyName); //mark these dirty
-				logger.info(callers.size());
-				for (String y: callers) {
-					if (dirtyMap.containsKey(y)) {
-						dirtyMap.get(y).add(dirtyName);
-					} else {
-						addPairToDirtyMap(y, dirtyName);
-					}
-				}
-				
-//				LinkedList<String> functionsICall = methodMap.get(dirtyName).functionsICall;
-//				logger.info(functionsICall.size() + " functions I call");
-//				for (String y: functionsICall) {
-//					if (dirtyMap.containsKey(y)) {
-//						logger.warn("dirtyMap contained "+ y);
-//						dirtyMap.get(y).add(dirtyName);
-//					} else {
-//						logger.warn("dirtyMap did not contain "+ y);
-//						addPairToDirtyMap(y, dirtyName);
-//					}
-//					addToQueue(y);
-//					try {
-//						logger.info("writing");
-//						bw.write(y + " is dirty");
-//						bw.newLine();
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//				}
-				logger.info("queue size: " + dirtyQueue.size());
-
-		
+			}
 		}
-		
 	}
 	
 		
@@ -266,7 +182,6 @@ public class NativeDetector {
 		assert(dirtyMap.containsKey(f));
 		Pair<String, LinkedList<String>> pair = new Pair<String, LinkedList<String>>(f, dirtyMap.get(f));
 		dirtyQueue.push(pair);
-		logger.info("queue size: " + dirtyQueue.size());
 	}
 	
 
@@ -278,9 +193,6 @@ public class NativeDetector {
 			ClassReader cr = new ClassReader(className);
 			NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, className);
 			cr.accept(ccv, 0);
-			//allMethods.addAll(ccv.allMethods);
-			//logger.info("methods: " + allMethods.size());
-			logger.info("methods: " + methodMap.size());
 		}
 	}
 }

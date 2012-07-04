@@ -1,8 +1,5 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
-
-import java.util.LinkedList;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -13,8 +10,6 @@ import org.objectweb.asm.MethodVisitor;
 public class NDClassVisitor extends ClassVisitor {
 	
 	private String className;
-
-//	public LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
 	
 	/**
 	 * TODO comment
@@ -37,7 +32,6 @@ public class NDClassVisitor extends ClassVisitor {
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
 		NativeDetector.methodMap.put(mi.getFullName(), mi);
 		
-//		this.allMethods.add(mi);
 		
 		return new NDMethodVisitor(api, super.visitMethod(
 				access, name, desc, signature, exceptions), mi.getFullName(), access); 

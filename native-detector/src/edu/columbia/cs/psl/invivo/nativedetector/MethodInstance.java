@@ -2,7 +2,6 @@ package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
@@ -12,9 +11,7 @@ import org.objectweb.asm.commons.Method;
  * an integer for access flags, and a linkedlist of MethodInstances that invoke this method.
  */
 public class MethodInstance {
-	
-	private static Logger logger = Logger.getLogger(MethodInstance.class);
-	
+		
 	public boolean isNative() {
 		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
 	}
@@ -58,16 +55,8 @@ public class MethodInstance {
 	 * @see MethodInstance#getCallers()
 	 * @see NativeDetector#addCaller(MethodInstance, MethodInstance)
 	 */
-//	private LinkedList<MethodInstance> calledBy = new LinkedList<MethodInstance>();
 	private LinkedList<Integer> calledBy = new LinkedList<Integer>();
 
-	
-	
-	
-	// TODO comment calls list
-	@Deprecated
-	public LinkedList<Long> calls = new LinkedList<Long>();
-	
 	/**
 	 * Constructor for MethodInstance - accepts pre-formed method and a class name.
 	 * @param method			Method			well-formed {@link Method}
@@ -187,17 +176,7 @@ public class MethodInstance {
 		}
 		return false;
 	}
-	
-	/**
-	 * Get list of MethodInstances that invoke this one.
-	 * @return					LinkedList<Integer>
-	 * @see MethodInstance#calledBy
-	 */
-	@Deprecated
-	public LinkedList<Integer> getCallers() {
-		return this.calledBy;
-	}
-	
+
 	
 	/**
 	 * (Override) This function declares two MethodInstances A, B "equal" if and only if:
