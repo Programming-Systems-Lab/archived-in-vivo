@@ -1,5 +1,8 @@
 package edu.columbia.cs.psl.invivo.runtime.visitor;
 
+import java.util.List;
+import java.util.Map.Entry;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -10,6 +13,9 @@ import org.objectweb.asm.tree.FieldNode;
 
 import edu.columbia.cs.psl.invivo.runtime.InvivoPreMain;
 import edu.columbia.cs.psl.invivo.runtime.NotInstrumented;
+import edu.columbia.psl.invivoexpreval.asmeval.InVivoClassDesc;
+import edu.columbia.psl.invivoexpreval.asmeval.InVivoMethodDesc;
+import edu.columbia.psl.invivoexpreval.asmeval.InVivoVariableReplacement;
 @NotInstrumented
 public class InterceptingClassVisitor extends ClassVisitor implements Opcodes {
 	
@@ -21,8 +27,15 @@ public class InterceptingClassVisitor extends ClassVisitor implements Opcodes {
 	
 	private boolean willRewrite = false;
 	
+	private InVivoClassDesc clsDesc;
+	
 	public InterceptingClassVisitor(ClassVisitor cv) {
 		super(Opcodes.ASM4, cv);
+	}
+	
+	public InterceptingClassVisitor(ClassVisitor cv, InVivoClassDesc cls) {
+		super(Opcodes.ASM4, cv);
+		this.setCls(cls);
 	}
 	
 	@Override
@@ -59,6 +72,11 @@ public class InterceptingClassVisitor extends ClassVisitor implements Opcodes {
 			InterceptingMethodVisitor imv = new InterceptingMethodVisitor(Opcodes.ASM4, cloningIMV, acc, name, desc);
 			imv.setClassName(className);
 			imv.setClassVisitor(this);
+			if (this.clsDesc != null) {
+				Entry<InVivoMethodDesc, List<InVivoVariableReplacement>> mDesc = clsDesc.getClassMethod(name, desc);
+				if (mDesc != null)
+					imv.setmDesc(mDesc);
+			}
 			return imv;
 		}
 		else
@@ -109,5 +127,13 @@ public class InterceptingClassVisitor extends ClassVisitor implements Opcodes {
 	
 	public String getClassName() {
 		return this.className;
+	}
+
+	public InVivoClassDesc getCls() {
+		return clsDesc;
+	}
+
+	public void setCls(InVivoClassDesc cls) {
+		this.clsDesc = cls;
 	}
 }

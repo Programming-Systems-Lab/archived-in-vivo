@@ -45,7 +45,7 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 		invocations.put(retId, inv);
 
 		inv.setChildren(new MethodInvocation[cases.length]);
-		for(int i = 0; i<cases.length; i++)
+		/*for(int i = 0; i<cases.length; i++)
 		{
 			inv.getChildren()[i] = new MethodInvocation();
 			inv.getChildren()[i].setParent(inv);
@@ -62,7 +62,7 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 			
 			inv.getChildren()[i].setThread(createChildThread(inv.getChildren()[i]));
 			inv.getChildren()[i].getThread().start();
-		}
+		}*/
 		
 		return retId;
 	}
@@ -72,14 +72,14 @@ public class Interceptor extends AbstractLazyCloningInterceptor {
 		if (id < 0)
 			return;
 		try {
-			MethodInvocation inv = invocations.remove(id);
+			/*MethodInvocation inv = invocations.remove(id);
 			inv.setReturnValue(val);
 
 			for (MethodInvocation i : inv.getChildren()) {
 				i.getThread().join();
 				logger.info("\tChild" + getChildId(i.getCallee()) + " finished");
-			}
-			logger.info("Invocation result: " + inv);
+			}*/
+			//logger.info("Invocation result: " + inv);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

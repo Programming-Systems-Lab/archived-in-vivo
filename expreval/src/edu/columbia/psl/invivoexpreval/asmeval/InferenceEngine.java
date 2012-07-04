@@ -117,7 +117,8 @@ public class InferenceEngine {
                         mDesc.setMethodDesc(m.desc);
                         mDesc.setMethodAcc(m.access);
                         mDesc.setLocals(m.localVariables);
-
+                        System.out.println(cn.name);
+                        mDesc.setMethodParentClassDesc(InferenceEngine.getClassInfo(cn.name.substring(cn.name.lastIndexOf("/") + 1)));
                         mdescs.add(mDesc);
                     }
                 }
@@ -137,6 +138,22 @@ public class InferenceEngine {
      * TODO
      */
     public static InVivoClassDesc getClassInfo(String className) {
+        try {
+            List<ClassReader> crs = InferenceEngine.findClasses(directory, className);
+            if (crs.size() <= 0)
+                return null;
+            InVivoClassDesc c = new InVivoClassDesc();
+            for (ClassReader cr : crs) {
+                c.setClassName(cr.getClassName());
+                return c;
+            }
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return null;
     }
 

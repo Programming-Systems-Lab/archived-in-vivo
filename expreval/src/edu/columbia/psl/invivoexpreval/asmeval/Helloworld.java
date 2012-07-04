@@ -45,7 +45,7 @@ public class Helloworld extends ClassLoader implements Opcodes {
 
     public static void main(final String args[]) throws Exception {
 
-        // Generates the bytecode corresponding to the following Java class:
+     // Generates the bytecode corresponding to the following Java class:
         //
         // public class Example {
         // public static void main (String[] args) {
@@ -85,7 +85,7 @@ public class Helloworld extends ClassLoader implements Opcodes {
                 "out",
                 "Ljava/io/PrintStream;");
         // pushes the "Hello World!" String constant
-        mw.visitInsn(ICONST_1);
+        mw.visitLdcInsn("Hello world!");
         // invokes the 'println' method (defined in the PrintStream class)
         mw.visitMethodInsn(INVOKEVIRTUAL,
                 "java/io/PrintStream",
@@ -109,6 +109,5 @@ public class Helloworld extends ClassLoader implements Opcodes {
 
         // uses the dynamically generated class to print 'Helloworld'
         exampleClass.getMethods()[0].invoke(null, new Object[] { null });
-
     }
 }

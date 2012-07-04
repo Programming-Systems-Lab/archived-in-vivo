@@ -6,6 +6,10 @@ import org.objectweb.asm.tree.LocalVariableNode;
 
 public class InVivoMethodDesc {
 
+    private String methodParentClass;
+    
+    private InVivoClassDesc methodParentClassDesc;
+    
     private String methodName;
 
     private String methodDesc;
@@ -67,7 +71,7 @@ public class InVivoMethodDesc {
         return this.methodReturnType;
     }
 
-    public void setMethodReturnType(String methodReturnType) {
+    private void setMethodReturnType(String methodReturnType) {
         this.methodReturnType = methodReturnType;
     }
 
@@ -80,11 +84,27 @@ public class InVivoMethodDesc {
     }
 
     public String getMethodTestMethod() {
-        return methodTestMethod;
+        return this.methodTestMethod;
     }
 
     public void setMethodTestMethod(String methodTestMethod) {
         this.methodTestMethod = methodTestMethod;
+    }
+
+    public String getMethodParentClass() {
+        return this.methodParentClass;
+    }
+
+    public void setMethodParentClass(String methodParentClass) {
+        this.methodParentClass = methodParentClass;
+    }
+
+    public InVivoClassDesc getMethodParentClassDesc() {
+        return methodParentClassDesc;
+    }
+
+    public void setMethodParentClassDesc(InVivoClassDesc methodParentClassDesc) {
+        this.methodParentClassDesc = methodParentClassDesc;
     }
 
 }

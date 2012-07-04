@@ -34,18 +34,16 @@ public class InvivoClassFileTransformer implements ClassFileTransformer {
 				}
 			}
 
-			TestRunnerGenerator generator = InvivoPreMain.config.getTestRunnerGenerator(preVisitor);
-			try {
-				if (generator != null)
-					generator.generateTestRunner();
-			} catch (Exception ex) {
-				logger.error("Error generating test runner for class " + name, ex);
-			}
-
+			TestRunnerGenerator<ClassVisitor> generator = InvivoPreMain.config.getTestRunnerGenerator(preVisitor);
+			
 			ClassReader cr = new ClassReader(classfileBuffer);
 			ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 			try {
-				InterceptingClassVisitor cv = new InterceptingClassVisitor(cw);
+				InterceptingClassVisitor cv;
+				if (generator != null) {
+					cv = new InterceptingClassVisitor(cw, generator.getClsDesc());
+				} else
+					cv = new InterceptingClassVisitor(cw);
 				cv.setClassName(name);
 				ClassVisitor secondaryVistor = InvivoPreMain.config.getAdditionalCV(Opcodes.ASM4, cv);
 				if (secondaryVistor != null) {
