@@ -14,7 +14,7 @@ public class NDClassVisitor extends ClassVisitor {
 	
 	private String className;
 
-	public LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
+//	public LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
 	
 	/**
 	 * TODO comment
@@ -28,7 +28,7 @@ public class NDClassVisitor extends ClassVisitor {
 	}
 
 	/**
-	 * TODO comment
+	 * We are seeing method A.x for the first time. Add it to methodMap.
 	 */
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc,
@@ -37,7 +37,7 @@ public class NDClassVisitor extends ClassVisitor {
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
 		NativeDetector.methodMap.put(mi.getFullName(), mi);
 		
-		this.allMethods.add(mi);
+//		this.allMethods.add(mi);
 		
 		return new NDMethodVisitor(api, super.visitMethod(
 				access, name, desc, signature, exceptions), mi.getFullName()); 

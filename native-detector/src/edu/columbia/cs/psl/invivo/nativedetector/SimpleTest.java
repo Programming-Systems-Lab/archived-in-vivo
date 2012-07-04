@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 
 public class SimpleTest {
@@ -15,8 +16,15 @@ public class SimpleTest {
 	private static Logger logger = Logger.getLogger(SimpleTest.class);
 	
 	public static void main(String[] args) {
-		smallTest();
-		writeTest();
+//		smallTest();
+//		writeTest();
+		try {
+			preprocessingTest("java/awt/Container.getComponent:(I)Ljava/awt/Component;");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		logger.info("done with test");
 	}
 		
 	
@@ -89,5 +97,25 @@ public class SimpleTest {
 		logger.info(nd.dirtyMap.keySet());
 
 		return nd.dirtyMap.keySet();
+	}
+	
+	private static void preprocessingTest(String methodName) throws IOException {
+		
+		
+		NativeDetector nd = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
+
+		MethodInstance mi = new MethodInstance(methodName);
+		
+		String className = methodName.split("\\.")[0];
+		NDClassVisitor cv = new NDClassVisitor(Opcodes.ASM4, null, className);
+		ClassReader cr = new ClassReader(className);
+		cr.accept(cv, 0);
+		logger.info(mi.functionsICall);
+		nd.addLinksToChildren(mi);
+		logger.info(mi.functionsICall);
+		//nd.getAllClasses();
+		//nd.getAllMethods();
+
+		
 	}
 }

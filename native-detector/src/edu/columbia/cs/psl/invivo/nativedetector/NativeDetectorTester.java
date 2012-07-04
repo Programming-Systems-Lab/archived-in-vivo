@@ -32,7 +32,7 @@ public class NativeDetectorTester {
 		engine.getAllClasses();
 		engine.getAllMethods();
 		engine.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/native-dict.txt"));
-		for (MethodInstance mi: NativeDetector.allMethods) {
+		for (MethodInstance mi: NativeDetector.methodMap.values()) {
 			engine.addLinksToChildren(mi);
 		}
 		

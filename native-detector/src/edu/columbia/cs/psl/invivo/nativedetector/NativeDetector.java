@@ -29,7 +29,6 @@ import com.sun.tools.javac.util.Pair;
 public class NativeDetector {
 
 	
-	
 	/**
 	 * Absolute location on disk of the jar file containing the Java Standard Library.
 	 * String jarPath
@@ -124,17 +123,33 @@ public class NativeDetector {
 	 */
 	public void addLinksToChildren(MethodInstance mi) {
 		String miName = mi.getFullName();
+		logger.info(miName);
 		if ((mi.getAccess() != 0) && mi.isNative()) {
+			logger.info("inside if");
+			logger.info(dirtyMap);
 			dirtyMap.put(miName, new LinkedList<String>());
+			logger.info(dirtyMap);
 		} else {
+			logger.info("inside else");
 			MethodInstance real = methodMap.get(miName);
-			logger.info(real.functionsICall.size());
+			logger.info(real);
+			logger.info(real.functionsICall);
+			int count = 0;
 			for (String f : real.functionsICall) {
+				count++;
+				logger.info("inside for loop: "+ count);
 				if (unprocessedMap.containsKey(f)) {
+					logger.info("inside nested if");
+					logger.info(unprocessedMap);
 					unprocessedMap.get(f).add(miName);
+					logger.info(unprocessedMap);
 				} else {
+					logger.info("inside nested for");
+					logger.info(unprocessedMap);
 					addPairToUnprocessedMap(f, miName);
+					logger.info(unprocessedMap);
 				}
+				logger.info("done with iteration "+count);
 			}
 		}
 	}
@@ -237,8 +252,9 @@ public class NativeDetector {
 			ClassReader cr = new ClassReader(className);
 			NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, className);
 			cr.accept(ccv, 0);
-			allMethods.addAll(ccv.allMethods);
-			logger.info("methods: " + allMethods.size());
+			//allMethods.addAll(ccv.allMethods);
+			//logger.info("methods: " + allMethods.size());
+			logger.info("methods: " + methodMap.size());
 		}
 	}
 }

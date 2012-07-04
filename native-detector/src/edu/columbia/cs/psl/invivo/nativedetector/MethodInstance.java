@@ -113,7 +113,7 @@ public class MethodInstance {
 		this.access = access;
 	}
 	
-	
+		
 	public MethodInstance(String fullName) {
 		
 		String[] pieces = fullName.split("\\.|:");
