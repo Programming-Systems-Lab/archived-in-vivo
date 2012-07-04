@@ -95,6 +95,7 @@ public class MethodInstance {
 		this.clazz = clazz;
 	}
 	
+	
 	/**
 	 * Constructor for MethodInstance -  accepts method name, method description, class name, and access flag.
 	 * @param name				String			name of method
@@ -119,6 +120,14 @@ public class MethodInstance {
 		String[] pieces = fullName.split("\\.|:");
 		this.clazz = pieces[0];
 		this.method = new Method(pieces[1], pieces[2]);
+	}
+	
+	public MethodInstance(String fullName, int access) {
+		
+		String[] pieces = fullName.split("\\.|:");
+		this.clazz = pieces[0];
+		this.method = new Method(pieces[1], pieces[2]);
+		this.access = access;
 	}
 	
 	/**

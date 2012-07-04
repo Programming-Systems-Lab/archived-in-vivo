@@ -31,7 +31,7 @@ public class NativeDetectorTester {
 
 		engine.getAllClasses();
 		engine.getAllMethods();
-		engine.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/native-dict.txt"));
+		engine.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/nd-output.txt"));
 		for (MethodInstance mi: NativeDetector.methodMap.values()) {
 			engine.addLinksToChildren(mi);
 		}
@@ -59,6 +59,7 @@ public class NativeDetectorTester {
 			logger.error("write out failure");
 		}
 		logger.info("done with test.");
+		engine.bw.close();
 
 		return;
 	}

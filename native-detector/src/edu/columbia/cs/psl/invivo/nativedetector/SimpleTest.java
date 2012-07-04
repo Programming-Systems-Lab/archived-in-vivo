@@ -17,8 +17,9 @@ public class SimpleTest {
 	
 	public static void main(String[] args) {
 //		smallTest();
-//		writeTest();
 		try {
+			writeTest();
+
 			preprocessingTest("java/awt/Container.getComponent:(I)Ljava/awt/Component;");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -44,7 +45,7 @@ public class SimpleTest {
 		
 
 	}
-	private static Set<String> smallTest() {
+	private static Set<String> smallTest() throws IOException {
 		NativeDetector nd = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 		/*
 		 * a
@@ -52,6 +53,7 @@ public class SimpleTest {
 		 * 		ccc 
 		 */
 		
+		nd.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/ndoutput.txt"));
 		MethodInstance a = new MethodInstance("methodA", "descA", "classA");
 		a.setAccess(Opcodes.ACC_NATIVE);
 		LinkedList<String> callsBB = new LinkedList<String>();

@@ -13,6 +13,7 @@ import org.objectweb.asm.MethodVisitor;
  */
 public class NDMethodVisitor extends MethodVisitor{
 	String methodName;
+	int access;
 	//MethodInstance mi;
 		
 	private static Logger logger = Logger.getLogger(NDMethodVisitor.class);
@@ -21,9 +22,10 @@ public class NDMethodVisitor extends MethodVisitor{
 	 * @param api				int				Generally Opcodes.ASM4
 	 * @param mv				MethodVisitor	MethodVisitor to extend (can be null)
 	 */
-	public NDMethodVisitor(int api, MethodVisitor mv, String methodName) {
+	public NDMethodVisitor(int api, MethodVisitor mv, String methodName, int access) {
 		super(api, mv);
 		this.methodName = methodName;
+		this.access = access;
 	}
 	
 	@Override
@@ -35,15 +37,18 @@ public class NDMethodVisitor extends MethodVisitor{
 		String fName = owner + "." + name + ":" + desc;
 		if (NativeDetector.methodMap.containsKey(methodName)) {
 			MethodInstance mi = NativeDetector.methodMap.get(methodName);
-			NativeDetector.methodMap.remove(methodName);
+//			NativeDetector.methodMap.remove(methodName);
 //			LinkedList<String> newList = new LinkedList<String>();
 //			newList.addAll(ll);
 //			newList.add(fName);
 			mi.functionsICall.add(fName);
+			mi.setAccess(access);
 			NativeDetector.methodMap.put(methodName, mi);
 		} else {
 			MethodInstance mi = new MethodInstance(methodName);
 			mi.functionsICall.add(fName);
+			mi.setAccess(access);
+
 			NativeDetector.methodMap.put(methodName, mi);
 		}
 //		logger.info(NativeDetector.methodMap.get(methodName).functionsICall.size() + " of " + this.numMethodsICall);

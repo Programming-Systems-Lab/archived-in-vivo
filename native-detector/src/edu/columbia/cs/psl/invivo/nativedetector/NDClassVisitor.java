@@ -40,7 +40,7 @@ public class NDClassVisitor extends ClassVisitor {
 //		this.allMethods.add(mi);
 		
 		return new NDMethodVisitor(api, super.visitMethod(
-				access, name, desc, signature, exceptions), mi.getFullName()); 
+				access, name, desc, signature, exceptions), mi.getFullName(), access); 
 	}
 	
 }

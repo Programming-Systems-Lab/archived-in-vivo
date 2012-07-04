@@ -1,7 +1,6 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -123,33 +122,42 @@ public class NativeDetector {
 	 */
 	public void addLinksToChildren(MethodInstance mi) {
 		String miName = mi.getFullName();
-		logger.info(miName);
-		if ((mi.getAccess() != 0) && mi.isNative()) {
-			logger.info("inside if");
-			logger.info(dirtyMap);
+//		logger.info(miName);
+//		logger.warn(miName + " " + mi.getAccess());
+		if (mi.isNative()) {
+//			logger.info("inside if");
+//			logger.info(dirtyMap);
 			dirtyMap.put(miName, new LinkedList<String>());
-			logger.info(dirtyMap);
+//			logger.info(dirtyMap);
 		} else {
-			logger.info("inside else");
+//			logger.info("inside else");
 			MethodInstance real = methodMap.get(miName);
-			logger.info(real);
-			logger.info(real.functionsICall);
-			int count = 0;
+//			logger.info(real);
+//			logger.info(real.functionsICall);
+//			int count = 0;
 			for (String f : real.functionsICall) {
-				count++;
-				logger.info("inside for loop: "+ count);
+//				count++;
+//				logger.info("inside for loop: "+ count);
 				if (unprocessedMap.containsKey(f)) {
-					logger.info("inside nested if");
-					logger.info(unprocessedMap);
+//					logger.info("inside nested if");
+//					logger.info("before: " +unprocessedMap.get(f).size());
+					
 					unprocessedMap.get(f).add(miName);
-					logger.info(unprocessedMap);
+//					logger.info("after: " +unprocessedMap.get(f).size());
+
+//					logger.info(unprocessedMap);
 				} else {
-					logger.info("inside nested for");
-					logger.info(unprocessedMap);
+//					logger.info("inside nested for");
+//					logger.info(unprocessedMap);
+//					logger.info("before: " +unprocessedMap.size());
+
 					addPairToUnprocessedMap(f, miName);
-					logger.info(unprocessedMap);
+//					logger.info("after: " +unprocessedMap.size());
+
+//					logger.info(unprocessedMap);
+					
 				}
-				logger.info("done with iteration "+count);
+//				logger.info("done with iteration "+count);
 			}
 		}
 	}
@@ -186,7 +194,7 @@ public class NativeDetector {
 		while (dirtySetIt.hasNext()) {
 			Entry<String, LinkedList<String>> dirtyItem = dirtySetIt.next();
 			Pair<String, LinkedList<String>> dirtyPair = new Pair<String, LinkedList<String>>(dirtyItem.getKey(), dirtyItem.getValue());
-			dirtyQueue.add(dirtyPair);
+			addToQueue(dirtyItem.getKey());
 //			try {
 //				bw.write(dirtyPair.fst + "\t\t" + dirtyPair.snd);
 //				bw.newLine();
@@ -207,32 +215,50 @@ public class NativeDetector {
 	 * 
 	 */
 	public void processQueue() {
-		while (!dirtyQueue.isEmpty()) {
-		
-			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
-			String dirtyName = dirtyItem.fst;
-			
-			LinkedList<String> functionsICall = methodMap.get(dirtyName).functionsICall;
-			logger.info(functionsICall.size() + " functions I call");
-			for (String y: functionsICall) {
-				if (dirtyMap.containsKey(y)) {
-					dirtyMap.get(y).add(dirtyItem.fst);
-				} else {
-					addPairToDirtyMap(y, dirtyItem.fst);
-				}
-				addToQueue(y);
-				try {
-					logger.info("writing");
-					bw.write(y + " is dirty");
-					bw.newLine();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			logger.info("queue size: " + dirtyQueue.size());
+		while (dirtyQueue.size() != 0) {
+				
+				Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
+				String dirtyName = dirtyItem.fst;
 
+				if (!unprocessedMap.containsKey(dirtyName)) {
+					unprocessedMap.put(dirtyName, dirtyItem.snd);
+				}
+			
+				LinkedList<String> callers = unprocessedMap.get(dirtyName); //mark these dirty
+				logger.info(callers.size());
+				for (String y: callers) {
+					if (dirtyMap.containsKey(y)) {
+						dirtyMap.get(y).add(dirtyName);
+					} else {
+						addPairToDirtyMap(y, dirtyName);
+					}
+				}
+				
+//				LinkedList<String> functionsICall = methodMap.get(dirtyName).functionsICall;
+//				logger.info(functionsICall.size() + " functions I call");
+//				for (String y: functionsICall) {
+//					if (dirtyMap.containsKey(y)) {
+//						logger.warn("dirtyMap contained "+ y);
+//						dirtyMap.get(y).add(dirtyName);
+//					} else {
+//						logger.warn("dirtyMap did not contain "+ y);
+//						addPairToDirtyMap(y, dirtyName);
+//					}
+//					addToQueue(y);
+//					try {
+//						logger.info("writing");
+//						bw.write(y + " is dirty");
+//						bw.newLine();
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				}
+				logger.info("queue size: " + dirtyQueue.size());
+
+		
 		}
+		
 	}
 	
 		
