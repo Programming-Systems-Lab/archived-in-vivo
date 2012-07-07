@@ -1,20 +1,21 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.Method;
+
+import com.sun.tools.javac.util.Pair;
 
 
 /**
@@ -25,6 +26,7 @@ import org.objectweb.asm.commons.Method;
  */
 public class NativeDetector {
 
+	
 	/**
 	 * Absolute location on disk of the jar file containing the Java Standard Library.
 	 * String jarPath
@@ -32,230 +34,165 @@ public class NativeDetector {
 	String jarPath;
 	
 	/**
-	 * List of all classes to be investigated.
-	 * LinkedList<String> openClasses
+	 * Set of all classes to be investigated.
+	 * HashSet <String> openClasses
 	 * @see NativeDetector#getAllClasses()
 	 */
-	LinkedList<String>	openClasses = new LinkedList<String>();
+	 HashSet<String> allClasses = new HashSet<String>();
 	
 	/**
-	 * List of every method from every class. MethodInstances will be added through {@link NativeDetector#getAllMethods()} 
-	 * and will be deleted through {@link NativeDetector#findNativeInvokers()}.
-	 * private LinkedList<MethodInstance> allMethods
+	 * Set of every method from every class. MethodInstances will be added through
+	 * {@link NativeDetector#getAllMethods()}.
+	 * static HashSet<MethodInstance> allMethods
 	 * @see NativeDetector#getAllMethods()
 	 * @see NativeDetector#findNativeInvokers()
 	 */
-	 static LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
-	static HashMap<MethodInstance, MethodInstance> allMethodsLookup = new HashMap<MethodInstance, MethodInstance>();
-	
-//TODO uncomment	private LinkedList<MethodInstance> allMethods = new LinkedList<MethodInstance>();
-	
-	/**
-	 * List of methods known to be/invoke a native. 
-	 * When something leaves this list it should go immediately into {@link NativeDetector#closedMethods}.
-	 * LinkedList<MethodInstance> openMethods
-	 * @see NativeDetector#closedMethods
-	 * @see NativeDetector#selectNativeMethods()
-	 * @see NativeDetector#findNativeInvokers()
-	 */
-	LinkedList<MethodInstance> openMethods= new LinkedList<MethodInstance>();
-	
-	/**
-	 * Set of MethodInstances that have already been investigated. 
-	 * Everything in this list is or invokes a native.
-	 * HashSet<MethodInstance> closedMethods
-	 * @see NativeDetector#writeClosedMethods(String)
-	 * @see NativeDetector#openMethods
-	 * @see NativeDetector#selectNativeMethods()
-	 * @see NativeDetector#findNativeInvokers()
-	 * */
-	HashSet<MethodInstance> closedMethods = new HashSet<MethodInstance>();
-	
-	
-	/**
-	 * Logger for NativeDetector class (log4j).
-	 * private static Logger logger
-	 * @see Logger
-	 */
-	private static Logger logger = Logger.getLogger(NativeDetector.class);
+	 static HashSet<MethodInstance> allMethods = new HashSet<MethodInstance>();
+     static HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>(); // methodname, methodinstance object
+
+	 BufferedWriter bw;
+	 HashMap<String, LinkedList<String>> dirtyMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
+	 HashMap<String, LinkedList<String>> unprocessedMap = new HashMap<String, LinkedList<String>>(); // methodname, list of callers
+	 LinkedList<Pair<String, LinkedList<String>>> dirtyQueue = new LinkedList<Pair<String,LinkedList<String>>>();
 	
 	/**
 	 * Constructor for a NativeDetector object
 	 * @param jarURL			String				absolute path to classes.jar (java std lib jar)
-	 * @see NativeDetector#openClasses
+	 * @see NativeDetector#allClasses
 	 */
 	public NativeDetector(String jarURL) {
 		jarPath = jarURL;
 	}
 
-
-	
 	
 	/**
-	 * Reads in the jar file and populates openClasses with class names.
+	 * Reads in the jar file and populates allClasses with class names.
 	 * @see NativeDetector#jarPath
 	 * @throws IOException			on jar file read failure
 	 */
 	public void getAllClasses() throws IOException {
-		LinkedList<String> classList = new LinkedList<String>();
+		HashSet<String> classList = new HashSet<String>();
 		JarFile classJar = new JarFile(jarPath);
 		Enumeration<JarEntry> jarContents = classJar.entries();
 		while (jarContents.hasMoreElements())
 			classList.add(jarContents.nextElement().getName());				
 		classJar.close();
-
-		openClasses = classList;
-		logger.info("openClasses.size() = " + openClasses.size());
+		
+		allClasses = cleanClasses(classList);
 	}
 	
-	/**
-	 * Reads in openClasses and adds all methods from each class to allMethods.
-	 * Relies on openClasses already being populated.
-	 * @see NativeDetector#openClasses
-	 * @see NativeDetector#allMethods
-	 * @see CompleteClassVisitor
-	 * @throws IOException					on ClassReader failure
-	 */
-	public void getAllMethods() throws IOException{
-		LinkedList<String> listOfClasses = new LinkedList<String>();
-		listOfClasses.addAll(openClasses);
-		while (!listOfClasses.isEmpty()) {
-			
-			String clazz = listOfClasses.pop();
-			
-			if (clazz.endsWith(".class")){ 
+	
+	// gets rid of things that don't end in .class
+	private HashSet<String> cleanClasses(HashSet<String> dirtyClasses) {
+		int dirtyClassesSize = dirtyClasses.size();
+		HashSet<String> cleanClasses = new HashSet<String>();
+		String[] dirtyArray =  dirtyClasses.toArray(new String[dirtyClassesSize]);
+
+		for (int i=0; i < dirtyClassesSize; i++) {
+			String clazz = dirtyArray[i];
+			if (clazz.endsWith(".class")) {
 				clazz = clazz.substring(0, clazz.length()-6);   //remove ".class"
-				ClassReader cr = new ClassReader(clazz);
-				CompleteClassVisitor ccv = new CompleteClassVisitor(Opcodes.ASM4, null, clazz);
-				cr.accept(ccv, 0);
-				
-//				allMethods.addAll(ccv.allMethods);
-				for(MethodInstance mi : ccv.allMethods)
-				{
-					if(allMethodsLookup.containsKey(mi))
-					{
-						allMethods.add(allMethodsLookup.get(mi));
-					}
-					else
-					{
-						allMethodsLookup.put(mi, mi);
-						allMethods.add(mi);
-					}
+				cleanClasses.add(clazz);
+			}
+		}
+		return cleanClasses;
+	}
+	
+	
+
+	
+	/*
+	 * (1) fetch a method x 
+	 * 		if x is native
+	 * 			add x to dirty hash
+	 * 		else
+	 * 			for each method y that x calls
+	 * 				find/add y in called hash and add x to its list
+	 */
+	public void addLinksToChildren(MethodInstance mi) {
+		String miName = mi.getFullName();
+		if (mi.isNative()) {
+			dirtyMap.put(miName, new LinkedList<String>());
+		} else {
+			MethodInstance real = methodMap.get(miName);
+			for (String f : real.functionsICall) {
+				if (unprocessedMap.containsKey(f)) {
+					unprocessedMap.get(f).add(miName);
+				} else {
+					addPairToUnprocessedMap(f, miName);
 				}
 			}
 		}
-		
-		//Follow the chain down to recursively add all callers
-//		for(MethodInstance mi : allMethods)
-//		{
-//			if((mi.getAccess() & Opcodes.ACC_NATIVE) != 0)
-//			{
-		MethodInstance mi = getMethodInstance("java/io/FileSystem", "getFileSystem", "()Ljava/io/FileSystem;");
-				mi.setCallers(findAllCallers(mi,new HashSet<MethodInstance>()));
-//			}
-//		}
 	}
-	private LinkedList<MethodInstance> findAllCallers(MethodInstance mi, HashSet<MethodInstance> expanded)
-	{
-		if(expanded.contains(mi))
-			return new LinkedList<MethodInstance>();
-		LinkedList<MethodInstance> ret = new LinkedList<MethodInstance>();
-		expanded.add(mi);
+	
+	/* Takes fully qualified function names*/
+	private void addPairToUnprocessedMap(String f, String caller) {
+		LinkedList<String> list = new LinkedList<String>();
+		list.add(caller);
+		unprocessedMap.put(f, list);
+	}
 
-		ret.addAll(mi.getCallers());
-		for(MethodInstance caller : mi.getCallers())
-		{
-			ret.addAll(findAllCallers(caller,expanded));
-		}
-		return ret;
+	/* Takes fully qualified function names*/
+	private void addPairToDirtyMap(String f, String caller) {
+		LinkedList<String> list = new LinkedList<String>();
+		list.add(caller);
+		dirtyMap.put(f, list);
 	}
-	// use callfindingclassvisitor
-	/**
-	 * TODO comment findAllInvokers
-	 * @throws IOException 
+	
+	/* (2) for each x in dirty hash
+	 * 		add to queue
 	 */
-	public void findAllInvokers() throws IOException {
-		LinkedList<MethodInstance> listOfAllMethods = new LinkedList<MethodInstance>(); 
-		listOfAllMethods.addAll(allMethods); //TODO is there a more efficient way to do this? cloning?
-		while (!listOfAllMethods.isEmpty()) {
-			MethodInstance mi = listOfAllMethods.pop();
-
-			ClassReader cr = new ClassReader(mi.getClazz());
-			CallFindingClassVisitor cfcv = new CallFindingClassVisitor(Opcodes.ASM4, null, mi.getClazz(), this);
-			cr.accept(cfcv, 0);
+	public void makeQueue() {
+		Set<Entry<String, LinkedList<String>>> dirtySet = dirtyMap.entrySet();
+		Iterator<Entry<String, LinkedList<String>>> dirtySetIt = dirtySet.iterator();
+		while (dirtySetIt.hasNext()) {
+			addToQueue(dirtySetIt.next().getKey());
 		}
 	}
 	
-
-	
-
-	
-	/**
-	 * Saves contents of closedMethods to a file.
-	 * @param filename				String			name of output file (including extension)
-	 * @throws FileNotFoundException				on file write error
-	 * @see PrintWriter#write(String)
-	 * @see MethodInstance
-	 * @see NativeDetector#closedMethods
+	/* (3) for each x in queue
+	 * 		[if in dirty, done]
+	 * 		if x is not dirty
+	 * 			for each y in x.list -- for each y that x calls
+	 * 				add y to dirty with x in list
+	 * 				queue y
 	 * 
 	 */
-	public void writeClosedMethods(String filename) throws FileNotFoundException {
-		PrintWriter out = new PrintWriter(filename);
-//		Iterator<MethodInstance> it = closedMethods.iterator();
-//		while (it.hasNext()) {
-//			MethodInstance mi = it.next();
-//			out.write(mi.getClazz() + "\t\t" + mi.getMethod() + "\n");
-//		}
-		for(MethodInstance mi : allMethods)
-		{
-			if((mi.getAccess() & Opcodes.ACC_NATIVE) != 0)
-			{
-				out.write(mi.getClazz() + "\t\t" + mi.getMethod() + "\n");
-				for(MethodInstance child : mi.getCallers())
-				{
-					out.write("\t\t"+child.getClazz() + "\t\t" + child.getMethod()+"\n");
+	public void processQueue() {
+		while (dirtyQueue.size() != 0) {
+			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
+			String dirtyName = dirtyItem.fst;
+
+			if (!unprocessedMap.containsKey(dirtyName)) {
+				unprocessedMap.put(dirtyName, dirtyItem.snd);
+			}
+			LinkedList<String> callers = unprocessedMap.get(dirtyName); //mark these dirty
+			for (String y: callers) {
+				if (dirtyMap.containsKey(y)) {
+					dirtyMap.get(y).add(dirtyName);
+				} else {
+					addPairToDirtyMap(y, dirtyName);
 				}
 			}
 		}
-		out.close();
-		logger.info("done with writeClosedMethods");
-	}
-
-	
-	/**
-	 * Debugging method to display how many methods are in each category.
-	 * @see NativeDetector#allMethods
-	 * @see NativeDetector#openMethods
-	 * @see NativeDetector#closedMethods
-	 */
-	public void logStats() {
-		String semids = ";  ";
-		Exception ex = new Exception();
-		StackTraceElement[] el = ex.getStackTrace();
-		String id = el[1].getClassName() + ". " + el[1].getMethodName() + ":"+el[1].getLineNumber();
-		logger.info(id + "   allMethods: " + allMethods.size() + semids + "openMethods: " + openMethods.size() + semids + "closedMethods: " + closedMethods.size());		
-
 	}
 	
-	/**
-	 * Returns the exact MethodInstance that is in allMethods. 
-	 * Ensures that attributes are assigned to the correct instantiations.
-	 * @param clazz			String			name of class owning method
-	 * @param name			String			name of method
-	 * @param desc			String			method descriptor
-	 * @return				MethodInstance		the corresponding MethodInstance from allMethods
-	 * @see NativeDetector#allMethods
-	 */
-	public static MethodInstance getMethodInstance(String clazz, String name, String desc) {
-		MethodInstance dummy = new MethodInstance(name, desc, clazz);
+		
+	private void addToQueue(String f) {
+		assert(dirtyMap.containsKey(f));
+		Pair<String, LinkedList<String>> pair = new Pair<String, LinkedList<String>>(f, dirtyMap.get(f));
+		dirtyQueue.push(pair);
+	}
+	
 
-		MethodInstance ret = allMethodsLookup.get(dummy);
-		if(ret == null)
-		{
-			allMethodsLookup.put(dummy, dummy);
-			ret = dummy;
+	public void getAllMethods() throws IOException {
+		int numClasses = allClasses.size();
+		String[] listOfClasses = allClasses.toArray(new String[numClasses]);
+		for (int i=0; i < numClasses; i++) { 
+			String className = listOfClasses[i];
+			ClassReader cr = new ClassReader(className);
+			NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, className);
+			cr.accept(ccv, 0);
 		}
-		return ret;
 	}
-
 }

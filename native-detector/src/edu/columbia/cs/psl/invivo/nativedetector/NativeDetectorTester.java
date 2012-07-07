@@ -1,6 +1,9 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -21,34 +24,45 @@ public class NativeDetectorTester {
 	/**
 	 * Main testing function. Requires no command line arguments.
 	 * @param args			String[]
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
-		NativeDetector engine = new NativeDetector("/Users/miriammelnick/Desktop/research/classes.jar");
-		try {
-			engine.getAllClasses(); // populates openClasses (21087)
-			engine.logStats();
+	public static void main(String[] args) throws IOException {
+		// Enter your own classes.jar location here
+		NativeDetector engine = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 
-			engine.findAllInvokers();
-			engine.logStats();
-			
-			engine.getAllMethods();	// populates allMethods (179891)
-			engine.logStats();
-
-			
-			engine.selectNativeMethods(); //populates openMethods
-			engine.logStats();
-			
-			engine.findNativeInvokers();
-			engine.logStats();
-			engine.writeClosedMethods("nativeInvokers.txt");
-		
-			logger.info("I think I'm done with NativeDetector");
-			
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		engine.getAllClasses();
+		engine.getAllMethods();
+		engine.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/nd-output.txt"));
+		for (MethodInstance mi: NativeDetector.methodMap.values()) {
+			engine.addLinksToChildren(mi);
 		}
+		
+		logger.info("dM: " + engine.dirtyMap.size() + "; uM: " + engine.unprocessedMap.size() + "; q: " + engine.dirtyQueue.size());
+		
+		engine.makeQueue();
+		engine.processQueue();
+		logger.info("writing to file");
+		
+		try {
+			// where do you want your output?
+			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/dirtymethods.txt"));
+			Iterator<String> it = engine.dirtyMap.keySet().iterator();
+			int numDirties = engine.dirtyMap.keySet().size();
+			int count = 0;
+			while (it.hasNext()) {
+				bw.write(it.next());
+				bw.newLine();
+				count++;
+				logger.info(count + " of " + numDirties);
+			}
+			bw.close();
+			engine.bw.close();
+		} catch (Exception e) {
+			logger.error("write out failure");
+		}
+		logger.info("done with test.");
+		engine.bw.close();
+
 		return;
 	}
 	

@@ -11,11 +11,21 @@ import org.objectweb.asm.commons.Method;
  * an integer for access flags, and a linkedlist of MethodInstances that invoke this method.
  */
 public class MethodInstance {
+		
+	public boolean isNative() {
+		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
+	}
 	
+	//TODO make private, add set/get methods
+	public LinkedList<String> functionsICall = new LinkedList<String>();
+	
+	public String getFullName() {
+		return this.clazz + "." + this.method.getName() + ":" + this.method.getDescriptor();
+	}
 	
 	@Override
 	public String toString() {
-		return "MethodInstance [method=" + method + ", clazz=" + clazz + ", access=" + access + ", calledBy=" + calledBy + "]";
+		return "MethodInstance [method=" + method + ", class=" + clazz + ", fIC:" + functionsICall.size() + "]";
 	}
 
 	/**
@@ -39,14 +49,14 @@ public class MethodInstance {
 	private int access;
 	
 	/**
-	 * List of MethodInstances that invoke this method.
-	 * private LinkedList<MethodInstance> calledBy
+	 * List of MethodInstance indices that invoke this method.
+	 * private LinkedList<Integer> calledBy
 	 * @see MethodInstance#addCaller(MethodInstance)
 	 * @see MethodInstance#getCallers()
 	 * @see NativeDetector#addCaller(MethodInstance, MethodInstance)
 	 */
-	private LinkedList<MethodInstance> calledBy = new LinkedList<MethodInstance>();
-	
+	private LinkedList<Integer> calledBy = new LinkedList<Integer>();
+
 	/**
 	 * Constructor for MethodInstance - accepts pre-formed method and a class name.
 	 * @param method			Method			well-formed {@link Method}
@@ -74,6 +84,7 @@ public class MethodInstance {
 		this.clazz = clazz;
 	}
 	
+	
 	/**
 	 * Constructor for MethodInstance -  accepts method name, method description, class name, and access flag.
 	 * @param name				String			name of method
@@ -89,6 +100,22 @@ public class MethodInstance {
 	public MethodInstance(String name, String desc, String clazz, int access) {
 		this.method = new Method(name, desc);
 		this.clazz = clazz;
+		this.access = access;
+	}
+	
+		
+	public MethodInstance(String fullName) {
+		
+		String[] pieces = fullName.split("\\.|:");
+		this.clazz = pieces[0];
+		this.method = new Method(pieces[1], pieces[2]);
+	}
+	
+	public MethodInstance(String fullName, int access) {
+		
+		String[] pieces = fullName.split("\\.|:");
+		this.clazz = pieces[0];
+		this.method = new Method(pieces[1], pieces[2]);
 		this.access = access;
 	}
 	
@@ -125,9 +152,15 @@ public class MethodInstance {
 	 * Attach a new invoker to this method.
 	 * @param caller			MethodInstance	method that calls this one
 	 * @see NativeDetector#addCaller(MethodInstance, MethodInstance)
-	 */
+	 
 	public void addCaller(MethodInstance caller) {
 		this.calledBy.add(caller);
+	}
+	*/
+	
+	 
+	public void addCaller(int callerIndex) {
+		this.calledBy.add(callerIndex);
 	}
 	
 	/**
@@ -137,22 +170,13 @@ public class MethodInstance {
 	 * @param caller			MethodInstance	method that might call this one
 	 * @return					boolean			true - yes, false - no
 	 */
-	public boolean calledBy(MethodInstance caller) {
+	public boolean calledBy(int caller) {
 		if (this.calledBy.contains(caller)) {
 			return true;
 		}
 		return false;
 	}
-	
-	/**
-	 * Get list of MethodInstances that invoke this one.
-	 * @return					LinkedList<MethodInstance>
-	 * @see MethodInstance#calledBy
-	 */
-	public LinkedList<MethodInstance> getCallers() {
-		return this.calledBy;
-	}
-	
+
 	
 	/**
 	 * (Override) This function declares two MethodInstances A, B "equal" if and only if:
@@ -195,7 +219,7 @@ public class MethodInstance {
 		this.access = access;
 	}
 
-	public void setCallers(LinkedList<MethodInstance> calledBy) {
+	public void setCallers(LinkedList<Integer> calledBy) {
 		this.calledBy = calledBy;
 	}
 
