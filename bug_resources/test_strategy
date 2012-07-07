@@ -1,0 +1,17 @@
+1) Mine previous bugs, revert to those commits and show that making those tests in-vivo would have revealed test failures (without changing the body of the test at all).
+
+Bug characteristic:
+
+We are looking at test cases that look like the following
+
+Object initialization
+                               <------------- In-vivo plugs in here, we don't do any initialization and just give the in-vivo state of that object
+Object mutation
+
+Object assertion               <------------- The hope is that with the in-vivo initialized object, some assertions here fail.
+
+Its a crapshoot to find unit tests like these.
+
+// 3) Take existing test suites, in-vivo them and run them through a grinder hoping to find new bugs.
+
+5) In-vivo test case generation. (Empirical spin: increased test coverage)
