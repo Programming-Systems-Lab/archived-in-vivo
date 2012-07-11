@@ -1,0 +1,378 @@
+Jetty
+
+1) 377550 set charset when content type is set
+   Commit: 0524e2d47a0764b024b5783b6699ca0b7661200c
+   file: test-jetty-servlet/src/test/java/org/eclipse/jetty/testing/HttpTesterTest.java
+
+2) 363993 EOFException parsing HEAD response in HttpTester
+   Commit: 644ea655d5cc83adc952c8695456f3a84b592804
+   file: test-jetty-servlet/src/main/java/org/eclipse/jetty/testing/HttpTester.java
+
+3) 288466: LocalConnector is not thread safe.
+   Commit: ca5c996d703f08260f7863805a337c7ce9dd798e
+   file: jetty-security/src/test/java/org/eclipse/jetty/security/Constrain2tTest.java View file @ ca5c996
+
+4) 356190 - Problem selecting expired sessions java.sql.SQLException: Database 'sessions' not found
+   Commit: e8f37070a69c2455b198df4de6db787ee1efa48c
+   file: tests/test-sessions/test-jdbc-sessions/src/test/java/org/eclipse/jetty/server/session/JdbcTestServer.java View file @ e8f3707
+
+Apache commons-math
+
+5) MATH-803:  modified OpenMapRealVector.ebeMultiply() and ebeDivide() to handle
+special cases  0d * NaN, 0d * Infinity, 0d / 0d and 0d / NaN.
+  - added implementation of isNaN() and isInfinite() to
+SparseRealVectorTest.SparseRealVectorTestImpl in order to allow for testing
+of OpenMapRealVector.ebeMultiply() and ebeDivide() with mixed types.
+   Commit: 7bbddc2203bed78fafe7739a97df1f53e767341a
+   file: src/test/java/org/apache/commons/math3/linear/SparseRealVectorTest.java
+
+6) MATH-790: Patch applied to fix the overflow issue.
+   Commit: a25e7f7abe7f6b3f4147febee4a917ce92241aab
+   file: src/main/java/org/apache/commons/math3/stat/inference/MannWhitneyUTest.java View file @ a25e7f7
+
+7) MATH-801: Fixed a problem when building rotations from two pairs of vectors.
+   Commit: 57afb23d6de53c4bcda39d2930133c79ad6d212c
+   file: src/main/java/org/apache/commons/math3/geometry/euclidean/threed/Rotation.java
+
+8) Avoid division by zero when dealing with single-point intervals sets
+   Commit: 0c00c9300a3d9aee8bc358c5d4e7804e71138db1
+   file: src/main/java/org/apache/commons/math3/geometry/euclidean/oned/IntervalsSet.java View file @ 0c00c93
+
+9) BigReal.divide(BigReal) now throws MathArithmeticException
+   Commit: 4af3b3b64d95278c6ae4c0e55c7f57452b924086
+   file: src/main/java/org/apache/commons/math3/util/BigReal.java View file @ 4af3b3b
+
+10) BigFraction.divide(BigFraction) now throws MathArithmeticException
+    Commit: da7c8ca0497a63c6354d12b0ab9cffcf3c78f90e
+    file: src/main/java/org/apache/commons/math3/fraction/BigFraction.java View file @ da7c8ca
+
+11) Fixed "doubleValue()" and "floatValue()" when numerator and denominator are
+larger than the range of the corresponding primitive type.
+   Commit: 1a15d5f4c13eca0435b0ed7e6a624064e7f7e07f
+   file: src/main/java/org/apache/commons/math/fraction/BigFraction.java View file @ 1a15d5f
+
+12) Widened the scope of tests for transform.FastFourierTransformer 
+   Commit: 0b144c231967ee5f992930d5b47d2a00f16e129f
+   file: src/main/java/org/apache/commons/math/transform/FastFourierTransformer.java View file @ 0b144c2
+
+13) More thorough testing of FastFourierTransformer
+   Commit: c9e3f7f393bd00384b049a94f488b4b129c07e8e
+   file: src/test/java/org/apache/commons/math/transform/FastFourierTransformerTest.java View file @ c9e3f7f
+
+14) Fixed an integer overflow in OpenMapRealMatrix.
+   Commit: bc4e9db01c2a03062965fa4bac65782376ab2287
+   file: src/main/java/org/apache/commons/math/linear/OpenMapRealMatrix.java View file @ bc4e9db
+
+15) MATH-645 Iterate on the original vector, not on the copy that is modified.
+   Commit: 09e35881f1ad74335707e70aa78fd347e37d1066
+   file: src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java View file @ 09e3588
+
+Commons-compress
+
+16) COMPRESS-187 - make empty comments compare equal to no comments in ZIP entries
+   Commit: a7bc0f8ca5ececb4ddf37dd1012daa33e9a39d04
+   file: src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java View file @ a7bc0f8
+
+17) COMPRESS-113: TarArchiveEntry.parseTarHeader() includes the trailing space/NUL when parsing the octal size
+   Commit: 156bc23b106bfd940cc8e9e767f5e37a4a32fba1
+   file: src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java View file @ 156bc23
+
+Commons-collections
+
+18) Fixed bugs where methods failed when there is no bean set for the bean map.
+   Commit: 33ac6121a5f3925d761586e7c135561805fe465c
+   file: src/java/org/apache/commons/collections/BeanMap.java
+
+19) Fix a bug in FilterListIterator and add a test for it
+   Commit: e2af015a2f9a11cca79daceca7efe61c1c0f0dc8
+   file: src/java/org/apache/commons/collections/FilterListIterator.java View file @ e2af015
+
+20) Fix bugs identified by extended list iterator tests
+   Commit: abb9990e0dbf49358d70da7e495824b94882fd09
+   file: src/java/org/apache/commons/collections/FastArrayList.java View file @ abb9990
+
+21) Fix UnboundedFifoBuffer iterator remove bug causing ArrayIndexOutOfBounds
+   Commit: e1c5f7fb49894fd2c839f54289436bbf90fd975d
+   file: src/java/org/apache/commons/collections/UnboundedFifoBuffer.java View file @ e1c5f7f
+
+22) Fix Flat3Map.equals to actually work
+   Commit: f95865f481e52d438ebd6ea6f1af886333823508
+   file: src/java/org/apache/commons/collections/map/Flat3Map.java View file @ f95865f
+
+23) COLLECTIONS-230: Making it so CollectionUtils.size(null) returns 0 and not an IllegalArgumentException
+   Commit: c4253f47d57e2eec96da3ccd31f8c366be6ba051
+   file: src/java/org/apache/commons/collections/CollectionUtils.java View file @ c4253f4
+
+24) COLLECTIONS-219 - CollectionUtils - Fix removeAll() method which was completely broken
+   Commit: 66c4b99ddc7daea806c1318a40736d0f5c8fa7bd
+   file: src/java/org/apache/commons/collections/CollectionUtils.java View file @ 66c4b99
+
+Apache JMeter
+
+25) New test for base href with full URL
+   Commit: ce53e7e172e573ed40cd40cf165e563c77621448
+   file: test/src/org/apache/jmeter/protocol/http/parser/TestHTMLParser.java View file @ ce53e7e
+
+26) Bug 15025 - URL Rewriter can cache Session ID
+   Commit: 49cb51b7f608c012a8a5ba5e5f3779d383bf1a3a
+   file: src/protocol/http/org/apache/jmeter/protocol/http/modifier/URLRewritingModifier.java View file @ 49cb51b
+
+27) Bug 42379 - GUI JUnit tests fails when test are executed in non-English Locale
+   Commit: aa00c515f0ecfc0fe45c89a6b61d843cd97bcd2d
+   file: test/src/org/apache/jmeter/junit/JMeterTest.java View file @ aa00c51
+
+28) Bug 46977 - JMeter does not handle HTTP headers not delimited by whitespace
+   Commit: 298e376f77b132df67d056c35b3890d12dc11a72
+   file: src/protocol/http/org/apache/jmeter/protocol/http/proxy/HttpRequestHdr.java View file @ 298e376
+
+29) Bug 50392 - value is trimmed when sending the request in Multipart
+   Commit: bb06923ceb37688c5890c6caac5edc949e2f8162
+   file: src/protocol/http/org/apache/jmeter/protocol/http/config/MultipartUrlConfig.java View file @ bb06923
+
+Netty
+
+30) Fix a NPE in a testcase when running via ubuntu
+   Commit: 32f61ed01ac7540ec5bd16898ca590fed36d59e8
+   file: testsuite/src/test/java/io/netty/testsuite/transport/socket/AbstractDatagramMulticastTest.java View file @ 32f61ed
+
+------------------------------------------X-----------------------------------
+
+31) 
+   Commit:
+   file:
+
+32) 
+   Commit:
+   file:
+
+33) 
+   Commit:
+   file:
+
+34) 
+   Commit:
+   file:
+
+35) 
+   Commit:
+   file:
+
+36) 
+   Commit:
+   file:
+
+37) 
+   Commit:
+   file:
+
+38) 
+   Commit:
+   file:
+
+39) 
+   Commit:
+   file:
+
+40) 
+   Commit:
+   file:
+
+41) 
+   Commit:
+   file:
+
+42) 
+   Commit:
+   file:
+
+43) 
+   Commit:
+   file:
+
+44) 
+   Commit:
+   file:
+
+45) 
+   Commit:
+   file:
+
+46) 
+   Commit:
+   file:
+
+47) 
+   Commit:
+   file:
+
+48) 
+   Commit:
+   file:
+
+49) 
+   Commit:
+   file:
+
+50) 
+   Commit:
+   file:
+
+51) 
+   Commit:
+   file:
+
+52) 
+   Commit:
+   file:
+
+53) 
+   Commit:
+   file:
+
+54) 
+   Commit:
+   file:
+
+55) 
+   Commit:
+   file:
+
+56) 
+   Commit:
+   file:
+
+57) 
+   Commit:
+   file:
+
+58) 
+   Commit:
+   file:
+
+59) 
+   Commit:
+   file:
+
+60) 
+   Commit:
+   file:
+
+61) 
+   Commit:
+   file:
+
+62) 
+   Commit:
+   file:
+
+63) 
+   Commit:
+   file:
+
+64) 
+   Commit:
+   file:
+
+65) 
+   Commit:
+   file:
+
+66) 
+   Commit:
+   file:
+
+67) 
+   Commit:
+   file:
+
+68) 
+   Commit:
+   file:
+
+69) 
+   Commit:
+   file:
+
+70) 
+   Commit:
+   file:
+
+71) 
+   Commit:
+   file:
+
+72) 
+   Commit:
+   file:
+
+73) 
+   Commit:
+   file:
+
+74) 
+   Commit:
+   file:
+
+75) 
+   Commit:
+   file:
+
+76) 
+   Commit:
+   file:
+
+77) 
+   Commit:
+   file:
+
+88) 
+   Commit:
+   file:
+
+89) 
+   Commit:
+   file:
+
+90) 
+   Commit:
+   file:
+
+91) 
+   Commit:
+   file:
+
+92) 
+   Commit:
+   file:
+
+93) 
+   Commit:
+   file:
+
+94) 
+   Commit:
+   file:
+
+95) 
+   Commit:
+   file:
+
+96) 
+   Commit:
+   file:
+
+97) 
+   Commit:
+   file:
+
+98) 
+   Commit:
+   file:
+
+99) 
+   Commit:
+   file:
+
+100) 
+   Commit:
+   file:

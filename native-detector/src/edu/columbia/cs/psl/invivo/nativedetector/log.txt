@@ -1,0 +1,72 @@
+5/20/12
+Have we considered that this problem may be too complex (require too many cycles) to run on my laptop? 
+I am having trouble finding an efficient algorithm.
+The problem is that I'm doing 170k classreaders and each of those is looking through all 170k classes.
+n^2 is not a problem in of itself algorithmically, but we have a large n, so it might be a problem here. 
+I'm looking for a way to do fewer runs through the 170k classes. Maybe if I had a list of natives A-D,
+I could do a run through all the classes and say "any method that calls A, B, C, or D needs to be checked"
+This would certainly still require multiple passes, but we could cut down from n to the maximum recursion 
+depth, which I doubt is more than 100. 170k*100 is a lot better than 170k*170k.
+To do this, I need to build a method foo that takes in a list (data structure?) of methods (known 
+native-callers) and outputs a list of methods that calls any of those methods.
+Note: I'd have to deal with duplicates here (something might call something in batch 1 and something in 
+batch 2)... maybe using a hashmap for storing the outputs would be smart? Something needs to guarantee 
+uniqueness. I could alternatively maintain a closed list and not re-check things that are closed.
+
+
+
+first) count how many method calls there are in a complete traversal of the stl
+second) store indices, not actual methodinstances. otherwise it's recursive.
+third) if everything calls everything else, we'll need 115GB heap space.
+
+[n-d 18:39:23] INFO [main] NativeDetectorTester.main(44) | 181543 total method calls
+
+6/19/12
+Okay. Back on this project; I have 12 days to finish it. I'm going to start by implementing the
+algorithm I described above that involves indices.
+
+6/24/12
+Something seemed to work well last time... I should have been more careful with my console output. It took a while.
+
+6/27/12
+// parse classes into methods {
+	// for each method foo in the class
+		// is foo native or in dirty list?
+			// maybeAddToDirtyList(foo)
+		// else (foo not native && not in dirty list)
+			// maybeAddToUnknownList(foo)
+			// for each function A that foo calls
+				// addUnknownCaller(A, foo)		
+// }
+
+	
+// maybeAddToDirtyList {
+	// is foo already in the dirty table?
+		// yes -> do nothing (remove foo from open list)
+		// no -> addToDirtyList(foo)
+// }
+
+// maybeAddToUnknownList {
+	// is foo already in the unknown table?
+		// yes -> do nothing (remove foo from open list)
+		// no -> addToUnknownList(foo)
+// }
+
+// addToDirtyList {
+	// dirtylist.add(foo, [])
+// }
+	
+// addToUnknownList {
+	// unknownlist.add(foo, [])
+// }
+	
+// addDirtyCaller (a, foo){
+	// if a is in dirty list
+		// do nothing
+	// if a is in unknown list
+		// dirtylist.add(a, unknownlist.get(a)
+// }
+	
+// addUnknownCaller (a, foo){
+	// unknownlist.get(a).add(foo)
+// }
