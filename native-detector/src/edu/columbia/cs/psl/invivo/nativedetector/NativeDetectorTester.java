@@ -32,7 +32,7 @@ public class NativeDetectorTester {
 
 		engine.getAllClasses();
 		engine.getAllMethods();
-		engine.bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/nd-output.txt"));
+		engine.bw = new BufferedWriter(new FileWriter("nd-output.txt"));
 		for (MethodInstance mi: NativeDetector.methodMap.values()) {
 			engine.addLinksToChildren(mi);
 		}
@@ -45,7 +45,7 @@ public class NativeDetectorTester {
 		
 		try {
 			// where do you want your output?
-			BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/miriam/git/in-vivo/native-detector/dirtymethods.txt"));
+			BufferedWriter bw = new BufferedWriter(new FileWriter("dirtymethods.txt"));
 			Iterator<String> it = engine.dirtyMap.keySet().iterator();
 			int numDirties = engine.dirtyMap.keySet().size();
 			int count = 0;

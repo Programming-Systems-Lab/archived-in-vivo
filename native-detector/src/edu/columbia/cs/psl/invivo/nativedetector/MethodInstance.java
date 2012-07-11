@@ -223,5 +223,9 @@ public class MethodInstance {
 		this.calledBy = calledBy;
 	}
 
+	public void forceNative() {
+		this.setAccess(Opcodes.ACC_NATIVE);
+	}
+
 	
 }

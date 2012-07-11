@@ -8,10 +8,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 
@@ -150,6 +152,7 @@ public class NativeDetector {
 		}
 	}
 	
+	private HashSet<String> processedMethods = new HashSet<String>();
 	/* (3) for each x in queue
 	 * 		[if in dirty, done]
 	 * 		if x is not dirty
@@ -162,7 +165,8 @@ public class NativeDetector {
 		while (dirtyQueue.size() != 0) {
 			Pair<String, LinkedList<String>> dirtyItem = dirtyQueue.pop();
 			String dirtyName = dirtyItem.fst;
-
+			processedMethods.add(dirtyName);
+			
 			if (!unprocessedMap.containsKey(dirtyName)) {
 				unprocessedMap.put(dirtyName, dirtyItem.snd);
 			}
@@ -172,6 +176,11 @@ public class NativeDetector {
 					dirtyMap.get(y).add(dirtyName);
 				} else {
 					addPairToDirtyMap(y, dirtyName);
+				}
+				if(!processedMethods.contains(y))
+				{
+					processedMethods.add(y);
+					addToQueue(y);
 				}
 			}
 		}
@@ -193,6 +202,38 @@ public class NativeDetector {
 			ClassReader cr = new ClassReader(className);
 			NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, className);
 			cr.accept(ccv, 0);
+		}
+		for(String clazz : methodMap.keySet())
+		{
+			if(clazz.startsWith("java/io")
+					|| clazz.startsWith("java/lang/Readable."))
+			{
+				MethodInstance mi = methodMap.get(clazz);
+				mi.forceNative();
+//				printWhatICall(mi, 0, new HashSet<String>(),mi.getFullName());
+			}
+		}
+	}
+	private static Logger logger = Logger.getLogger(NativeDetector.class);
+	private void printWhatICall(MethodInstance mi, int level,HashSet<String> alreadyPrinted, String fallback)
+	{
+		String r = "";
+		r += "|";
+		for(int i = 0; i< level;i++)
+			r += "--";
+		if(mi == null){
+			r+=("NULL!!!!!!!!!->" + fallback);
+			logger.error(r);
+			return;
+			
+		}
+
+		logger.error(r + mi.getFullName() + (mi.isNative() ? " [N] " : "[]"));
+		if(!alreadyPrinted.contains(mi.getFullName()))
+		{
+			alreadyPrinted.add(mi.getFullName());
+			for(String s : mi.functionsICall)
+				printWhatICall(methodMap.get(s), level+1,alreadyPrinted,s);
 		}
 	}
 }

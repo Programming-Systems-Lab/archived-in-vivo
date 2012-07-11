@@ -1,0 +1,369 @@
+com/sun/java/util/jar/pack/NativeUnpack		getOption(Ljava/lang/String;)Ljava/lang/String;
+com/sun/management/UnixOperatingSystem		getCommittedVirtualMemorySize()J
+com/sun/management/UnixOperatingSystem		getTotalSwapSpaceSize()J
+com/sun/management/UnixOperatingSystem		getFreeSwapSpaceSize()J
+com/sun/management/UnixOperatingSystem		getProcessCpuTime()J
+com/sun/management/UnixOperatingSystem		getFreePhysicalMemorySize()J
+com/sun/management/UnixOperatingSystem		getTotalPhysicalMemorySize()J
+com/sun/management/UnixOperatingSystem		getOpenFileDescriptorCount()J
+com/sun/management/UnixOperatingSystem		getMaxFileDescriptorCount()J
+com/sun/media/sound/HeadspaceMixer		nDrain()V
+com/sun/media/sound/HeadspaceMixer		nFlush()V
+com/sun/media/sound/HeadspaceMixer		nGetPosition()J
+com/sun/media/sound/HeadspaceMixer		nGetLevel()F
+com/sun/media/sound/HeadspaceMixer		nCreateLinkedStreams([J)J
+com/sun/media/sound/HeadspaceMixer		nStartLinkedStreams(J)Z
+com/sun/media/sound/HeadspaceMixer		nStopLinkedStreams(J)V
+com/sun/media/sound/HeadspaceSoundbank		nCloseResource(J)Z
+com/sun/media/sound/MixerClip		nDrain(I)V
+com/sun/media/sound/MixerClip		nFlush(I)V
+com/sun/media/sound/MixerClip		nGetLevel(I)F
+com/sun/media/sound/MixerMidiChannel		nGetSolo(JI)Z
+java/net/NetworkInterface		getByIndex(I)Ljava/net/NetworkInterface;
+java/net/NetworkInterface		getSubnet0(Ljava/lang/String;I)J
+java/net/NetworkInterface		getBroadcast0(Ljava/lang/String;I)Ljava/net/Inet4Address;
+java/net/PlainDatagramSocketImpl		send(Ljava/net/DatagramPacket;)V
+java/net/PlainDatagramSocketImpl		peek(Ljava/net/InetAddress;)I
+java/net/PlainDatagramSocketImpl		peekData(Ljava/net/DatagramPacket;)I
+java/net/PlainDatagramSocketImpl		setTimeToLive(I)V
+java/net/PlainDatagramSocketImpl		getTimeToLive()I
+java/net/PlainDatagramSocketImpl		setTTL(B)V
+java/net/PlainDatagramSocketImpl		getTTL()B
+java/net/PlainDatagramSocketV4Impl		bind(ILjava/net/InetAddress;)V
+java/net/PlainDatagramSocketV4Impl		send(Ljava/net/DatagramPacket;)V
+java/net/PlainDatagramSocketV4Impl		peek(Ljava/net/InetAddress;)I
+java/net/PlainDatagramSocketV4Impl		peekData(Ljava/net/DatagramPacket;)I
+java/net/PlainDatagramSocketV4Impl		receive(Ljava/net/DatagramPacket;)V
+java/net/PlainDatagramSocketV4Impl		setTimeToLive(I)V
+java/net/PlainDatagramSocketV4Impl		getTimeToLive()I
+java/net/PlainDatagramSocketV4Impl		setTTL(B)V
+java/net/PlainDatagramSocketV4Impl		getTTL()B
+sun/awt/DebugHelperImpl		setCTracingOn(Z)V
+sun/awt/DebugHelperImpl		setCTracingOn(ZLjava/lang/String;)V
+sun/awt/DebugHelperImpl		setCTracingOn(ZLjava/lang/String;I)V
+sun/awt/DefaultMouseInfoPeer		fillPointWithCoords(Ljava/awt/Point;)I
+sun/awt/DefaultMouseInfoPeer		isWindowUnderMouse(Ljava/awt/Window;)Z
+sun/java2d/opengl/CGLSurfaceData		resize(IIII)V
+sun/java2d/opengl/CGLSurfaceData		initPbuffer(JJZII)Z
+sun/java2d/opengl/OGLContext		getOGLIdString()Ljava/lang/String;
+sun/java2d/opengl/OGLMaskFill		maskFill(IIIIIII[B)V
+sun/java2d/opengl/OGLRenderer		drawPoly([I[IIZII)V
+sun/java2d/opengl/OGLTextRenderer		drawGlyphList(IZZZIFF[J[F)V
+sun/jkernel/Bundle		extraCompress(Ljava/lang/String;Ljava/lang/String;)Z
+sun/jkernel/DownloadManager		isIEProtectedMode()Z
+sun/management/Flag		getAllFlagNames()[Ljava/lang/String;
+sun/management/Flag		setLongValue(Ljava/lang/String;J)V
+		sun/management/HotSpotDiagnostic		setVMOption(Ljava/lang/String;Ljava/lang/String;)V
+sun/management/Flag		setBooleanValue(Ljava/lang/String;Z)V
+		sun/management/HotSpotDiagnostic		setVMOption(Ljava/lang/String;Ljava/lang/String;)V
+sun/management/Flag		setStringValue(Ljava/lang/String;Ljava/lang/String;)V
+		sun/management/HotSpotDiagnostic		setVMOption(Ljava/lang/String;Ljava/lang/String;)V
+sun/management/GarbageCollectorImpl		getCollectionCount()J
+sun/management/GarbageCollectorImpl		getCollectionTime()J
+sun/management/HotSpotDiagnostic		dumpHeap(Ljava/lang/String;Z)V
+sun/management/VMManagementImpl		isThreadContentionMonitoringEnabled()Z
+sun/management/VMManagementImpl		isThreadCpuTimeEnabled()Z
+sun/management/VMManagementImpl		isThreadAllocatedMemoryEnabled()Z
+sun/management/VMManagementImpl		getVerboseClass()Z
+sun/management/VMManagementImpl		getVerboseGC()Z
+sun/management/VMManagementImpl		getStartupTime()J
+sun/management/VMManagementImpl		getAvailableProcessors()I
+sun/management/VMManagementImpl		getTotalCompileTime()J
+sun/management/VMManagementImpl		getTotalThreadCount()J
+sun/management/VMManagementImpl		getLiveThreadCount()I
+sun/management/VMManagementImpl		getPeakThreadCount()I
+sun/management/VMManagementImpl		getDaemonThreadCount()I
+sun/management/VMManagementImpl		getSafepointCount()J
+sun/management/VMManagementImpl		getTotalSafepointTime()J
+sun/management/VMManagementImpl		getSafepointSyncTime()J
+sun/management/VMManagementImpl		getTotalApplicationNonStoppedTime()J
+sun/management/VMManagementImpl		getLoadedClassSize()J
+sun/management/VMManagementImpl		getUnloadedClassSize()J
+sun/management/VMManagementImpl		getClassLoadingTime()J
+sun/management/VMManagementImpl		getMethodDataSize()J
+sun/management/VMManagementImpl		getInitializedClassCount()J
+sun/management/VMManagementImpl		getClassInitializationTime()J
+sun/management/VMManagementImpl		getClassVerificationTime()J
+sun/misc/Perf		createLong(Ljava/lang/String;IIJ)Ljava/nio/ByteBuffer;
+sun/misc/Perf		highResCounter()J
+sun/misc/Perf		highResFrequency()J
+sun/security/jgss/wrapper/GSSLibStub		init(Ljava/lang/String;)Z
+		sun/security/jgss/wrapper/SunNativeProvider$1		run()Ljava/util/HashMap;
+sun/security/jgss/wrapper/GSSLibStub		indicateMechs()[Lorg/ietf/jgss/Oid;
+		sun/security/jgss/wrapper/SunNativeProvider$1		run()Ljava/util/HashMap;
+sun/security/jgss/wrapper/GSSLibStub		inquireNamesForMech()[Lorg/ietf/jgss/Oid;
+		sun/security/jgss/wrapper/GSSNameElement		getNativeNameType(Lorg/ietf/jgss/Oid;Lsun/security/jgss/wrapper/GSSLibStub;)Lorg/ietf/jgss/Oid;
+		sun/security/jgss/wrapper/GSSNameElement		getNativeNameType(Lorg/ietf/jgss/Oid;Lsun/security/jgss/wrapper/GSSLibStub;)Lorg/ietf/jgss/Oid;
+		sun/security/jgss/wrapper/NativeGSSFactory		getNameTypes()[Lorg/ietf/jgss/Oid;
+sun/security/jgss/wrapper/GSSLibStub		releaseName(J)V
+		sun/security/jgss/wrapper/GSSNameElement		getKrbName()Ljava/lang/String;
+		sun/security/jgss/wrapper/GSSNameElement		dispose()V
+sun/security/jgss/wrapper/GSSLibStub		importName([BLorg/ietf/jgss/Oid;)J
+		sun/security/jgss/wrapper/GSSNameElement		<init>([BLorg/ietf/jgss/Oid;Lsun/security/jgss/wrapper/GSSLibStub;)V
+sun/security/jgss/wrapper/GSSLibStub		compareName(JJ)Z
+		sun/security/jgss/wrapper/GSSNameElement		equals(Lsun/security/jgss/spi/GSSNameSpi;)Z
+sun/security/jgss/wrapper/GSSLibStub		canonicalizeName(J)J
+		sun/security/jgss/wrapper/GSSNameElement		getKrbName()Ljava/lang/String;
+sun/security/jgss/wrapper/GSSLibStub		exportName(J)[B
+		sun/security/jgss/wrapper/GSSNameElement		export()[B
+sun/security/jgss/wrapper/GSSLibStub		displayName(J)[Ljava/lang/Object;
+		sun/security/jgss/wrapper/GSSNameElement		setPrintables()V
+		sun/security/jgss/wrapper/GSSNameElement		getKrbName()Ljava/lang/String;
+sun/security/jgss/wrapper/GSSLibStub		getCredUsage(J)I
+sun/security/jgss/wrapper/GSSLibStub		importContext([B)Lsun/security/jgss/wrapper/NativeGSSContext;
+		sun/security/jgss/wrapper/NativeGSSFactory		getMechanismContext([B)Lsun/security/jgss/spi/GSSContextSpi;
+sun/security/jgss/wrapper/GSSLibStub		initContext(JJLorg/ietf/jgss/ChannelBinding;[BLsun/security/jgss/wrapper/NativeGSSContext;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		initSecContext(Ljava/io/InputStream;I)[B
+sun/security/jgss/wrapper/GSSLibStub		acceptContext(JLorg/ietf/jgss/ChannelBinding;[BLsun/security/jgss/wrapper/NativeGSSContext;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		acceptSecContext(Ljava/io/InputStream;I)[B
+sun/security/jgss/wrapper/GSSLibStub		inquireContext(J)[J
+		sun/security/jgss/wrapper/NativeGSSContext		<init>(JLsun/security/jgss/wrapper/GSSLibStub;)V
+sun/security/jgss/wrapper/GSSLibStub		getContextMech(J)Lorg/ietf/jgss/Oid;
+sun/security/jgss/wrapper/GSSLibStub		getContextName(JZ)J
+		sun/security/jgss/wrapper/NativeGSSContext		initSecContext(Ljava/io/InputStream;I)[B
+		sun/security/jgss/wrapper/NativeGSSContext		acceptSecContext(Ljava/io/InputStream;I)[B
+sun/security/jgss/wrapper/GSSLibStub		getContextTime(J)I
+		sun/security/jgss/wrapper/NativeGSSContext		getLifetime()I
+sun/security/jgss/wrapper/GSSLibStub		deleteContext(J)J
+		sun/security/jgss/wrapper/NativeGSSContext		dispose()V
+sun/security/jgss/wrapper/GSSLibStub		wrapSizeLimit(JIII)I
+		sun/security/jgss/wrapper/NativeGSSContext		getWrapSizeLimit(IZI)I
+sun/security/jgss/wrapper/GSSLibStub		exportContext(J)[B
+		sun/security/jgss/wrapper/NativeGSSContext		export()[B
+sun/security/jgss/wrapper/GSSLibStub		getMic(JI[B)[B
+		sun/security/jgss/wrapper/NativeGSSContext		getMIC([BIILorg/ietf/jgss/MessageProp;)[B
+sun/security/jgss/wrapper/GSSLibStub		verifyMic(J[B[BLorg/ietf/jgss/MessageProp;)V
+		sun/security/jgss/wrapper/NativeGSSContext		verifyMIC([BII[BIILorg/ietf/jgss/MessageProp;)V
+sun/security/jgss/wrapper/GSSLibStub		wrap(J[BLorg/ietf/jgss/MessageProp;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		wrap([BIILorg/ietf/jgss/MessageProp;)[B
+sun/security/jgss/wrapper/GSSLibStub		unwrap(J[BLorg/ietf/jgss/MessageProp;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		unwrap([BIILorg/ietf/jgss/MessageProp;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		unwrap([BIILorg/ietf/jgss/MessageProp;)[B
+		sun/security/jgss/wrapper/NativeGSSContext		unwrap([BII[BILorg/ietf/jgss/MessageProp;)I
+		sun/security/jgss/wrapper/NativeGSSContext		unwrap([BII[BILorg/ietf/jgss/MessageProp;)I
+sun/security/smartcardio/PCSC		SCardEstablishContext(I)J
+		sun/security/smartcardio/PCSCTerminals		initContext()V
+sun/security/smartcardio/PCSC		SCardListReaders(J)[Ljava/lang/String;
+		sun/security/smartcardio/PCSCTerminals		list(Ljavax/smartcardio/CardTerminals$State;)Ljava/util/List;
+		sun/security/smartcardio/PCSCTerminals		waitForChange(J)Z
+sun/security/smartcardio/PCSC		SCardGetStatusChange(JJ[I[Ljava/lang/String;)[I
+		sun/security/smartcardio/PCSCTerminals		waitForChange(J)Z
+		sun/security/smartcardio/PCSCTerminals		waitForCards(Ljava/util/List;JZ)Ljava/util/List;
+		sun/security/smartcardio/TerminalImpl		isCardPresent()Z
+		sun/security/smartcardio/TerminalImpl		waitForCard(ZJ)Z
+		sun/security/smartcardio/TerminalImpl		waitForCard(ZJ)Z
+java/net/PlainSocketImpl		socketGetOption1(ILjava/lang/Object;Ljava/io/FileDescriptor;)I
+java/net/Inet4AddressImpl		getLocalHostName()Ljava/lang/String;
+java/net/Inet4AddressImpl		lookupAllHostAddr(Ljava/lang/String;)[Ljava/net/InetAddress;
+java/net/Inet4AddressImpl		getHostByAddr([B)Ljava/lang/String;
+java/net/Inet6AddressImpl		getLocalHostName()Ljava/lang/String;
+java/net/Inet6AddressImpl		lookupAllHostAddr(Ljava/lang/String;)[Ljava/net/InetAddress;
+java/net/Inet6AddressImpl		getHostByAddr([B)Ljava/lang/String;
+sun/dc/pr/PathDasher		dispose()V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+sun/dc/pr/PathDasher		setDash([FF)V
+		sun/dc/pr/Rasterizer		setDash([FF)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathDasher		setDashT4([F)V
+		sun/dc/pr/Rasterizer		setDashT4([F)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathDasher		setOutputT6([F)V
+sun/dc/pr/PathDasher		setOutputConsumer(Lsun/dc/path/PathConsumer;)V
+sun/dc/pr/PathDasher		beginPath()V
+sun/dc/pr/PathDasher		beginSubpath(FF)V
+sun/dc/pr/PathDasher		appendLine(FF)V
+sun/dc/pr/PathDasher		appendQuadratic(FFFF)V
+sun/dc/pr/PathDasher		appendCubic(FFFFFF)V
+sun/dc/pr/PathDasher		closedSubpath()V
+sun/dc/pr/PathDasher		endPath()V
+sun/dc/pr/PathDasher		getCPathConsumer()J
+sun/dc/pr/PathStroker		dispose()V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+sun/dc/pr/PathStroker		setPenDiameter(F)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setPenDiameter(F)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathStroker		setPenT4([F)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setPenT4([F)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathStroker		setPenFitting(FI)V
+		sun/dc/pr/Rasterizer		setPenFitting(FI)V
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathStroker		setCaps(I)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setCaps(I)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathStroker		setCorners(IF)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setCorners(IF)V
+		java/awt/BasicStroke		createStrokedShape(Ljava/awt/Shape;)Ljava/awt/Shape;
+		sun/java2d/pipe/DuctusRenderer		createStroker(Lsun/dc/path/PathConsumer;Ljava/awt/BasicStroke;ZLjava/awt/geom/AffineTransform;)Lsun/dc/path/PathConsumer;
+sun/dc/pr/PathStroker		setOutputT6([F)V
+		sun/dc/pr/Rasterizer		setPenDisplacement(FF)V
+sun/dc/pr/PathStroker		setOutputConsumer(Lsun/dc/path/PathConsumer;)V
+sun/dc/pr/PathStroker		beginPath()V
+sun/dc/pr/PathStroker		beginSubpath(FF)V
+sun/dc/pr/PathStroker		appendLine(FF)V
+sun/dc/pr/PathStroker		appendQuadratic(FFFF)V
+sun/dc/pr/PathStroker		appendCubic(FFFFFF)V
+sun/dc/pr/PathStroker		closedSubpath()V
+sun/dc/pr/PathStroker		endPath()V
+sun/dc/pr/PathStroker		getCPathConsumer()J
+sun/dc/pr/PathFiller		dispose()V
+sun/dc/pr/PathFiller		setFillMode(I)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+		sun/dc/pr/Rasterizer		setUsage(I)V
+sun/dc/pr/PathFiller		beginPath()V
+sun/dc/pr/PathFiller		beginSubpath(FF)V
+sun/dc/pr/PathFiller		appendLine(FF)V
+sun/dc/pr/PathFiller		appendQuadratic(FFFF)V
+sun/dc/pr/PathFiller		appendCubic(FFFFFF)V
+sun/dc/pr/PathFiller		closedSubpath()V
+sun/dc/pr/PathFiller		endPath()V
+sun/dc/pr/PathFiller		getCPathConsumer()J
+sun/dc/pr/PathFiller		getAlphaBox([I)V
+		sun/dc/pr/Rasterizer		getAlphaBox([I)V
+sun/dc/pr/PathFiller		setOutputArea(FFII)V
+		sun/dc/pr/Rasterizer		setOutputArea(FFII)V
+sun/dc/pr/PathFiller		getTileState()I
+		sun/dc/pr/Rasterizer		getTileState()I
+sun/dc/pr/PathFiller		nextTile()V
+		sun/dc/pr/Rasterizer		nextTile()V
+sun/java2d/pipe/ShapeSpanIterator		appendPoly([I[IIII)V
+		sun/java2d/pipe/LoopPipe		fillPolygon(Lsun/java2d/SunGraphics2D;[I[II)V
+sun/java2d/pipe/ShapeSpanIterator		getPathBox([I)V
+		sun/java2d/SunGraphics2D		validateCompClip()V
+		sun/java2d/pipe/SpanShapeRenderer		renderSpans(Lsun/java2d/SunGraphics2D;Lsun/java2d/pipe/Region;Ljava/awt/Shape;Lsun/java2d/pipe/ShapeSpanIterator;)V
+		sun/java2d/pipe/Region		getInstance(Lsun/java2d/pipe/Region;ZLjava/awt/Shape;Ljava/awt/geom/AffineTransform;)Lsun/java2d/pipe/Region;
+sun/java2d/pipe/ShapeSpanIterator		intersectClipBox(IIII)V
+		sun/java2d/pipe/SpanShapeRenderer		renderSpans(Lsun/java2d/SunGraphics2D;Lsun/java2d/pipe/Region;Ljava/awt/Shape;Lsun/java2d/pipe/ShapeSpanIterator;)V
+sun/java2d/pipe/ShapeSpanIterator		nextSpan([I)Z
+sun/java2d/pipe/ShapeSpanIterator		skipDownTo(I)V
+sun/java2d/pipe/ShapeSpanIterator		getNativeIterator()J
+sun/java2d/pipe/ShapeSpanIterator		beginSubpath(FF)V
+sun/java2d/pipe/ShapeSpanIterator		appendLine(FF)V
+sun/java2d/pipe/ShapeSpanIterator		appendQuadratic(FFFF)V
+sun/java2d/pipe/ShapeSpanIterator		appendCubic(FFFFFF)V
+sun/java2d/pipe/ShapeSpanIterator		getCPathConsumer()J
+sun/awt/image/BufImgSurfaceData		isQuartzRenderer()Z
+sun/java2d/opengl/CGLGraphicsConfig		getDefaultPixFmt(I)I
+sun/java2d/SurfaceData		isOpaqueGray(Ljava/awt/image/IndexColorModel;)Z
+sun/nio/ch/IOUtil		randomBytes([B)Z
+sun/nio/ch/IOUtil		initIDs()V
+		sun/nio/ch/Util		load()V
+sun/awt/color/CMM		cmmLoadProfile([B[J)I
+		java/awt/color/ICC_Profile		getInstance([B)Ljava/awt/color/ICC_Profile;
+		java/awt/color/ICC_Profile		activateDeferredProfile()V
+sun/awt/color/CMM		cmmFreeProfile(J)I
+		java/awt/color/ICC_Profile		finalize()V
+sun/awt/color/CMM		cmmGetProfileSize(J[I)I
+		java/awt/color/ICC_Profile		getData()[B
+sun/awt/color/CMM		cmmGetProfileData(J[B)I
+		java/awt/color/ICC_Profile		getData()[B
+sun/awt/color/CMM		cmmGetTagSize(JI[I)I
+		java/awt/color/ICC_Profile		getData(JI)[B
+sun/awt/color/CMM		cmmGetTagData(JI[B)I
+		java/awt/color/ICC_Profile		getData(JI)[B
+sun/awt/color/CMM		cmmSetTagData(JI[B)I
+		java/awt/color/ICC_Profile		setData(I[B)V
+sun/awt/color/CMM		cmmFindICC_Profiles([B[BLjava/lang/String;[J[I)I
+sun/awt/color/CMM		cmmCullICC_Profiles([B[B[J[J[I)I
+sun/font/TrueTypeFont		getGlyphPoint(JII)Ljava/awt/geom/Point2D$Float;
+java/lang/reflect/Array		getBoolean(Ljava/lang/Object;I)Z
+java/lang/reflect/Array		getByte(Ljava/lang/Object;I)B
+java/lang/reflect/Array		getChar(Ljava/lang/Object;I)C
+java/lang/reflect/Array		getShort(Ljava/lang/Object;I)S
+java/lang/reflect/Array		getInt(Ljava/lang/Object;I)I
+java/lang/reflect/Array		getLong(Ljava/lang/Object;I)J
+java/lang/reflect/Array		getFloat(Ljava/lang/Object;I)F
+java/lang/reflect/Array		getDouble(Ljava/lang/Object;I)D
+java/lang/reflect/Array		setBoolean(Ljava/lang/Object;IZ)V
+java/lang/reflect/Array		setByte(Ljava/lang/Object;IB)V
+java/lang/reflect/Array		setChar(Ljava/lang/Object;IC)V
+java/lang/reflect/Array		setShort(Ljava/lang/Object;IS)V
+java/lang/reflect/Array		setInt(Ljava/lang/Object;II)V
+java/lang/reflect/Array		setLong(Ljava/lang/Object;IJ)V
+java/lang/reflect/Array		setFloat(Ljava/lang/Object;IF)V
+java/lang/reflect/Array		setDouble(Ljava/lang/Object;ID)V
+sun/font/FontManager		isQuartzRenderer()Z
+sun/awt/SunToolkit		closeSplashScreen()V
+		java/awt/Window		show()V
+java/lang/StrictMath		sin(D)D
+		java/lang/Math		sin(D)D
+java/lang/StrictMath		cos(D)D
+		java/lang/Math		cos(D)D
+java/lang/StrictMath		tan(D)D
+		java/lang/Math		tan(D)D
+java/lang/StrictMath		asin(D)D
+		java/lang/Math		asin(D)D
+java/lang/StrictMath		acos(D)D
+		java/lang/Math		acos(D)D
+java/lang/StrictMath		atan(D)D
+		java/lang/Math		atan(D)D
+java/lang/StrictMath		exp(D)D
+		java/lang/Math		exp(D)D
+java/lang/StrictMath		log10(D)D
+		java/lang/Math		log10(D)D
+java/lang/StrictMath		cbrt(D)D
+		java/lang/Math		cbrt(D)D
+java/lang/StrictMath		IEEEremainder(DD)D
+		java/lang/Math		IEEEremainder(DD)D
+java/lang/StrictMath		atan2(DD)D
+		java/lang/Math		atan2(DD)D
+java/lang/StrictMath		pow(DD)D
+		java/lang/Math		pow(DD)D
+java/lang/StrictMath		sinh(D)D
+		java/lang/Math		sinh(D)D
+java/lang/StrictMath		cosh(D)D
+		java/lang/Math		cosh(D)D
+java/lang/StrictMath		tanh(D)D
+		java/lang/Math		tanh(D)D
+java/lang/StrictMath		hypot(DD)D
+		java/lang/Math		hypot(DD)D
+java/lang/StrictMath		expm1(D)D
+		java/lang/Math		expm1(D)D
+java/lang/StrictMath		log1p(D)D
+		java/lang/Math		log1p(D)D
+java/lang/Compiler		compileClass(Ljava/lang/Class;)Z
+java/lang/Compiler		compileClasses(Ljava/lang/String;)Z
+java/lang/Compiler		command(Ljava/lang/Object;)Ljava/lang/Object;
+java/lang/ClassLoader$NativeLibrary		load(Ljava/lang/String;)V
+		java/lang/ClassLoader		loadLibrary0(Ljava/lang/Class;Ljava/io/File;)Z
+java/lang/ClassLoader$NativeLibrary		find(Ljava/lang/String;)J
+		java/lang/ClassLoader		findNative(Ljava/lang/ClassLoader;Ljava/lang/String;)J
+java/io/UnixFileSystem		checkAccess(Ljava/io/File;I)Z
+java/io/UnixFileSystem		getLastModifiedTime(Ljava/io/File;)J
+java/io/UnixFileSystem		getLength(Ljava/io/File;)J
+java/io/UnixFileSystem		setPermission(Ljava/io/File;IZZ)Z
+java/io/UnixFileSystem		createFileExclusively(Ljava/lang/String;Z)Z
+java/io/UnixFileSystem		list(Ljava/io/File;)[Ljava/lang/String;
+java/io/UnixFileSystem		createDirectory(Ljava/io/File;)Z
+java/io/UnixFileSystem		setLastModifiedTime(Ljava/io/File;J)Z
+java/io/UnixFileSystem		setReadOnly(Ljava/io/File;)Z
+java/io/UnixFileSystem		getSpace(Ljava/io/File;I)J
+java/io/FileSystem		getFileSystem()Ljava/io/FileSystem;
+		java/io/File		<clinit>()V
+java/lang/Runtime		maxMemory()J
+		sun/misc/VM		maxDirectMemory()J
+java/lang/Runtime		traceInstructions(Z)V
+sun/misc/Unsafe		getAddress(J)J
+sun/misc/Unsafe		putAddress(JJ)V
+sun/misc/Unsafe		reallocateMemory(JJ)J
+sun/misc/Unsafe		defineClass(Ljava/lang/String;[BII)Ljava/lang/Class;
+sun/misc/Unsafe		monitorEnter(Ljava/lang/Object;)V
+sun/misc/Unsafe		monitorExit(Ljava/lang/Object;)V
+sun/misc/Unsafe		tryMonitorEnter(Ljava/lang/Object;)Z
+java/security/AccessController		getInheritedAccessControlContext()Ljava/security/AccessControlContext;
+		java/security/AccessControlContext		getAssignedCombiner()Ljava/security/DomainCombiner;
+		java/security/AccessControlContext		optimize()Ljava/security/AccessControlContext;
+java/lang/Thread		countStackFrames()I
+java/lang/Class		setProtectionDomain0(Ljava/security/ProtectionDomain;)V
