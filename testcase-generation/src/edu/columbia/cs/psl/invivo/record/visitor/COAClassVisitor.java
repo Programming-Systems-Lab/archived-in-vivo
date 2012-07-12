@@ -1,15 +1,15 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
-import java.util.HashMap;
-
-
+import java.util.ArrayList;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.FieldNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.MethodCall;
 
 public class COAClassVisitor extends ClassVisitor implements Opcodes{
 
@@ -17,7 +17,7 @@ public class COAClassVisitor extends ClassVisitor implements Opcodes{
 	private boolean isAClass = true;
 	public COAClassVisitor(int api, ClassVisitor cv) {
 		super(api, cv);
-		// TODO Auto-generated constructor stub
+
 	}
 
 	@Override
@@ -27,11 +27,11 @@ public class COAClassVisitor extends ClassVisitor implements Opcodes{
 		if((access & Opcodes.ACC_INTERFACE) != 0)
 			isAClass = false;
 	}
-	
+
 	@Override
 	public MethodVisitor visitMethod(int acc, String name, String desc,
 			String signature, String[] exceptions) {
-
+		//TODO need an annotation to disable doing this to some apps
 		if(isAClass && className.startsWith("edu"))
 		{
 			MethodVisitor mv = cv.visitMethod(acc, name, desc, signature,
@@ -44,26 +44,42 @@ public class COAClassVisitor extends ClassVisitor implements Opcodes{
 			return 	cv.visitMethod(acc, name, desc, signature,
 					exceptions);
 	}
+
 	@Override
 	public void visitEnd() {
-		super.visitEnd();
-		for(String fieldName : fields.keySet())
+		//TODO need an annotation to disable doing this to some apps
+		if(isAClass && className.startsWith("edu"))
 		{
-			FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
-					Constants.BEEN_CLONED_PREFIX + fieldName,
-					Type.BOOLEAN_TYPE.getDescriptor(),null,false);
-			fn.accept(cv);
-			
-			FieldNode fn2 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
-					Constants.PREV_VALUE_PREFIX + fieldName,
-					fields.get(fieldName),null,null);
-			fn2.accept(cv);
+			MethodVisitor mva = cv.visitMethod(Opcodes.ACC_PRIVATE, Constants.ARRAY_INIT_METHOD, "()V", null, null);
+			GeneratorAdapter mv = new GeneratorAdapter(mva, Opcodes.ACC_PRIVATE, Constants.ARRAY_INIT_METHOD, "()V");
+			mv.visitCode();
+			for(MethodCall call : loggedMethodCalls)
+			{
+				mv.loadThis();
+				mv.push(Constants.DEFAULT_LOG_SIZE);
+				mv.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
+				mv.putField(Type.getType(className), call.getLogFieldName(), Type.getType("["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+			}
+			mv.visitMaxs(0, 0);
+			mv.returnValue();
+			mv.visitEnd();
+			for(MethodCall call : loggedMethodCalls)
+			{
+				FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
+						call.getLogFieldName(),
+						"["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor(),null,null);
+				fn.accept(cv);
+				FieldNode fn2 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
+						call.getLogFieldName()+"_fill",
+						Type.INT_TYPE.getDescriptor(),null,0);
+				fn2.accept(cv);
+			}
 		}
+		super.visitEnd();
 	}
-	private HashMap<String, String> fields = new HashMap<String, String>(); //Name -> Desc
-	public void addFieldMarkup(String name, String desc, HashMap<String, String> variablesToClear) {
-		for(String vName : variablesToClear.keySet())
-			fields.put(vName, variablesToClear.get(vName));
+	private ArrayList<MethodCall> loggedMethodCalls = new ArrayList<MethodCall>();
+	public void addFieldMarkup(ArrayList<MethodCall> calls) {
+		loggedMethodCalls.addAll(calls);
 		//TODO also setup the new method to retrieve the list of replacements for the method
 	}
 }
