@@ -1,6 +1,7 @@
 package edu.columbia.cs.psl.invivo.example;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -8,6 +9,7 @@ public class DummyDriver {
 	public static void main(String[] args) {
 		DummyDriver d = new DummyDriver();
 		d.go();
+		DummyDriver.goStatic();
 	}
 	public DummyDriver() {
 		// TODO Auto-generated constructor stub
@@ -33,6 +35,38 @@ public class DummyDriver {
 //		s.close();
 //		
 		return "bahaha";
+	}
+	public static void goStatic()
+	{
+		Scanner s = new Scanner(System.in);
+		System.out.println("enter some non deterministic (static) input!!! then ^D");
+		while(s.hasNextLine())
+		{
+			System.out.println(s.nextLine());
+		}
+		for(Field f : DummyDriver.class.getDeclaredFields())
+		{
+			if(!Modifier.isStatic(f.getModifiers()))
+				continue;
+			try {
+				System.out.print(f.getName()+ "->");
+				if(f.getType().isArray())
+				{
+					if(f.getType().getComponentType().isPrimitive())
+						System.out.println(f.get(null));
+					else
+						System.out.println(Arrays.deepToString((Object[]) f.get(null)));
+				}
+				else
+					System.out.println(f.get(null));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public void go()
 	{

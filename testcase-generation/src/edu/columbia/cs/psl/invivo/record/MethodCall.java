@@ -11,7 +11,8 @@ public class MethodCall {
 	private String methodOwner;
 	private String methodName;
 	private String methodDesc;
-	public MethodCall(String sourceMethodName, String sourceMethodDesc, String sourceClass, int pc, int lineNumber, String methodOwner, String methodName, String methodDesc) {
+	private boolean isStatic;
+	public MethodCall(String sourceMethodName, String sourceMethodDesc, String sourceClass, int pc, int lineNumber, String methodOwner, String methodName, String methodDesc, boolean isStatic) {
 		this.sourceMethodName = sourceMethodName;
 		this.sourceMethodDesc = sourceMethodDesc;
 		this.sourceClass = sourceClass;
@@ -20,6 +21,10 @@ public class MethodCall {
 		this.methodOwner = methodOwner;
 		this.methodName = methodName;
 		this.methodDesc = methodDesc;
+		this.isStatic = isStatic;
+	}
+	public boolean isStatic() {
+		return isStatic;
 	}
 	public String getSourceMethodName() {
 		return sourceMethodName;

@@ -55,21 +55,27 @@ public class COAClassVisitor extends ClassVisitor implements Opcodes{
 			mv.visitCode();
 			for(MethodCall call : loggedMethodCalls)
 			{
-				mv.loadThis();
+				if(call.isStatic()) mv.loadThis();
 				mv.push(Constants.DEFAULT_LOG_SIZE);
 				mv.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
-				mv.putField(Type.getType(className), call.getLogFieldName(), Type.getType("["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+				if(call.isStatic())
+					mv.putStatic(Type.getType(className), call.getLogFieldName(), Type.getType("["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+				else
+					mv.putField(Type.getType(className), call.getLogFieldName(), Type.getType("["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
 			}
 			mv.visitMaxs(0, 0);
 			mv.returnValue();
 			mv.visitEnd();
 			for(MethodCall call : loggedMethodCalls)
 			{
-				FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
+				int opcode = Opcodes.ACC_PRIVATE;
+				if(call.isStatic())
+					opcode = opcode | Opcodes.ACC_STATIC;
+				FieldNode fn = new FieldNode(Opcodes.ASM4, opcode,
 						call.getLogFieldName(),
 						"["+Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor(),null,null);
 				fn.accept(cv);
-				FieldNode fn2 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PRIVATE,
+				FieldNode fn2 = new FieldNode(Opcodes.ASM4, opcode,
 						call.getLogFieldName()+"_fill",
 						Type.INT_TYPE.getDescriptor(),null,0);
 				fn2.accept(cv);

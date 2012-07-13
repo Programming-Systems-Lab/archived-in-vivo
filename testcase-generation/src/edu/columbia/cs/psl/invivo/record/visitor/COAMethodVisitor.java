@@ -27,7 +27,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 	private String classDesc;
 	private int pc;
 	private static HashSet<String> nonDeterministicMethods = new HashSet<String>();
-
+	private boolean isStatic;
 	static{
 		File f = new File("nondeterministic-methods.txt");
 		Scanner s;
@@ -44,6 +44,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 		this.name=name;
 		this.desc = desc;
 		this.classDesc = classDesc;
+		this.isStatic = (access & Opcodes.ACC_STATIC) != 0;
 	}
 	private COAClassVisitor parent;
 	public void setClassVisitor(COAClassVisitor coaClassVisitor) {
@@ -73,7 +74,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-		MethodCall m = new MethodCall(this.name, this.desc, this.classDesc, pc, lineNumber, owner, name, desc);
+		MethodCall m = new MethodCall(this.name, this.desc, this.classDesc, pc, lineNumber, owner, name, desc, isStatic);
 		Type returnType = Type.getMethodType(desc).getReturnType();
 		System.out.println(owner+"."+name+":"+desc);
 		if(!returnType.equals(Type.VOID_TYPE) && nonDeterministicMethods.contains(owner+"."+name+":"+desc))
@@ -81,12 +82,15 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			methodCallsToClear.add(m);
 
 			super.visitMethodInsn(opcode, owner, name, desc);
-
+			int getOpcode = (isStatic ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
+			int putOpcode = (isStatic ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
+			
 			//Grow the array if necessary
-			loadThis();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName()+"_fill", Type.INT_TYPE.getDescriptor());
-			loadThis();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			
+			if(!isStatic) loadThis();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill", Type.INT_TYPE.getDescriptor());
+			if(!isStatic) loadThis();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			Label labelForNoNeedToGrow = new Label();
 			super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
@@ -94,8 +98,8 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 
 			//Create the new array and initialize its size
 			int newArray = newLocal(m.getLogFieldType());
-			loadThis();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			if(!isStatic) loadThis();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			super.visitInsn(Opcodes.I2D);
 			super.visitLdcInsn(Constants.LOG_GROWTH_RATE);
@@ -105,20 +109,21 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			super.storeLocal(newArray, m.getLogFieldType());
 			
 			//Do the copy
-			loadThis();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			if(!isStatic) loadThis();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.visitInsn(Opcodes.ICONST_0);
 			super.loadLocal(newArray);
 			super.visitInsn(Opcodes.ICONST_0);
-			super.loadThis();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			if(!isStatic) super.loadThis();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 			
 			//array = newarray
+			if(!isStatic)
 			super.loadThis();
 			super.loadLocal(newArray);
-			super.visitFieldInsn(Opcodes.PUTFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(putOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			
 			
 			visitLabel(labelForNoNeedToGrow);
@@ -127,22 +132,22 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			if(returnType.getSize() == 1)
 			{
 				dup();
-				super.loadThis();
-				super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+				if(!isStatic) super.loadThis();
+				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 				swap();
-				super.loadThis();
-				super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+				if(!isStatic) super.loadThis();
+				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 				swap();
 			}
 			else if(returnType.getSize() == 2)
 			{
 				dup2();
-				super.loadThis();
-				super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+				if(!isStatic) super.loadThis();
+				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 				dupX2();
 				pop();
-				super.loadThis();
-				super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+				if(!isStatic) super.loadThis();
+				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 				dupX2();
 				pop();
 			}
@@ -156,12 +161,13 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 
 			
 			super.arrayStore(m.getLogFieldType().getElementType());
-			super.loadThis();
-			super.dup();
-			super.visitFieldInsn(Opcodes.GETFIELD, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+			
+			if(!isStatic) super.loadThis();
+			if(!isStatic) super.dup();
+			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 			super.visitInsn(Opcodes.ICONST_1);
 			super.visitInsn(Opcodes.IADD);
-			super.visitFieldInsn(Opcodes.PUTFIELD, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(putOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 		}
 		else
 			super.visitMethodInsn(opcode, owner, name, desc);
