@@ -1,22 +1,77 @@
 package edu.columbia.cs.psl.invivo.example;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import com.thoughtworks.xstream.XStream;
+
+import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
+
+
 public class DummyDriver {
+	private String foo="bar";
+	private static String vm_Version = System.getProperty("java.runtime.version");
 	public static void main(String[] args) {
 		DummyDriver d = new DummyDriver();
+		try
+		{
 		d.go();
-		DummyDriver.goStatic();
+		}
+		catch(Exception ex)
+		{
+			try{
+				System.out.println("Serializing");
+			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
+				XStream xstream = new XStream(new StaticReflectionProvider());
+				String xml = xstream.toXML(logger.newInstance());
+				File output = new File("output.log");
+				FileWriter fw = new FileWriter(output);
+				fw.write(xml);
+				fw.close();
+				}
+			catch(Exception exi)
+			{
+				exi.printStackTrace();
+			}
+		}
+//		try {
+//			getText(new File("in-vivo.log"), false, new File("scratch.out"));
+//		} catch (IOException e) {
+			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		DummyDriver.goStatic();
 	}
+
+//	private double evilzzz = Math.random();
 	public DummyDriver() {
 		// TODO Auto-generated constructor stub
-		this.foo = "zz";
+//		this.foo = "zz";
+
+//		vm_Version = System.getProperty("java.runtime.version");
+//		System.out.println(vm_Version);
+//		vm_Version = System.getProperty("java.runtime.version");
+//		System.out.println(vm_Version);
+//		vm_Version = System.getProperty("java.runtime.version");
+//		System.out.println(vm_Version);
+//		Scanner s = new Scanner(System.in);
+//		if(s.hasNext())
+//			System.out.println("Has next");
 	}
+	/*
 	public DummyDriver(String baz)
 	{
+
 		this.foo = baz;
 	}
 	public DummyDriver(String baz, String foo)
@@ -34,7 +89,13 @@ public class DummyDriver {
 //				throw new Exception();
 //		s.close();
 //		
-		return "bahaha";
+		double r = Math.random();
+		if(this.foo.equals("bar"))
+		{
+			return "bahaha";
+		}
+		else
+			return "asldfdsf";
 	}
 	public static void goStatic()
 	{
@@ -67,44 +128,16 @@ public class DummyDriver {
 				e.printStackTrace();
 			}
 		}
-	}
-	public void go()
+	}*/
+	public void go() throws Exception
 	{
 //		System.out.println(bar.foo.result);
-		System.out.println(foo);
-		System.out.println(bar);
-		foo = "bar";
+	
 		double ret = Math.cos(1);
 		System.out.println(ret);
-		System.out.println(foo);
-		for(int i =0; i<6;i++)
-			System.out.println(evil());
-		Scanner s = new Scanner(System.in);
-		System.out.println("enter some non deterministic input!!! then ^D");
-		while(s.hasNextLine())
-		{
-			System.out.println(s.nextLine());
-		}
-		for(Field f : DummyDriver.class.getDeclaredFields())
-		{
-			try {
-				System.out.print(f.getName()+ "->");
-				if(f.getType().isArray())
-				{
-					if(f.getType().getComponentType().isPrimitive())
-						System.out.println(f.get(this));
-					else
-						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
-				}
-				else
-					System.out.println(f.get(this));
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		if(Math.random() < .9)
+			throw new Exception("Crashed");
+		System.out.println(System.getProperty("java.runtime.version"));
+		
 	}
 }

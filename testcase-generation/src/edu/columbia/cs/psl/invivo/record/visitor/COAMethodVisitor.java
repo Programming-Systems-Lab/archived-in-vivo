@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -21,13 +22,16 @@ import edu.columbia.cs.psl.invivo.record.MethodCall;
 
 
 public class COAMethodVisitor extends AdviceAdapter implements Constants{
-//	private static Logger logger = Logger.getLogger(COAMethodVisitor.class);
+	private static Logger logger = Logger.getLogger(COAMethodVisitor.class);
 	private String name;
 	private String desc;
 	private String classDesc;
 	private int pc;
 	private static HashSet<String> nonDeterministicMethods = new HashSet<String>();
 	private boolean isStatic;
+	private boolean constructor;
+	private boolean superInitialized;
+	
 	static{
 		File f = new File("nondeterministic-methods.txt");
 		Scanner s;
@@ -39,12 +43,21 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			e.printStackTrace();
 		}
 	}
-	protected COAMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc) {
+	
+	@Override
+		public void visitCode() {
+			super.visitCode();
+			if(!constructor) superInitialized = true;
+		}
+	private boolean isFirstConstructor;
+	protected COAMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc, boolean isFirstConstructor) {
 		super(api, mv, access, name, desc);
 		this.name=name;
 		this.desc = desc;
 		this.classDesc = classDesc;
 		this.isStatic = (access & Opcodes.ACC_STATIC) != 0;
+		this.constructor = "<init>".equals(name);
+		this.isFirstConstructor = isFirstConstructor;
 	}
 	private COAClassVisitor parent;
 	public void setClassVisitor(COAClassVisitor coaClassVisitor) {
@@ -54,15 +67,10 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 	@Override
 	protected void onMethodEnter() {
 		super.onMethodEnter();
-		if(this.name.equals("<init>"))
-		{
-			loadThis();
-			invokeVirtual(Type.getType(classDesc), Method.getMethod("void "+Constants.ARRAY_INIT_METHOD+"()"));
-		}
 	}
 	@Override
-	protected void onMethodExit(int opcode) {
-		super.onMethodExit(opcode);
+	public void visitEnd() {
+		super.visitEnd();
 		parent.addFieldMarkup(methodCallsToClear);
 	}
 	private int lineNumber = 0;
@@ -71,26 +79,29 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 		super.visitLineNumber(line, start);
 		lineNumber = line;
 	}
-
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+		try
+		{
 		MethodCall m = new MethodCall(this.name, this.desc, this.classDesc, pc, lineNumber, owner, name, desc, isStatic);
 		Type returnType = Type.getMethodType(desc).getReturnType();
-		System.out.println(owner+"."+name+":"+desc);
-		if(!returnType.equals(Type.VOID_TYPE) && nonDeterministicMethods.contains(owner+"."+name+":"+desc))
+		if(
+				(!constructor || isFirstConstructor || superInitialized)
+				&& !returnType.equals(Type.VOID_TYPE) && nonDeterministicMethods.contains(owner+"."+name+":"+desc))
 		{
+			logger.debug("Adding field in MV to list " + m.getLogFieldName());
 			methodCallsToClear.add(m);
-
 			super.visitMethodInsn(opcode, owner, name, desc);
-			int getOpcode = (isStatic ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
-			int putOpcode = (isStatic ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
+			isStatic = true;
+			int getOpcode = Opcodes.GETSTATIC;
+			int putOpcode = Opcodes.PUTSTATIC;
 			
 			//Grow the array if necessary
 			
 			if(!isStatic) loadThis();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill", Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName()+"_fill", Type.INT_TYPE.getDescriptor());
 			if(!isStatic) loadThis();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			Label labelForNoNeedToGrow = new Label();
 			super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
@@ -99,7 +110,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			//Create the new array and initialize its size
 			int newArray = newLocal(m.getLogFieldType());
 			if(!isStatic) loadThis();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			super.visitInsn(Opcodes.I2D);
 			super.visitLdcInsn(Constants.LOG_GROWTH_RATE);
@@ -110,12 +121,12 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			
 			//Do the copy
 			if(!isStatic) loadThis();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.visitInsn(Opcodes.ICONST_0);
 			super.loadLocal(newArray);
 			super.visitInsn(Opcodes.ICONST_0);
 			if(!isStatic) super.loadThis();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			super.arrayLength();
 			super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 			
@@ -123,7 +134,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			if(!isStatic)
 			super.loadThis();
 			super.loadLocal(newArray);
-			super.visitFieldInsn(putOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+			super.visitFieldInsn(putOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 			
 			
 			visitLabel(labelForNoNeedToGrow);
@@ -133,21 +144,21 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			{
 				dup();
 				if(!isStatic) super.loadThis();
-				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+				super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 				swap();
 				if(!isStatic) super.loadThis();
-				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+				super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 				swap();
 			}
 			else if(returnType.getSize() == 2)
 			{
 				dup2();
 				if(!isStatic) super.loadThis();
-				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
+				super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor());
 				dupX2();
 				pop();
 				if(!isStatic) super.loadThis();
-				super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+				super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 				dupX2();
 				pop();
 			}
@@ -160,21 +171,27 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			}
 
 			
-			super.arrayStore(m.getLogFieldType().getElementType());
+			super.arrayStore(Type.getMethodType(desc).getReturnType());
 			
 			if(!isStatic) super.loadThis();
 			if(!isStatic) super.dup();
-			super.visitFieldInsn(getOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(getOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 			super.visitInsn(Opcodes.ICONST_1);
 			super.visitInsn(Opcodes.IADD);
-			super.visitFieldInsn(putOpcode, classDesc, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(putOpcode, Constants.LOG_DUMP_CLASS, m.getLogFieldName()+"_fill",Type.INT_TYPE.getDescriptor());
 		}
 		else
 			super.visitMethodInsn(opcode, owner, name, desc);
 		pc++;
+		}
+		catch(Exception ex)
+		{
+			logger.error("Unable to instrument method call",ex);
+		}
 	}
 
 	private ArrayList<MethodCall> methodCallsToClear = new ArrayList<MethodCall>();
+
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {
 		super.visitFieldInsn(opcode, owner, name, desc);
