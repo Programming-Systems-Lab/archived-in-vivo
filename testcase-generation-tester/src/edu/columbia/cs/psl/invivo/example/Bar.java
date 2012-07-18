@@ -3,11 +3,12 @@ package edu.columbia.cs.psl.invivo.example;
 public class Bar implements C{
 	private static String bad;
 	public Foo foo = new Foo();
+	public String result;
 	public void evil()
 	{
-		foo.result = "yy";
-		C evil = EvilFactory.getC();
-		evil.doSomething(this);
+		result = foo.result;
+//		C evil = EvilFactory.getC();
+		EvilFactory.getC().doSomething(this);
 	}
 	@Override
 	public void doSomething(Bar b) {

@@ -1,15 +1,11 @@
-package edu.columbia.cs.psl.invivo.nativedetector;
+package edu.columbia.cs.psl.invivo.record.struct;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
-/**
- * @author miriammelnick A class to contain metadata about a method. Includes an
- *         ASM Method, a String className, an integer for access flags, and a
- *         linkedlist of MethodInstances that invoke this method.
- */
 public class MethodInstance {
 
 	/**
@@ -29,7 +25,8 @@ public class MethodInstance {
 
 	public LinkedList<String> functionsThatICall = new LinkedList<String>();
 
-	private boolean isNonDeterministic;
+	private HashSet<FieldInvocation> putFieldInsns = new HashSet<FieldInvocation>();
+	private HashSet<FieldInvocation> putParamInsns = new HashSet<FieldInvocation>();
 
 	/**
 	 * ASM method at the core of this MethodInstance object. private Method
@@ -39,6 +36,15 @@ public class MethodInstance {
 	 */
 	private Method method;
 
+	public String getName()
+	{
+		return this.method.getName();
+	}
+	
+	public String getDescriptor()
+	{
+		return this.method.getDescriptor();
+	}
 	public MethodInstance(String fullName) {
 
 		String[] pieces = fullName.split("\\.|:");
@@ -64,8 +70,7 @@ public class MethodInstance {
 		this.clazz = clazz;
 		this.access = access;
 	}
-	
-	
+
 	/**
 	 * (Override) This function declares two MethodInstances A, B "equal" if and
 	 * only if: ((A.getMethod().equals(B.getMethod)) &&
@@ -83,10 +88,6 @@ public class MethodInstance {
 				return true;
 		}
 		return false;
-	}
-
-	public void forceNative() {
-		this.setAccess(Opcodes.ACC_NATIVE);
 	}
 
 	public int getAccess() {
@@ -120,26 +121,15 @@ public class MethodInstance {
 		return this.getClazz().hashCode() * this.getMethod().getName().hashCode() * this.getMethod().getDescriptor().hashCode();
 	}
 
-	public boolean isNative() {
-		return ((this.getAccess() & Opcodes.ACC_NATIVE) != 0);
-	}
-
-	public boolean isNonDeterministic() {
-		return isNonDeterministic;
-	}
-
-	public void setAccess(int access) {
-		this.access = access;
-	}
-
-
-	public void setNonDeterministic(boolean isNonDeterministic) {
-		this.isNonDeterministic = isNonDeterministic;
-	}
-
 	@Override
 	public String toString() {
-		return "MethodInstance [method=" + method + ", class=" + clazz + ", fIC:" + functionsThatCallMe.size() + "]";
+		return "MethodInstance [method=" + method + ", class=" + clazz + "]";
+	}
+	public HashSet<FieldInvocation> getPutParamInsns() {
+		return putParamInsns;
+	}
+	public HashSet<FieldInvocation> getPutFieldInsns() {
+		return putFieldInsns;
 	}
 
 }

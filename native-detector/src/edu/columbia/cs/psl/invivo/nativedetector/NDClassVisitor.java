@@ -35,7 +35,6 @@ public class NDClassVisitor extends ClassVisitor {
 
 		if ((className.startsWith("java/io") || className.startsWith("java/lang/Readable.")) && !className.startsWith("java/io/String"))
 			mi.forceNative();
-
 		if (NativeDetector.deterministicNativeMethods.contains(mi.getFullName()))
 			mi.setAccess(0);
 		if (mi.isNative())
