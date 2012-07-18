@@ -30,7 +30,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.FieldNode;
 
-import edu.columbia.cs.psl.invivo.record.visitor.COAClassVisitor;
+import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {
 	private static File rootOutputDir;
@@ -166,7 +166,7 @@ public class Instrumenter {
 		try {
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-			COAClassVisitor cv = new COAClassVisitor(Opcodes.ASM4, cw);
+			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
 			methodCalls.addAll(cv.getLoggedMethodCalls());
 			return cw.toByteArray();

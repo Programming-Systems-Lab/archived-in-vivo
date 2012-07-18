@@ -21,8 +21,8 @@ import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
 
-public class COAMethodVisitor extends AdviceAdapter implements Constants{
-	private static Logger logger = Logger.getLogger(COAMethodVisitor.class);
+public class NonDeterministicLoggingMethodVisitor extends AdviceAdapter implements Constants{
+	private static Logger logger = Logger.getLogger(NonDeterministicLoggingMethodVisitor.class);
 	private String name;
 	private String desc;
 	private String classDesc;
@@ -50,7 +50,7 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 			if(!constructor) superInitialized = true;
 		}
 	private boolean isFirstConstructor;
-	protected COAMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc, boolean isFirstConstructor) {
+	protected NonDeterministicLoggingMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc, boolean isFirstConstructor) {
 		super(api, mv, access, name, desc);
 		this.name=name;
 		this.desc = desc;
@@ -59,8 +59,8 @@ public class COAMethodVisitor extends AdviceAdapter implements Constants{
 		this.constructor = "<init>".equals(name);
 		this.isFirstConstructor = isFirstConstructor;
 	}
-	private COAClassVisitor parent;
-	public void setClassVisitor(COAClassVisitor coaClassVisitor) {
+	private NonDeterministicLoggingClassVisitor parent;
+	public void setClassVisitor(NonDeterministicLoggingClassVisitor coaClassVisitor) {
 		this.parent = coaClassVisitor;
 	}
 	

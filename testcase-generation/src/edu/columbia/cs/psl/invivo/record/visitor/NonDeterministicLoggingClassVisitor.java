@@ -16,16 +16,16 @@ import org.objectweb.asm.util.CheckMethodAdapter;
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
-public class COAClassVisitor extends ClassVisitor implements Opcodes{
+public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements Opcodes{
 
 	private String className;
 	private boolean isAClass = true;
 	
-	public COAClassVisitor(int api, ClassVisitor cv) {
+	public NonDeterministicLoggingClassVisitor(int api, ClassVisitor cv) {
 		super(api, cv);
 
 	}
-	private static Logger logger = Logger.getLogger(COAClassVisitor.class);
+	private static Logger logger = Logger.getLogger(NonDeterministicLoggingClassVisitor.class);
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		super.visit(version, access, name, signature, superName, interfaces);
@@ -45,7 +45,7 @@ public class COAClassVisitor extends ClassVisitor implements Opcodes{
 			MethodVisitor mv = cv.visitMethod(acc, name, desc, signature,
 					exceptions);
 //			CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
-			COAMethodVisitor cloningMV = new COAMethodVisitor(Opcodes.ASM4, mv, acc, name, desc,className,isFirstConstructor);
+			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, mv, acc, name, desc,className,isFirstConstructor);
 			if(name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
