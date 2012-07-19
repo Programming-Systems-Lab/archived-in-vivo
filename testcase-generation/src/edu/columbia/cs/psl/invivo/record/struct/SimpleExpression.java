@@ -1,13 +1,11 @@
 package edu.columbia.cs.psl.invivo.record.struct;
 
-import java.util.Stack;
-
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.util.Printer;
 
-public class ConstantInsnAdapter implements IReadableInstance {
+public class SimpleExpression extends Expression {
 	private AbstractInsnNode insn;
 
 	@Override
@@ -15,7 +13,7 @@ public class ConstantInsnAdapter implements IReadableInstance {
 		return insn.getOpcode();
 	}
 
-	public ConstantInsnAdapter(AbstractInsnNode insn) {
+	public SimpleExpression(AbstractInsnNode insn) {
 		this.insn = insn;
 	}
 
@@ -24,14 +22,13 @@ public class ConstantInsnAdapter implements IReadableInstance {
 	}
 
 	@Override
-	public IReadableInstance getParent() {
+	public Expression getParent() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void setParent(IReadableInstance ir) {
-		// TODO Auto-generated method stub
+	public void setParent(Expression ir) {
 
 	}
 

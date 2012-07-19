@@ -2,10 +2,7 @@ package edu.columbia.cs.psl.invivo.record.struct;
 
 import java.util.Stack;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-
-public class MethodInvocation implements IReadableInstance {
+public class MethodExpression extends Expression {
 	@Override
 	public String toString() {
 		String r ="";
@@ -16,8 +13,8 @@ public class MethodInvocation implements IReadableInstance {
 
 		for(int j = 0; j<params.size() - (method.getMethod().getName().equals("<init>") ? 2: 0); j++)
 		{
-			IReadableInstance i = params.get(j);
-			IReadableInstance parent = i.getParent();
+			Expression i = params.get(j);
+			Expression parent = i.getParent();
 			String paramParent = "";
 			while(parent != null)
 			{
@@ -33,17 +30,17 @@ public class MethodInvocation implements IReadableInstance {
 		return r;
 
 	}
-	private IReadableInstance parent;
-	private Stack<IReadableInstance> params = new Stack<IReadableInstance>();
+	private Stack<Expression> params = new Stack<Expression>();
 
-	private MethodInstance method;
+	private AnnotatedMethod method;
 	private int opcode;
-	public MethodInvocation(MethodInstance method, int opcode)
+	public MethodExpression(AnnotatedMethod method, int opcode)
 	{
 
 		this.method = method;
 		this.opcode = opcode;
 	}
+	@Override
 	public int getOpcode() {
 		return opcode;
 	}
@@ -51,24 +48,18 @@ public class MethodInvocation implements IReadableInstance {
 	public int getType() {
 		return METHOD_TYPE;
 	}
-	public Stack<IReadableInstance> getParams() {
+	public Stack<Expression> getParams() {
 		return params;
 	}
-	@Override
-	public IReadableInstance getParent() {
-		return parent;
-	}
-	public MethodInstance getMethod() {
+	
+	public AnnotatedMethod getMethod() {
 		return method;
 	}
 	public int getNumParamsNeeded()
 	{
 		return (method.getMethod().getName().equals("<init>") ? 2 : 0) + method.getMethod().getArgumentTypes().length;
 	}
-	@Override
-	public void setParent(IReadableInstance parent) {
-		this.parent = parent;
-	}
+
 	public boolean hasAllParameters() {
 		// TODO Auto-generated method stub
 		return getNumParamsNeeded() == params.size();

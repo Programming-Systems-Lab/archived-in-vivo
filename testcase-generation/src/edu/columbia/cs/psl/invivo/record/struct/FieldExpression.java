@@ -1,24 +1,21 @@
 package edu.columbia.cs.psl.invivo.record.struct;
 
-import java.util.LinkedList;
-import java.util.Stack;
-
 import org.objectweb.asm.Opcodes;
 
-public class FieldInvocation implements IReadableInstance {
+public class FieldExpression extends Expression {
 	private String name;
 	private String owner;
 	private String desc;
-	private IReadableInstance parent;
 	private int opcode;
 	
-	public FieldInvocation(String name, String owner, String desc, int opcode)
+	public FieldExpression(String name, String owner, String desc, int opcode)
 	{
 		this.name = name;
 		this.owner = owner;
 		this.desc = desc;
 		this.opcode = opcode;
 	}
+	@Override
 	public int getOpcode() {
 		return opcode;
 	}
@@ -31,16 +28,12 @@ public class FieldInvocation implements IReadableInstance {
 	public String getDesc() {
 		return desc;
 	}
-	public IReadableInstance getParent() {
-		return parent;
-	}
+
 	@Override
 	public int getType() {
 		return FIELD_TYPE;
 	}
-	public void setParent(IReadableInstance parent) {
-		this.parent = parent;
-	}
+
 	@Override
 	public int getStackElementsToSkip() {
 		if(opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC)

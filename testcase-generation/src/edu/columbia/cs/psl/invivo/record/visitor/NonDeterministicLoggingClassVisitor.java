@@ -7,13 +7,7 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.util.CheckMethodAdapter;
 
-import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
 public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements Opcodes{

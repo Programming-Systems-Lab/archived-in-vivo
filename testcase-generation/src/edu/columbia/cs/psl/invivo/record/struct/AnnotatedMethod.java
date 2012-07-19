@@ -3,10 +3,9 @@ package edu.columbia.cs.psl.invivo.record.struct;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
-public class MethodInstance {
+public class AnnotatedMethod {
 
 	/**
 	 * Encoded access flags for this method. private int access
@@ -25,8 +24,8 @@ public class MethodInstance {
 
 	public LinkedList<String> functionsThatICall = new LinkedList<String>();
 
-	private HashSet<FieldInvocation> putFieldInsns = new HashSet<FieldInvocation>();
-	private HashSet<FieldInvocation> putParamInsns = new HashSet<FieldInvocation>();
+	private HashSet<FieldExpression> putFieldInsns = new HashSet<FieldExpression>();
+	private HashSet<FieldExpression> putParamInsns = new HashSet<FieldExpression>();
 
 	/**
 	 * ASM method at the core of this MethodInstance object. private Method
@@ -45,7 +44,7 @@ public class MethodInstance {
 	{
 		return this.method.getDescriptor();
 	}
-	public MethodInstance(String fullName) {
+	public AnnotatedMethod(String fullName) {
 
 		String[] pieces = fullName.split("\\.|:");
 		this.clazz = pieces[0];
@@ -65,7 +64,7 @@ public class MethodInstance {
 	 * @param access
 	 *            int access flags in decimal
 	 */
-	public MethodInstance(String name, String desc, String clazz, int access) {
+	public AnnotatedMethod(String name, String desc, String clazz, int access) {
 		this.method = new Method(name, desc);
 		this.clazz = clazz;
 		this.access = access;
@@ -77,12 +76,12 @@ public class MethodInstance {
 	 * (A.getClazz().equals(B.getClazz())) == true
 	 * 
 	 * @see Object#equals(Object)
-	 * @see MethodInstance#hashCode()
+	 * @see AnnotatedMethod#hashCode()
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj.getClass().equals(this.getClass())) {
-			MethodInstance other = (MethodInstance) obj;
+			AnnotatedMethod other = (AnnotatedMethod) obj;
 			if ((other.getClazz().equals(this.getClazz()))
 					&& (other.getMethod().getName().equals(this.getMethod().getName()) && other.getMethod().getDescriptor().equals(this.getMethod().getDescriptor())))
 				return true;
@@ -125,10 +124,10 @@ public class MethodInstance {
 	public String toString() {
 		return "MethodInstance [method=" + method + ", class=" + clazz + "]";
 	}
-	public HashSet<FieldInvocation> getPutParamInsns() {
+	public HashSet<FieldExpression> getPutParamInsns() {
 		return putParamInsns;
 	}
-	public HashSet<FieldInvocation> getPutFieldInsns() {
+	public HashSet<FieldExpression> getPutFieldInsns() {
 		return putFieldInsns;
 	}
 
