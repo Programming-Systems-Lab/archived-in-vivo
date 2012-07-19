@@ -11,14 +11,22 @@ public class OtherClass {
 	}
 	public OtherClass(SimpleClass c)
 	{
-		
+		this.c = c;
 	}
 	public void setFileAttribute(SimpleClass c)
 	{
 		c.f = new File("log4j.properties");
 	}
+	public void setFileAttribute()
+	{
+		c.f = new File("log4j.properties");
+	}
 	public SimpleClass getSimpleClass(SimpleClass c)
 	{
+		return c;
+	}
+	public SimpleClass getSimpleClass() {
+		// TODO Auto-generated method stub
 		return c;
 	}
 }

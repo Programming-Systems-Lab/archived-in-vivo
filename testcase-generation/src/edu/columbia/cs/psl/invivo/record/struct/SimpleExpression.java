@@ -2,7 +2,9 @@ package edu.columbia.cs.psl.invivo.record.struct;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.Printer;
 
 public class SimpleExpression extends Expression {
@@ -42,9 +44,23 @@ public class SimpleExpression extends Expression {
 		return 0;
 	}
 
+	public String getDesc() {
+		switch (insn.getType()) {
+		case AbstractInsnNode.TYPE_INSN:
+			return ((TypeInsnNode) insn).desc;
+		case AbstractInsnNode.VAR_INSN:
+			return "" + ((VarInsnNode) insn).var;
+		case AbstractInsnNode.LDC_INSN:
+			return ((LdcInsnNode) insn).cst.toString();
+		default:
+			return "";
+		}
+
+	}
+
 	@Override
 	public String toString() {
-		return "[" + Printer.OPCODES[getOpcode()] + (getOpcode() == Opcodes.NEW ? " " + ((TypeInsnNode) insn).desc : "") + "]";
+		return "[" + Printer.OPCODES[getOpcode()] + " " + getDesc() + "]";
 	}
 
 }

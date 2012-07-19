@@ -23,7 +23,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.FieldNode;
 
-import edu.columbia.cs.psl.invivo.record.visitor.MutabilityAnalyzer;
+import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {

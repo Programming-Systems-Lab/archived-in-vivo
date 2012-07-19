@@ -1,4 +1,4 @@
-package edu.columbia.cs.psl.invivo.record.visitor;
+package edu.columbia.cs.psl.invivo.record.analysis;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +52,7 @@ public class MutabilityAnalyzer implements Opcodes {
 						FieldExpression pi = new FieldExpression(fn.name, fn.owner, fn.desc, n.getOpcode());
 						pi.setParent(parentInstructionOf(mn, pi, mn.instructions.iterator(i.previousIndex())));
 						System.out.println(printParents(pi, 0));
+						System.out.println(pi.getRootParent());
 					}
 				} else if (n.getType() == AbstractInsnNode.METHOD_INSN) // Method
 																		// invocation

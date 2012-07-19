@@ -13,6 +13,13 @@ public abstract class Expression {
 	public void setParent(Expression ir){
 		this.parent = ir;
 	}
+	public Expression getRootParent()
+	{
+		if(getParent() == null)
+			return this;
+		else
+			return getParent().getRootParent();
+	}
 	private Expression parent;
 	public abstract int getStackElementsToSkip();
 	public abstract int getOpcode();
