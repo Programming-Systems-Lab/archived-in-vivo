@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -24,66 +26,42 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.FieldNode;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
+import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
 import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {
-	private static File rootOutputDir;
 	private static URLClassLoader loader;
+	private static Logger logger = Logger.getLogger(Instrumenter.class);
+	private static HashMap<String, AnnotatedMethod> lookupCache = new HashMap<String, AnnotatedMethod>();
+
+	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(lookupCache);
 	private static HashSet<MethodCall> methodCalls = new HashSet<MethodCall>();
+	private static final int NUM_PASSES = 2;
+	private static final int PASS_ANALYZE = 0;
+	private static final int PASS_OUTPUT = 1;
 
-	public static void main(String[] args) {
-		if (args.length <= 1) {
-			System.err.println("Usage: java edu.columbia.cs.psl.invivo.record.Instrumenter [outputFolder] [inputfolder] [classpath]\n Paths can be classes, directories, or jar files");
-			System.exit(-1);
-		}
-		String outputFolder = args[0];
-		rootOutputDir = new File(outputFolder);
-		if (!rootOutputDir.exists())
-			rootOutputDir.mkdir();
-		String inputFolder = args[1];
-		// Setup the class loader
-		URL[] urls = new URL[args.length - 2];
-		for (int i = 2; i < args.length; i++) {
-			File f = new File(args[i]);
-			if (!f.exists()) {
-				System.err.println("Unable to read path " + args[i]);
-				System.exit(-1);
-			}
-			if (f.isDirectory() && !f.getAbsolutePath().endsWith("/"))
-				f = new File(f.getAbsolutePath() + "/");
-			try {
-				urls[i - 2] = f.getCanonicalFile().toURI().toURL();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-		loader = new URLClassLoader(urls, Instrumenter.class.getClassLoader());
+	private static int pass_number = 0;
 
-		// Do the instrumenting
-		// for (int i = 1; i < args.length; i++) {
-		File f = new File(inputFolder);
-		if (!f.exists()) {
-			System.err.println("Unable to read path " + inputFolder);
-			System.exit(-1);
+	private static File rootOutputDir;
+	private static void analyzeClass(InputStream inputStream) {
+		try {
+			ma.analyzeClass(new ClassReader(inputStream));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		if (f.isDirectory())
-			processDirectory(f, rootOutputDir, true);
-		else if (inputFolder.endsWith(".jar"))
-			processJar(f, rootOutputDir);
-		else if (inputFolder.endsWith(".class"))
-			try {
-				processClass(f.getName(), new FileInputStream(f), rootOutputDir);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		else {
-			System.err.println("Unknown type for path " + inputFolder);
-			System.exit(-1);
-		}
-		// }
+	}
 
-		generateMethodLogClass();
+	private static void finishedPass() {
+		switch(pass_number)
+		{
+		case PASS_ANALYZE:
+			ma.doneSupplyingClasses();
+			break;
+		case PASS_OUTPUT:
+			generateMethodLogClass();
+			break;
+		}
 	}
 
 	private static void generateMethodLogClass() {
@@ -138,35 +116,6 @@ public class Instrumenter {
 		}
 
 	}
-
-	private static void processClass(String name, InputStream is, File outputDir) {
-		System.out.println("Processing " + name);
-		try {
-
-			FileOutputStream fos = new FileOutputStream(outputDir.getPath() + File.separator + name);
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			bos.write(instrumentClass(is));
-			bos.writeTo(fos);
-			fos.close();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.exit(-1);
-		}
-
-	}
-	private static MutabilityAnalyzer ma = new MutabilityAnalyzer();
-	
-	private static void analyzeClass(InputStream is) {
-		try{
-		ClassReader cr = new ClassReader(is);
-		ma.Analyze(cr);
-		}
-		catch(Exception ex)
-		{
-			logger.error("Exception processing class:",ex);
-		}
-	}
 	private static byte[] instrumentClass(InputStream is) {
 		try {
 			ClassReader cr = new ClassReader(is);
@@ -180,54 +129,80 @@ public class Instrumenter {
 			return null;
 		}
 	}
-	private static Logger logger = Logger.getLogger(Instrumenter.class);
-	private static void processJar(File f, File outputDir) {
-		try {
-			JarFile jar = new JarFile(f);
-			JarOutputStream jos = new JarOutputStream(new FileOutputStream(outputDir.getPath() + File.separator + f.getName()));
-			Enumeration<JarEntry> entries = jar.entries();
-			while (entries.hasMoreElements()) {
-				JarEntry e = entries.nextElement();
-
-				if (e.getName().endsWith(".class") && 
-						!e.getName().startsWith("java") && !e.getName().startsWith("org/objenesis") && 
-						!e.getName().startsWith("com/thoughtworks/xstream/") &&
-						!e.getName().startsWith("com/rits/cloning") && !e.getName().startsWith("com/apple/java/Application")) {
-					JarEntry outEntry = new JarEntry(e.getName());
-					System.out.println("Adding entry " + outEntry.getName());
-					jos.putNextEntry(outEntry);
-					analyzeClass(jar.getInputStream(e));
-					byte[] clazz = instrumentClass(jar.getInputStream(e));
-					jos.write(clazz);
-					jos.closeEntry();
-				} else {
-					JarEntry outEntry = new JarEntry(e);
-					if (e.isDirectory()) {
-						System.out.println("Adding entry " + outEntry.getName());
-						jos.putNextEntry(outEntry);
-						jos.closeEntry();
-					} else {
-						jos.putNextEntry(outEntry);
-						System.out.println("Adding entry " + outEntry.getName());
-						InputStream is = jar.getInputStream(e);
-						byte[] buffer = new byte[1024];
-						while (true) {
-							int count = is.read(buffer);
-							if (count == -1)
-								break;
-							jos.write(buffer, 0, count);
-						}
-						jos.closeEntry();
-					}
-				}
-			}
-			jos.close();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error("Unable to process jar" + f ,e);
+	public static void main(String[] args) {
+		if (args.length <= 1) {
+			System.err.println("Usage: java edu.columbia.cs.psl.invivo.record.Instrumenter [outputFolder] [inputfolder] [classpath]\n Paths can be classes, directories, or jar files");
 			System.exit(-1);
 		}
+		String outputFolder = args[0];
+		rootOutputDir = new File(outputFolder);
+		if (!rootOutputDir.exists())
+			rootOutputDir.mkdir();
+		String inputFolder = args[1];
+		// Setup the class loader
+		URL[] urls = new URL[args.length - 2];
+		for (int i = 2; i < args.length; i++) {
+			File f = new File(args[i]);
+			if (!f.exists()) {
+				System.err.println("Unable to read path " + args[i]);
+				System.exit(-1);
+			}
+			if (f.isDirectory() && !f.getAbsolutePath().endsWith("/"))
+				f = new File(f.getAbsolutePath() + "/");
+			try {
+				urls[i - 2] = f.getCanonicalFile().toURI().toURL();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		loader = new URLClassLoader(urls, Instrumenter.class.getClassLoader());
 
+		for(pass_number = 0; pass_number<NUM_PASSES;pass_number++) //Do each pass.
+		{
+			File f = new File(inputFolder);
+			if (!f.exists()) {
+				System.err.println("Unable to read path " + inputFolder);
+				System.exit(-1);
+			}
+			if (f.isDirectory())
+				processDirectory(f, rootOutputDir, true);
+			else if (inputFolder.endsWith(".jar"))
+				processJar(f, rootOutputDir);
+			else if (inputFolder.endsWith(".class"))
+				try {
+					processClass(f.getName(), new FileInputStream(f), rootOutputDir);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			else {
+				System.err.println("Unknown type for path " + inputFolder);
+				System.exit(-1);
+			}
+			finishedPass();
+		}
+		// }
+
+	}
+	private static void processClass(String name, InputStream is, File outputDir) {
+		switch(pass_number)
+		{
+		case PASS_ANALYZE:
+			analyzeClass(is);
+			break;
+		case PASS_OUTPUT:
+			try {
+				FileOutputStream fos = new FileOutputStream(outputDir.getPath() + File.separator + name);
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				bos.write(instrumentClass(is));
+				bos.writeTo(fos);
+				fos.close();
+	
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				System.exit(-1);
+			}
+		}
 	}
 
 	private static void processDirectory(File f, File parentOutputDir, boolean isFirstLevel) {
@@ -237,6 +212,7 @@ public class Instrumenter {
 
 		} else {
 			thisOutputDir = new File(parentOutputDir.getAbsolutePath() + File.separator + f.getName());
+			if(pass_number == PASS_OUTPUT)
 			thisOutputDir.mkdir();
 		}
 		for (File fi : f.listFiles()) {
@@ -251,6 +227,62 @@ public class Instrumenter {
 				}
 			else if (fi.getName().endsWith(".jar"))
 				processJar(fi, thisOutputDir);
+		}
+
+	}
+
+	private static void processJar(File f, File outputDir) {
+		try {
+			JarFile jar = new JarFile(f);
+			JarOutputStream jos = null;
+			if(pass_number == PASS_OUTPUT)
+				jos = new JarOutputStream(new FileOutputStream(outputDir.getPath() + File.separator + f.getName()));
+			Enumeration<JarEntry> entries = jar.entries();
+			while (entries.hasMoreElements()) {
+				JarEntry e = entries.nextElement();
+				switch(pass_number)
+				{
+				case PASS_ANALYZE:
+					if (e.getName().endsWith(".class"))
+						analyzeClass(jar.getInputStream(e));
+					break;
+				case PASS_OUTPUT:
+					if (e.getName().endsWith(".class") && 
+							!e.getName().startsWith("java") && !e.getName().startsWith("org/objenesis") && 
+							!e.getName().startsWith("com/thoughtworks/xstream/") &&
+							!e.getName().startsWith("com/rits/cloning") && !e.getName().startsWith("com/apple/java/Application")) {
+							JarEntry outEntry = new JarEntry(e.getName());
+							jos.putNextEntry(outEntry);
+							byte[] clazz = instrumentClass(jar.getInputStream(e));
+							jos.write(clazz);
+							jos.closeEntry();
+					} else {
+						JarEntry outEntry = new JarEntry(e);
+						if (e.isDirectory()) {
+							jos.putNextEntry(outEntry);
+							jos.closeEntry();
+						} else {
+							jos.putNextEntry(outEntry);
+							InputStream is = jar.getInputStream(e);
+							byte[] buffer = new byte[1024];
+							while (true) {
+								int count = is.read(buffer);
+								if (count == -1)
+									break;
+								jos.write(buffer, 0, count);
+							}
+							jos.closeEntry();
+						}
+					}
+				}
+				
+			}
+			if(pass_number == PASS_OUTPUT)
+				jos.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error("Unable to process jar" + f ,e);
+			System.exit(-1);
 		}
 
 	}

@@ -35,6 +35,10 @@ public class AnnotatedMethod {
 	 */
 	private Method method;
 
+	private boolean mutatesFieldsDirectly;
+	private boolean mutatesFields;
+	private boolean isFullyDiscovered;
+	
 	public String getName()
 	{
 		return this.method.getName();
@@ -130,5 +134,26 @@ public class AnnotatedMethod {
 	public HashSet<FieldExpression> getPutFieldInsns() {
 		return putFieldInsns;
 	}
+	public boolean isMutatesFields() {
+		return mutatesFields;
+	}
+	public boolean isMutatesFieldsDirectly() {
+		return mutatesFieldsDirectly;
+	}
+	public void setMutatesFieldsDirectly() {
+		this.mutatesFieldsDirectly = true;
+	}
+	public void setMutatesFields() {
+		this.mutatesFields = true;
+	}
 
+	public void setAccess(int access) {
+		this.access = access;
+	}
+	public boolean isFullyDiscovered() {
+		return isFullyDiscovered;
+	}
+	public void setFullyDiscovered(boolean isFullyDiscovered) {
+		this.isFullyDiscovered = isFullyDiscovered;
+	}
 }

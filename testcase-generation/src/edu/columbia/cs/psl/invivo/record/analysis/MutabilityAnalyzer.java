@@ -21,10 +21,42 @@ import edu.columbia.cs.psl.invivo.record.struct.MethodExpression;
 import edu.columbia.cs.psl.invivo.record.struct.SimpleExpression;
 
 public class MutabilityAnalyzer implements Opcodes {
-	HashMap<String, AnnotatedMethod> lookupCache = new HashMap<String, AnnotatedMethod>();
 
 	private static Logger logger = Logger.getLogger(MutabilityAnalyzer.class);
+	public MutabilityAnalyzer(HashMap<String, AnnotatedMethod> lookupCache) {
+		this.lookupCache = lookupCache;
+	}
+	private HashMap<String, AnnotatedMethod> lookupCache;
 
+	/**
+	 * Call when done calling analyzeClass
+	 */
+	public void doneSupplyingClasses()
+	{
+		for (String s : lookupCache.keySet()) {
+			AnnotatedMethod method = lookupCache.get(s);
+			if (method.isMutatesFieldsDirectly()) {
+				for (String caller : method.functionsThatCallMe)
+				{
+					method.setMutatesFields();
+					addAllRecursively(lookupCache.get(caller));
+				}
+			}
+		}
+		for(AnnotatedMethod m : lookupCache.values())
+		{
+			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+		}
+	}
+	
+	private void addAllRecursively(AnnotatedMethod method) {
+		if (method.isMutatesFields())
+			return;
+		method.setMutatesFields();
+		for (String caller : method.functionsThatCallMe)
+			addAllRecursively(lookupCache.get(caller));
+	}
+	
 	/**
 	 * 
 	 * Approach:
@@ -44,14 +76,16 @@ public class MutabilityAnalyzer implements Opcodes {
 	 * 		To find each field, may need to (recursively) descend through the holder points-to fields
 	 * @param cr
 	 */
-	public void Analyze(ClassReader cr) {
+	public void analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
 
 		for (Object o : cn.methods) {
-			MethodNode mn = (MethodNode) o;
-			AnnotatedMethod mi = findOrAddMethod(cn.name, mn);
-			ListIterator<?> i = mn.instructions.iterator();
+			MethodNode thisMethodNode = (MethodNode) o;
+			AnnotatedMethod thisMethod = findOrAddMethod(cn.name, thisMethodNode);
+			thisMethod.setFullyDiscovered(true);
+			thisMethod.setAccess(thisMethodNode.access);
+			ListIterator<?> i = thisMethodNode.instructions.iterator();
 			while (i.hasNext()) {
 				AbstractInsnNode n = (AbstractInsnNode) i.next();
 				if (n.getType() == AbstractInsnNode.FIELD_INSN) // Field
@@ -62,21 +96,25 @@ public class MutabilityAnalyzer implements Opcodes {
 						// This instruction is changing a static field. Previous
 						// instruction is the value to set to
 						FieldExpression pi = new FieldExpression(fn.name, fn.owner, fn.desc, n.getOpcode());
-						mi.getPutFieldInsns().add(pi);
+						thisMethod.getPutFieldInsns().add(pi);
+						thisMethod.setMutatesFieldsDirectly();
 					} else if (n.getOpcode() == Opcodes.PUTFIELD) {
 
 						// This instruction is changing a field.
 						// Previous instruction will have the value that we are
 						// setting to
 						FieldExpression pi = new FieldExpression(fn.name, fn.owner, fn.desc, n.getOpcode());
-						pi.setParent(parentInstructionOf(mn, pi, mn.instructions.iterator(i.previousIndex())));
-						System.out.println(printParents(pi, 0));
-						System.out.println(pi.getRootParent());
+						pi.setParent(parentInstructionOf(thisMethodNode, pi, thisMethodNode.instructions.iterator(i.previousIndex())));
+						thisMethod.getPutFieldInsns().add(pi);
+						thisMethod.setMutatesFieldsDirectly();
 					}
 				} else if (n.getType() == AbstractInsnNode.METHOD_INSN) // Method
 																		// invocation
 				{
-
+					MethodInsnNode whatWeCall = (MethodInsnNode) n;
+					AnnotatedMethod otherMethod = findOrAddMethod(whatWeCall.owner, whatWeCall.name, whatWeCall.desc,0);
+					otherMethod.functionsThatCallMe.add(thisMethod.getFullName());
+					thisMethod.functionsThatICall.add(otherMethod.getFullName());
 				} else if (n.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) // Invoke
 																				// dynamic
 				{
@@ -627,8 +665,8 @@ public class MutabilityAnalyzer implements Opcodes {
 	public static void main(String[] args) {
 		try {
 			ClassReader cr = new ClassReader("edu.columbia.cs.psl.invivo.sample.SimpleClass");
-			MutabilityAnalyzer ma = new MutabilityAnalyzer();
-			ma.Analyze(cr);
+			MutabilityAnalyzer ma = new MutabilityAnalyzer(new HashMap<String, AnnotatedMethod>());
+			ma.analyzeClass(cr);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

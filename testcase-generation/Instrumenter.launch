@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.columbia.cs.psl.invivo.record.Instrumenter"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="instrumented  ../testcase-generation-tester/ ../testcase-generation-tester/bin ../testcase-generation-tester/lib/asm-all-4.0.jar ../testcase-generation-tester/lib/cloning-1.7.9.jar ../testcase-generation-tester/lib/log4j-1.2.16.jar ../testcase-generation-tester/lib/objenesis-1.2.jar ../testcase-generation-tester/lib/test-case-generation-premain.jar"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="instrumented  ../testcase-generation-tester/bin ../testcase-generation-tester/bin"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="test case generation"/>
 </launchConfiguration>
