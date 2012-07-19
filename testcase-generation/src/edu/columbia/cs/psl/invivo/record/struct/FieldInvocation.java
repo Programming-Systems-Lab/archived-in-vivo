@@ -3,6 +3,8 @@ package edu.columbia.cs.psl.invivo.record.struct;
 import java.util.LinkedList;
 import java.util.Stack;
 
+import org.objectweb.asm.Opcodes;
+
 public class FieldInvocation implements IReadableInstance {
 	private String name;
 	private String owner;
@@ -41,11 +43,14 @@ public class FieldInvocation implements IReadableInstance {
 	}
 	@Override
 	public int getStackElementsToSkip() {
+		if(opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC)
+			return 0;
 		return 1;
 	}
 
 	@Override
 	public String toString() {
-		return "FieldInvocation [name=" + name + ", owner=" + owner + ", desc=" + desc + "]";
+//		return "FieldInvocation [name=" + name + ", owner=" + owner + ", desc=" + desc + "]";
+		return name;
 	}
 }

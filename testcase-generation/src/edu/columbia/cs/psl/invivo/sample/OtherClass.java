@@ -4,6 +4,15 @@ import java.io.File;
 
 public class OtherClass {
 	public SimpleClass c;
+	
+	public OtherClass()
+	{
+		
+	}
+	public OtherClass(SimpleClass c)
+	{
+		
+	}
 	public void setFileAttribute(SimpleClass c)
 	{
 		c.f = new File("log4j.properties");

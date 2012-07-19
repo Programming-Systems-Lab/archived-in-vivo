@@ -30,6 +30,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.FieldNode;
 
+import edu.columbia.cs.psl.invivo.record.visitor.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {
@@ -161,7 +162,18 @@ public class Instrumenter {
 		}
 
 	}
-
+	private static MutabilityAnalyzer ma = new MutabilityAnalyzer();
+	
+	private static void analyzeClass(InputStream is) {
+		try{
+		ClassReader cr = new ClassReader(is);
+		ma.Analyze(cr);
+		}
+		catch(Exception ex)
+		{
+			logger.error("Exception processing class:",ex);
+		}
+	}
 	private static byte[] instrumentClass(InputStream is) {
 		try {
 			ClassReader cr = new ClassReader(is);
@@ -191,6 +203,7 @@ public class Instrumenter {
 					JarEntry outEntry = new JarEntry(e.getName());
 					System.out.println("Adding entry " + outEntry.getName());
 					jos.putNextEntry(outEntry);
+					analyzeClass(jar.getInputStream(e));
 					byte[] clazz = instrumentClass(jar.getInputStream(e));
 					jos.write(clazz);
 					jos.closeEntry();

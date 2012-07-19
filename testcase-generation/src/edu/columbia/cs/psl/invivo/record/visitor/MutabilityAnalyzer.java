@@ -1,10 +1,13 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -22,6 +25,8 @@ import edu.columbia.cs.psl.invivo.record.struct.MethodInvocation;
 
 public class MutabilityAnalyzer implements Opcodes {
 	HashMap<String, MethodInstance> lookupCache = new HashMap<String, MethodInstance>();
+
+	private static Logger logger = Logger.getLogger(MutabilityAnalyzer.class);
 
 	public void Analyze(ClassReader cr) {
 		ClassNode cn = new ClassNode();
@@ -49,7 +54,7 @@ public class MutabilityAnalyzer implements Opcodes {
 						// setting to
 						FieldInvocation pi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
 						pi.setParent(parentInstructionOf(mn, pi, mn.instructions.iterator(i.previousIndex())));
-						printParents(pi, 0);
+						System.out.println(printParents(pi, 0));
 					}
 				} else if (n.getType() == AbstractInsnNode.METHOD_INSN) // Method
 																		// invocation
@@ -64,53 +69,76 @@ public class MutabilityAnalyzer implements Opcodes {
 		}
 	}
 
-	private void printParents(IReadableInstance ir, int indent) {
-		for (int i = 0; i < indent; i++)
-			System.out.print(" ");
-		System.out.println(ir);
+	private String printParents(IReadableInstance ir, int indent) {
+		String r = "";
 		if (ir.getParent() != null)
-			printParents(ir.getParent(), indent + 1);
+			r += printParents(ir.getParent(), indent + 1) + ".";
+		r += ir.toString();
+		return r;
 	}
 
-	private IReadableInstance parentInstructionOf(MethodNode mn, IReadableInstance insnToFindParentOf, ListIterator<?> i) {
-		int nToSkip = insnToFindParentOf.getStackElementsToSkip();
-		while (nToSkip > 0 ) {
+	private List<IReadableInstance> paramsOf(MethodNode sourceMethod, MethodInvocation methodInsnToFindParamsOf, ListIterator<?> i) {
+		ArrayList<IReadableInstance> ret = new ArrayList<IReadableInstance>();
+		int nParams = methodInsnToFindParamsOf.getNumParamsNeeded();
+		int nToSkip = 0;
+		logger.debug("Finding " + nParams + " params for " + methodInsnToFindParamsOf);
+		while (i.hasPrevious() && nParams > 0) {
 			AbstractInsnNode n = (AbstractInsnNode) i.previous();
 			switch (n.getType()) {
 			case AbstractInsnNode.METHOD_INSN:
 				MethodInsnNode min = (MethodInsnNode) n;
 				MethodInvocation mi = new MethodInvocation(findOrAddMethod(min.owner, min.name, min.desc, min.getOpcode() == Opcodes.INVOKESTATIC ? Opcodes.ACC_STATIC : 0), min.getOpcode());
-				System.out.println("Encountered " + mi + ", skipping " + mi.getStackElementsToSkip());
-				nToSkip--;
-				nToSkip += mi.getStackElementsToSkip();
-				System.out.println("NTos" + nToSkip);
+				logger.debug("Encountered " + mi + ", skipping " + mi.getStackElementsToSkip());
+
 				if (nToSkip == 0) {
-					mi.setParent(parentInstructionOf(mn, mi, mn.instructions.iterator(i.previousIndex() + 1)));
-					return mi;
+					mi.setParent(parentInstructionOf(sourceMethod, mi, sourceMethod.instructions.iterator(i.previousIndex() + 1)));
+					mi.getParams().addAll(paramsOf(sourceMethod, mi, sourceMethod.instructions.iterator(i.previousIndex() + 1)));
+
+					ret.add(mi);
+					nParams--;
 				}
+				nToSkip--;
+				nToSkip += mi.getStackElementsToSkip() + (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1);
+				logger.debug("NTOS" + nToSkip);
+				if (nToSkip < 0)
+					nToSkip = 0;
 				break;
 			case AbstractInsnNode.INVOKE_DYNAMIC_INSN:
 				// TODO
+				break;
+			case AbstractInsnNode.TYPE_INSN:
+				switch (n.getOpcode()) {
+				case NEW:
+					if (nToSkip == 0) {
+						ret.add(new ConstantInsnAdapter(n));
+						nParams--;
+					} else
+						nToSkip--;
+					break;
+				case ANEWARRAY:
+				case CHECKCAST:
+				case INSTANCEOF:
+				}
 				break;
 			case AbstractInsnNode.FIELD_INSN:
 				FieldInsnNode fn = (FieldInsnNode) n;
 				if (n.getOpcode() == Opcodes.GETFIELD) {
 					FieldInvocation fi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
-					System.out.println("Encoutnered" + fi);
+					logger.debug("Encoutnered" + fi);
 					if (nToSkip == 0) {
-						fi.setParent(parentInstructionOf(mn, fi, mn.instructions.iterator(i.previousIndex() + 1)));
-						return fi;
-					}
-					nToSkip--;
-					nToSkip += 2;
-				} else if (n.getOpcode() == Opcodes.GETSTATIC) {
-					FieldInvocation fi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
-					if (nToSkip == 0) {
-						fi.setParent(parentInstructionOf(mn, fi, mn.instructions.iterator(i.previousIndex() + 1)));
-						return fi;
+						fi.setParent(parentInstructionOf(sourceMethod, fi, sourceMethod.instructions.iterator(i.previousIndex() + 1)));
+						ret.add(fi);
+						nParams--;
 					}
 					nToSkip--;
 					nToSkip += 1;
+				} else if (n.getOpcode() == Opcodes.GETSTATIC) {
+					FieldInvocation fi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
+					if (nToSkip == 0) {
+						ret.add(fi);
+						nParams--;
+					}
+					nToSkip--;
 				}
 				break;
 			case AbstractInsnNode.INT_INSN:
@@ -125,10 +153,11 @@ public class MutabilityAnalyzer implements Opcodes {
 				case BIPUSH:
 				case SIPUSH:
 				case Opcodes.LDC:
-					nToSkip--;
 					if (nToSkip == 0) {
-						return new ConstantInsnAdapter(n);
-					}
+						ret.add(new ConstantInsnAdapter(n));
+						nParams--;
+					} else
+						nToSkip--;
 					break;
 				case ISTORE:
 				case LSTORE:
@@ -160,7 +189,7 @@ public class MutabilityAnalyzer implements Opcodes {
 					nToSkip--;
 					nToSkip++;
 				default:
-					System.out.println("Unknown opcode " + n.getOpcode());
+					logger.debug("Unknown opcode " + n.getOpcode());
 					break;
 				}
 				break;
@@ -254,14 +283,6 @@ public class MutabilityAnalyzer implements Opcodes {
 				case LCMP: // 4 before 1 after
 				case DCMPL:
 				case DCMPG:
-				case DUP:
-				case DUP_X1:
-				case DUP_X2:
-
-				case DUP2: // is this wrong to assume that dup2 is only used on
-							// longs and not 2 shorts?
-				case DUP2_X1:
-				case DUP2_X2:
 					nToSkip--;
 					nToSkip += 2;
 					break;
@@ -281,10 +302,277 @@ public class MutabilityAnalyzer implements Opcodes {
 				case LCONST_1:
 				case DCONST_0:
 				case DCONST_1:
-//				case POP:
-//				case MONITORENTER:
-//				case MONITOREXIT:
-//				case POP2:
+
+				case DUP:
+				case DUP_X1:
+				case DUP_X2:
+
+				case DUP2: // is this wrong to assume that dup2 is only used on
+							// longs and not 2 shorts?
+				case DUP2_X1:
+				case DUP2_X2:
+					// case POP:
+					// case MONITORENTER:
+					// case MONITOREXIT:
+					// case POP2:
+					if (nToSkip == 0) {
+						ret.add(new ConstantInsnAdapter(n));
+						nParams--;
+					} else
+						nToSkip--;
+					break;
+
+				case LASTORE:
+				case DASTORE:
+				case IASTORE:
+				case FASTORE:
+				case AASTORE:
+				case BASTORE:
+				case CASTORE:
+				case SASTORE:
+					nToSkip--;
+					nToSkip += 3;
+					break;
+				}
+				break;
+			}
+		}
+		return ret;
+	}
+
+	private IReadableInstance parentInstructionOf(MethodNode mn, IReadableInstance insnToFindParentOf, ListIterator<?> i) {
+		if (insnToFindParentOf.getType() == IReadableInstance.METHOD_TYPE && ((MethodInvocation) insnToFindParentOf).getMethod().getName().equals("<init>"))
+			return null;
+		int nToSkip = insnToFindParentOf.getStackElementsToSkip();
+		logger.debug("Examining " + insnToFindParentOf.toString() + " for parent, skipping " + nToSkip);
+		while (i.hasPrevious()) {
+			AbstractInsnNode n = (AbstractInsnNode) i.previous();
+			switch (n.getType()) {
+			case AbstractInsnNode.METHOD_INSN:
+				MethodInsnNode min = (MethodInsnNode) n;
+				MethodInvocation mi = new MethodInvocation(findOrAddMethod(min.owner, min.name, min.desc, min.getOpcode() == Opcodes.INVOKESTATIC ? Opcodes.ACC_STATIC : 0), min.getOpcode());
+				logger.debug("Encountered " + mi + ", skipping " + mi.getStackElementsToSkip());
+
+				if (nToSkip == 0) {
+					mi.setParent(parentInstructionOf(mn, mi, mn.instructions.iterator(i.previousIndex() + 1)));
+					mi.getParams().addAll(paramsOf(mn, mi, mn.instructions.iterator(i.previousIndex() + 1)));
+					return mi;
+				}
+				nToSkip--;
+				nToSkip += mi.getStackElementsToSkip() + (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1);
+				logger.debug("NTos" + nToSkip);
+				break;
+			case AbstractInsnNode.INVOKE_DYNAMIC_INSN:
+				// TODO
+				break;
+			case AbstractInsnNode.TYPE_INSN:
+				switch (n.getOpcode()) {
+				case NEW:
+					if (nToSkip == 0) {
+						return new ConstantInsnAdapter(n);
+					} else
+						nToSkip--;
+					break;
+				case ANEWARRAY:
+				case CHECKCAST:
+				case INSTANCEOF:
+				}
+				break;
+			case AbstractInsnNode.FIELD_INSN:
+				FieldInsnNode fn = (FieldInsnNode) n;
+				if (n.getOpcode() == Opcodes.GETFIELD) {
+					FieldInvocation fi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
+					logger.debug("Encoutnered field: " + fi);
+					if (nToSkip == 0) {
+						fi.setParent(parentInstructionOf(mn, fi, mn.instructions.iterator(i.previousIndex() + 1)));
+						return fi;
+					}
+					nToSkip--;
+					nToSkip += 1;
+					logger.debug("Ntos" + nToSkip);
+				} else if (n.getOpcode() == Opcodes.GETSTATIC) {
+					FieldInvocation fi = new FieldInvocation(fn.name, fn.owner, fn.desc, n.getOpcode());
+					if (nToSkip == 0) {
+						fi.setParent(parentInstructionOf(mn, fi, mn.instructions.iterator(i.previousIndex() + 1)));
+						return fi;
+					}
+					nToSkip--;
+					// nToSkip += 1;
+				}
+				break;
+			case AbstractInsnNode.INT_INSN:
+			case AbstractInsnNode.LDC_INSN:
+			case AbstractInsnNode.VAR_INSN:
+				switch (n.getOpcode()) {
+				case Opcodes.ILOAD:
+				case Opcodes.LLOAD:
+				case Opcodes.FLOAD:
+				case Opcodes.DLOAD:
+				case Opcodes.ALOAD:
+				case BIPUSH:
+				case SIPUSH:
+				case Opcodes.LDC:
+					if (nToSkip == 0) {
+						return new ConstantInsnAdapter(n);
+					}
+					nToSkip--;
+					break;
+				case ISTORE:
+				case LSTORE:
+				case FSTORE:
+				case DSTORE:
+				case ASTORE:
+					nToSkip--;
+					nToSkip++;
+					break;
+				case LALOAD:
+				case FALOAD:
+				case AALOAD:
+				case BALOAD:
+				case CALOAD:
+				case SALOAD:
+					nToSkip--;
+					nToSkip += 2;
+					break;
+				case AASTORE:
+				case IASTORE:
+				case FASTORE:
+				case DASTORE:
+				case BASTORE:
+				case CASTORE:
+				case SASTORE:
+					nToSkip += 3;
+					break;
+				case NEWARRAY:
+					nToSkip--;
+					nToSkip++;
+				default:
+					logger.debug("Unknown opcode " + n.getOpcode());
+					break;
+				}
+				break;
+			case AbstractInsnNode.INSN:
+				int s;
+				switch (n.getOpcode()) {
+				// case ATHROW: // 1 before n/a after
+				// popValue();
+				// onMethodExit(opcode);
+				// break;
+				//
+				// case LRETURN: // 2 before n/a after
+				// case DRETURN: // 2 before n/a after
+				// popValue();
+				// popValue();
+				// onMethodExit(opcode);
+				// break;
+
+				case NOP:
+				case LNEG:
+				case DNEG:
+				case FNEG:
+				case INEG:
+				case L2D:
+				case D2L:
+				case F2I:
+				case I2B:
+				case I2C:
+				case I2S:
+				case I2F:
+				case F2L: // 1 before 2 after
+				case F2D:
+				case I2L:
+				case I2D:
+
+				case L2I: // 2 before 1 after
+				case L2F: // 2 before 1 after
+				case D2I: // 2 before 1 after
+				case D2F: // 2 before 1 after
+				case ARRAYLENGTH:
+				case SWAP:
+					nToSkip--;
+					nToSkip++;
+					break;
+
+				case IADD:
+				case FADD:
+				case ISUB:
+				case LSHL: // 3 before 2 after
+				case LSHR: // 3 before 2 after
+				case LUSHR: // 3 before 2 after
+				case LSUB:
+				case LMUL:
+				case LDIV:
+				case LREM:
+				case LADD:
+				case LAND:
+				case LOR:
+				case LXOR:
+				case DADD:
+				case DMUL:
+				case DSUB:
+				case DDIV:
+				case DREM:
+
+				case FSUB:
+				case FMUL:
+				case FDIV:
+				case FREM:
+				case FCMPL: // 2 before 1 after
+				case FCMPG: // 2 before 1 after
+				case IMUL:
+				case IDIV:
+				case IREM:
+				case ISHL:
+				case ISHR:
+				case IUSHR:
+				case IAND:
+				case IOR:
+				case IXOR:
+
+				case IALOAD: // remove 2 add 1
+				case FALOAD: // remove 2 add 1
+				case AALOAD: // remove 2 add 1
+				case BALOAD: // remove 2 add 1
+				case CALOAD: // remove 2 add 1
+				case SALOAD: // remove 2 add 1
+				case LALOAD: // remove 2 add 2
+				case DALOAD: // remove 2 add 2
+
+				case LCMP: // 4 before 1 after
+				case DCMPL:
+				case DCMPG:
+					nToSkip--;
+					nToSkip += 2;
+					break;
+
+				case ACONST_NULL:
+				case ICONST_M1:
+				case ICONST_0:
+				case ICONST_1:
+				case ICONST_2:
+				case ICONST_3:
+				case ICONST_4:
+				case ICONST_5:
+				case FCONST_0:
+				case FCONST_1:
+				case FCONST_2:
+				case LCONST_0:
+				case LCONST_1:
+				case DCONST_0:
+				case DCONST_1:
+
+				case DUP:
+				case DUP_X1:
+				case DUP_X2:
+
+				case DUP2: // is this wrong to assume that dup2 is only used on
+							// longs and not 2 shorts?
+				case DUP2_X1:
+				case DUP2_X2:
+					// case POP:
+					// case MONITORENTER:
+					// case MONITOREXIT:
+					// case POP2:
 					if (nToSkip == 0) {
 						return new ConstantInsnAdapter(n);
 					}
