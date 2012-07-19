@@ -25,6 +25,25 @@ public class MutabilityAnalyzer implements Opcodes {
 
 	private static Logger logger = Logger.getLogger(MutabilityAnalyzer.class);
 
+	/**
+	 * 
+	 * Approach:
+	 * Find all methods that can change fields
+	 * Recurse that out to find all methods that might call methods that can change fields
+	 * 
+	 * At the start of each methods that might change fields, keep track in a field:
+	 * 		The starting count values for each storage array *recursively* this can be in local variables though
+	 * When a field is changed OR a "not safe" local variable (not safe if it might point to a field):
+	 * 		Store a reference to the field/local variable and a copy of the value
+	 * When a method is invoked that might change fields, track:
+	 * 		A reference to the callee
+	 * 
+	 * 
+	 * When we need to reset the system to a pre-crash state:
+	 * 		Go through the starting count for each field and compare with each current count. If count changed, reset and note
+	 * 		To find each field, may need to (recursively) descend through the holder points-to fields
+	 * @param cr
+	 */
 	public void Analyze(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);

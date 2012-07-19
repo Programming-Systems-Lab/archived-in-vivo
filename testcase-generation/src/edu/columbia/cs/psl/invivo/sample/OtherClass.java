@@ -17,6 +17,10 @@ public class OtherClass {
 	{
 		c.f = new File("log4j.properties");
 	}
+	public void thinkAboutThings()
+	{
+		getSimpleClass().evil(this);
+	}
 	public void setFileAttribute()
 	{
 		c.f = new File("log4j.properties");
