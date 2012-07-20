@@ -36,16 +36,26 @@ public class MutabilityAnalyzer implements Opcodes {
 		for (String s : lookupCache.keySet()) {
 			AnnotatedMethod method = lookupCache.get(s);
 			if (method.isMutatesFieldsDirectly()) {
-				for (String caller : method.functionsThatCallMe)
+				for (AnnotatedMethod caller : method.functionsThatCallMe)
 				{
 					method.setMutatesFields();
-					addAllRecursively(lookupCache.get(caller));
+					addAllRecursively(caller);
 				}
 			}
 		}
 		for(AnnotatedMethod m : lookupCache.values())
 		{
-			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+//			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
+				System.out.println(m);
+				System.out.println("[");
+				for(FieldExpression f : m.getPutFieldInsnsPossiblyCalled())
+				{
+					System.out.println(f.printParents());
+				}
+				System.out.println("]");
+			}
+				
 		}
 	}
 	
@@ -53,8 +63,8 @@ public class MutabilityAnalyzer implements Opcodes {
 		if (method.isMutatesFields())
 			return;
 		method.setMutatesFields();
-		for (String caller : method.functionsThatCallMe)
-			addAllRecursively(lookupCache.get(caller));
+		for (AnnotatedMethod caller : method.functionsThatCallMe)
+			addAllRecursively(caller);
 	}
 	
 	/**
@@ -74,6 +84,12 @@ public class MutabilityAnalyzer implements Opcodes {
 	 * When we need to reset the system to a pre-crash state:
 	 * 		Go through the starting count for each field and compare with each current count. If count changed, reset and note
 	 * 		To find each field, may need to (recursively) descend through the holder points-to fields
+	 * 
+	 * Take 2:
+	 * At the start of each method, make a reference copy to a local variable of every backup pt that we will subsequently read but might change
+	 * 
+	 * If this method directly changes fields, store a local variable with the original value at time of change
+	 * If this method indirectly changes fields, store a local variable with the original value before the method is called
 	 * @param cr
 	 */
 	public void analyzeClass(ClassReader cr) {
@@ -113,8 +129,14 @@ public class MutabilityAnalyzer implements Opcodes {
 				{
 					MethodInsnNode whatWeCall = (MethodInsnNode) n;
 					AnnotatedMethod otherMethod = findOrAddMethod(whatWeCall.owner, whatWeCall.name, whatWeCall.desc,0);
-					otherMethod.functionsThatCallMe.add(thisMethod.getFullName());
-					thisMethod.functionsThatICall.add(otherMethod.getFullName());
+					otherMethod.functionsThatCallMe.add(thisMethod);
+					MethodExpression otherMethodExp = new MethodExpression(otherMethod, whatWeCall.getOpcode());
+					otherMethodExp.getParams().addAll(paramsOf(thisMethodNode, otherMethodExp, thisMethodNode.instructions.iterator(i.previousIndex())));
+					
+					if(whatWeCall.getOpcode() != Opcodes.INVOKESTATIC)
+						otherMethodExp.setParent(parentInstructionOf(thisMethodNode, otherMethodExp, thisMethodNode.instructions.iterator(i.previousIndex())));
+					
+					thisMethod.functionsThatICall.add(otherMethodExp);
 				} else if (n.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) // Invoke
 																				// dynamic
 				{
@@ -124,13 +146,7 @@ public class MutabilityAnalyzer implements Opcodes {
 		}
 	}
 
-	private String printParents(Expression ir, int indent) {
-		String r = "";
-		if (ir.getParent() != null)
-			r += printParents(ir.getParent(), indent + 1) + ".";
-		r += ir.toString();
-		return r;
-	}
+	
 
 	private List<Expression> paramsOf(MethodNode sourceMethod, MethodExpression methodInsnToFindParamsOf, ListIterator<?> i) {
 		ArrayList<Expression> ret = new ArrayList<Expression>();
@@ -667,6 +683,7 @@ public class MutabilityAnalyzer implements Opcodes {
 			ClassReader cr = new ClassReader("edu.columbia.cs.psl.invivo.sample.SimpleClass");
 			MutabilityAnalyzer ma = new MutabilityAnalyzer(new HashMap<String, AnnotatedMethod>());
 			ma.analyzeClass(cr);
+			ma.doneSupplyingClasses();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

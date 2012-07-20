@@ -23,4 +23,12 @@ public abstract class Expression {
 	private Expression parent;
 	public abstract int getStackElementsToSkip();
 	public abstract int getOpcode();
+	
+	public String printParents() {
+		String r = "";
+		if (getParent() != null)
+			r += getParent().printParents() + ".";
+		r += toString();
+		return r;
+	}
 }

@@ -32,9 +32,9 @@ import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVis
 public class Instrumenter {
 	private static URLClassLoader loader;
 	private static Logger logger = Logger.getLogger(Instrumenter.class);
-	private static HashMap<String, AnnotatedMethod> lookupCache = new HashMap<String, AnnotatedMethod>();
+	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
 
-	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(lookupCache);
+	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(annotatedMethods);
 	private static HashSet<MethodCall> methodCalls = new HashSet<MethodCall>();
 	private static final int NUM_PASSES = 2;
 	private static final int PASS_ANALYZE = 0;
@@ -43,6 +43,12 @@ public class Instrumenter {
 	private static int pass_number = 0;
 
 	private static File rootOutputDir;
+	
+	public static AnnotatedMethod getAnnotatedMethod(String owner, String name, String desc) {
+		String lookupKey = owner + "." + name + ":" + desc;
+		return annotatedMethods.get(lookupKey);
+	}
+	
 	private static void analyzeClass(InputStream inputStream) {
 		try {
 			ma.analyzeClass(new ClassReader(inputStream));

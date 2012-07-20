@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.invivo.record.struct;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -20,12 +22,11 @@ public class AnnotatedMethod {
 	 */
 	private String clazz;
 
-	public LinkedList<String> functionsThatCallMe = new LinkedList<String>();
+	public LinkedList<AnnotatedMethod> functionsThatCallMe = new LinkedList<AnnotatedMethod>();
 
-	public LinkedList<String> functionsThatICall = new LinkedList<String>();
+	public LinkedList<MethodExpression> functionsThatICall = new LinkedList<MethodExpression>();
 
-	private HashSet<FieldExpression> putFieldInsns = new HashSet<FieldExpression>();
-	private HashSet<FieldExpression> putParamInsns = new HashSet<FieldExpression>();
+	private LinkedList<FieldExpression> putFieldInsns = new LinkedList<FieldExpression>();
 
 	/**
 	 * ASM method at the core of this MethodInstance object. private Method
@@ -128,10 +129,8 @@ public class AnnotatedMethod {
 	public String toString() {
 		return "MethodInstance [method=" + method + ", class=" + clazz + "]";
 	}
-	public HashSet<FieldExpression> getPutParamInsns() {
-		return putParamInsns;
-	}
-	public HashSet<FieldExpression> getPutFieldInsns() {
+
+	public LinkedList<FieldExpression> getPutFieldInsns() {
 		return putFieldInsns;
 	}
 	public boolean isMutatesFields() {
@@ -156,4 +155,5 @@ public class AnnotatedMethod {
 	public void setFullyDiscovered(boolean isFullyDiscovered) {
 		this.isFullyDiscovered = isFullyDiscovered;
 	}
+
 }
