@@ -14,6 +14,14 @@ public class SimpleExample {
 			@VariableReplacement(from = "tester", to = "new edu.columbia.cs.psl.invivo.junit.SimpleExample()"),
 			@VariableReplacement(from = "otherNumber", to = "x + y - 2*y") }) })
 	public int multiply(int x, int y) {
+		Integer a = null;
+		try {
+			
+		System.out.println(a.longValue());
+		
+		} catch (Exception e) {
+			e.getStackTrace();
+		}
 		System.out.println("Multiplying " + x + ","+y);
 		return x * y;
 	}

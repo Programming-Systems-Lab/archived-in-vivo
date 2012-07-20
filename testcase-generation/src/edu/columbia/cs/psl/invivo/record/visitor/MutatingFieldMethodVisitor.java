@@ -34,7 +34,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 	private String name;
 	private int access;
 	protected MutatingFieldMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String owner) {
-		super(api, mv, access, name, desc);
+		super(api, mv, access, name, desc,owner);
 		thisMethod = Instrumenter.getAnnotatedMethod(owner, name, desc);
 		this.owner = owner;
 		this.name = name;
@@ -125,9 +125,9 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 //			swap();
 //			dup();
 			
-			loadThis();
-			super.visitFieldInsn(GETFIELD, owner, Constants.BEEN_CLONED_PREFIX + name, Type.BOOLEAN_TYPE.getDescriptor());
-			visitJumpInsn(IFNE, lblbForReadThrough);
+//			loadThis();
+//			super.visitFieldInsn(GETFIELD, owner, Constants.BEEN_CLONED_PREFIX + name, Type.BOOLEAN_TYPE.getDescriptor());
+//			visitJumpInsn(IFNE, lblbForReadThrough);
 
 //			dup();
 //			dup();
@@ -147,7 +147,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 			visitLdcInsn(1);
 			super.visitFieldInsn(Opcodes.PUTFIELD, owner, Constants.BEEN_CLONED_PREFIX + name, Type.BOOLEAN_TYPE.getDescriptor());
 
-			visitLabel(lblbForReadThrough);
+//			visitLabel(lblbForReadThrough);
 //			swap();
 			super.visitFieldInsn(opcode, owner, name, desc);
 

@@ -64,7 +64,7 @@ public class JUnitTestCaseClassInspector extends ClassVisitor {
 					try {
 						ClassReader cr = new ClassReader(d.testMethodClass);
 						JUnitTestCaseClassInspector testCaseInspector = new JUnitTestCaseClassInspector(api, null);
-						cr.accept(testCaseInspector, 0);
+						cr.accept(testCaseInspector, ClassReader.EXPAND_FRAMES);
 						testMethods.put(d.testMethodClass, new ArrayList<JUnitInvivoMethodDescription>());
 						testMethods.get(d.testMethodClass).addAll(testCaseInspector.getMethodsFlagged().values());
 					} catch (Exception ex) {

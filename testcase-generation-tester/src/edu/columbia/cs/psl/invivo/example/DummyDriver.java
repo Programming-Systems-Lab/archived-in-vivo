@@ -145,9 +145,31 @@ public class DummyDriver {
 		doMore();
 		double ret = Math.cos(1);
 		System.out.println(ret);
-		if(Math.random() < .9)
-			throw new Exception("Crashed");
+//		if(Math.random() < .9)
+//			throw new Exception("Crashed");
 		System.out.println(System.getProperty("java.runtime.version"));
-		
+		for(Field f : DummyDriver.class.getDeclaredFields())
+		{
+			if(Modifier.isStatic(f.getModifiers()))
+				continue;
+			try {
+				System.out.print(f.getName()+ "->");
+				if(f.getType().isArray())
+				{
+					if(f.getType().getComponentType().isPrimitive())
+						System.out.println(f.get(this));
+					else
+						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
+				}
+				else
+					System.out.println(f.get(this));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }

@@ -136,8 +136,8 @@ public class Instrumenter {
 			cr.accept(mcv, ClassReader.EXPAND_FRAMES);
 //			methodCalls.addAll(cv.getLoggedMethodCalls());
 			byte[] out = cw.toByteArray();
-//			ClassReader cr2 = new ClassReader(out);
-//			cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			ClassReader cr2 = new ClassReader(out);
+			cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
 			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class:",ex);

@@ -54,7 +54,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 
 	protected NonDeterministicLoggingMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc,
 			boolean isFirstConstructor) {
-		super(api, mv, access, name, desc);
+		super(api, mv, access, name, desc,classDesc);
 		this.name = name;
 		this.desc = desc;
 		this.classDesc = classDesc;

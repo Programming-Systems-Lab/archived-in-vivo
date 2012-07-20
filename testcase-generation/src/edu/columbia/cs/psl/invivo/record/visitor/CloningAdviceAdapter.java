@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
+import java.util.HashSet;
+
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -14,8 +16,38 @@ import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
 public class CloningAdviceAdapter extends AdviceAdapter{
 
-	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc) {
+	private static final HashSet<String> immutableClasses = new HashSet<String>();
+	static{
+		immutableClasses.add("java/lang/Integer");
+		immutableClasses.add("java/lang/Long");
+		immutableClasses.add("java/lang/Short");
+		immutableClasses.add("java/lang/Float");
+		immutableClasses.add("java/lang/String");
+		immutableClasses.add("java/lang/Char");
+		immutableClasses.add("java/lang/Byte");
+		immutableClasses.add("I");
+		immutableClasses.add("S");
+		immutableClasses.add("F");
+		immutableClasses.add("L");
+		immutableClasses.add("C");
+		immutableClasses.add("B");
+	}
+	private String className;
+	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc, String classname) {
 		super(api, mv, access, name, desc);
+		this.className = className;
+	}
+	
+	protected void generateCopyMethod()
+	{
+		try {
+			Class<?> thisClass = Instrumenter.loader.loadClass(className.replace("/", "."));
+		} catch (ClassNotFoundException e) {
+			// We have not instrumented this class!
+			e.printStackTrace();
+		}
+		loadThis();
+		visitFieldInsn(GETFIELD, className, "the field you want to visit", "type of that field");
 	}
 	/**
 	 * Precondition: Current element at the top of the stack is the element we need cloned
@@ -23,6 +55,12 @@ public class CloningAdviceAdapter extends AdviceAdapter{
 	 */
 	protected void generateCloneOf(String typeOfField)
 	{
+		Type fieldType = Type.getType(typeOfField);
+		/* If we are simply working with primitives, simply make a copy and move on */
+		if(fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField))
+		{
+			return;
+		}
 //		Instrumenter.loader
 		//http://code.google.com/p/cloning/
 		
@@ -30,6 +68,7 @@ public class CloningAdviceAdapter extends AdviceAdapter{
 //		swap();
 //		invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
 //		checkCast(Type.getType(typeOfField));
+//		visitInsn(Opcodes.POP);
 
 	}
 	
