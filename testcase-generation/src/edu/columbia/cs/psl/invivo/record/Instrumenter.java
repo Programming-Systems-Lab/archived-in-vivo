@@ -131,10 +131,10 @@ public class Instrumenter {
 		try {
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
-//			MutatingFieldClassVisitor mcv = new MutatingFieldClassVisitor(Opcodes.ASM4, cw);
-			cr.accept(cv, ClassReader.EXPAND_FRAMES);
-			methodCalls.addAll(cv.getLoggedMethodCalls());
+//			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
+			MutatingFieldClassVisitor mcv = new MutatingFieldClassVisitor(Opcodes.ASM4, cw);
+			cr.accept(mcv, ClassReader.EXPAND_FRAMES);
+//			methodCalls.addAll(cv.getLoggedMethodCalls());
 			byte[] out = cw.toByteArray();
 //			ClassReader cr2 = new ClassReader(out);
 //			cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
