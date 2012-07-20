@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.JSRInlinerAdapter;
 
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
@@ -36,8 +37,10 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 		//TODO need an annotation to disable doing this to some apps
 		if(isAClass)// && className.startsWith("edu"))
 		{
-			MethodVisitor mv = cv.visitMethod(acc, name, desc, signature,
+			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature,
 					exceptions);
+			JSRInlinerAdapter  mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+
 //			CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
 			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, mv, acc, name, desc,className,isFirstConstructor);
 			if(name.equals("<init>"))

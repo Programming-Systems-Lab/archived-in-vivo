@@ -19,7 +19,8 @@ import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 
 public class DummyDriver {
-	private String foo="bar";
+	public String foo="bar";
+	private String[] sarray = new String[4];
 	private static String vm_Version = System.getProperty("java.runtime.version");
 	public static void main(String[] args) {
 		DummyDriver d = new DummyDriver();
@@ -52,12 +53,14 @@ public class DummyDriver {
 //		}
 //		DummyDriver.goStatic();
 	}
-
+	private int bar = 3;
 //	private double evilzzz = Math.random();
 	public DummyDriver() {
 		// TODO Auto-generated constructor stub
-//		this.foo = "zz";
-
+		this.foo = "zz";
+		this.sarray = new String[6];
+		this.sarray[4] = "zz";
+		bar = 6;
 //		vm_Version = System.getProperty("java.runtime.version");
 //		System.out.println(vm_Version);
 //		vm_Version = System.getProperty("java.runtime.version");
@@ -129,10 +132,17 @@ public class DummyDriver {
 			}
 		}
 	}*/
+	private void doMore()
+	{
+		x = "zzzz";
+	}
+	private String x;
 	public void go() throws Exception
 	{
 //		System.out.println(bar.foo.result);
 	
+		x = "yz";
+		doMore();
 		double ret = Math.cos(1);
 		System.out.println(ret);
 		if(Math.random() < .9)

@@ -10,12 +10,29 @@ import org.objectweb.asm.commons.Method;
 import com.rits.cloning.Cloner;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
 public class CloningAdviceAdapter extends AdviceAdapter{
 
 	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc) {
 		super(api, mv, access, name, desc);
 	}
+	/**
+	 * Precondition: Current element at the top of the stack is the element we need cloned
+	 * Post condition: Current element at the top of the stack is the cloned element (and non-cloned is removed)
+	 */
+	protected void generateCloneOf(String typeOfField)
+	{
+//		Instrumenter.loader
+		//http://code.google.com/p/cloning/
+		
+//		super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
+//		swap();
+//		invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
+//		checkCast(Type.getType(typeOfField));
+
+	}
+	
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField)
 	{
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);

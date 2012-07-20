@@ -9,12 +9,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
@@ -24,13 +27,15 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
+import edu.columbia.cs.psl.invivo.record.visitor.MutatingFieldClassVisitor;
 import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {
-	private static URLClassLoader loader;
+	public static URLClassLoader loader;
 	private static Logger logger = Logger.getLogger(Instrumenter.class);
 	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
 
@@ -127,9 +132,13 @@ public class Instrumenter {
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
+//			MutatingFieldClassVisitor mcv = new MutatingFieldClassVisitor(Opcodes.ASM4, cw);
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
 			methodCalls.addAll(cv.getLoggedMethodCalls());
-			return cw.toByteArray();
+			byte[] out = cw.toByteArray();
+//			ClassReader cr2 = new ClassReader(out);
+//			cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class:",ex);
 			return null;
@@ -215,7 +224,6 @@ public class Instrumenter {
 		File thisOutputDir;
 		if (isFirstLevel) {
 			thisOutputDir = parentOutputDir;
-
 		} else {
 			thisOutputDir = new File(parentOutputDir.getAbsolutePath() + File.separator + f.getName());
 			if(pass_number == PASS_OUTPUT)
@@ -233,6 +241,42 @@ public class Instrumenter {
 				}
 			else if (fi.getName().endsWith(".jar"))
 				processJar(fi, thisOutputDir);
+			else if(pass_number == PASS_OUTPUT)
+			{
+				File dest = new File(thisOutputDir.getPath()+File.separator+fi.getName());
+				FileChannel source = null;
+			    FileChannel destination = null;
+
+				try {
+			        source = new FileInputStream(fi).getChannel();
+			        destination = new FileOutputStream(dest).getChannel();
+			        destination.transferFrom(source, 0, source.size());
+			    }
+				catch(Exception ex)
+				{
+					logger.error("Unable to copy file " + fi,ex);
+					System.exit(-1);
+				}
+			    finally {
+			        if(source != null) {
+			            try {
+							source.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			        }
+			        if(destination != null) {
+			            try {
+							destination.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			        }
+			    }
+
+			}
 		}
 
 	}
@@ -250,7 +294,9 @@ public class Instrumenter {
 				{
 				case PASS_ANALYZE:
 					if (e.getName().endsWith(".class"))
+					{
 						analyzeClass(jar.getInputStream(e));
+					}
 					break;
 				case PASS_OUTPUT:
 					if (e.getName().endsWith(".class") && 
@@ -263,11 +309,40 @@ public class Instrumenter {
 							jos.write(clazz);
 							jos.closeEntry();
 					} else {
-						JarEntry outEntry = new JarEntry(e);
+						JarEntry outEntry = new JarEntry(e.getName());
 						if (e.isDirectory()) {
 							jos.putNextEntry(outEntry);
 							jos.closeEntry();
-						} else {
+						}
+						else if(e.getName().startsWith("META-INF") && (e.getName().endsWith(".SF") || e.getName().endsWith(".RSA")))
+							{
+								//don't copy this
+							}
+						else if(e.getName().equals("META-INF/MANIFEST.MF")) {
+							String newManifest = "";
+							Scanner s = new Scanner(jar.getInputStream(e));
+							jos.putNextEntry(outEntry);
+							
+							String curPair = "";
+							while(s.hasNextLine())
+							{
+								String line = s.nextLine();
+								if(line.equals(""))
+								{
+									curPair+="\n";
+									if(!curPair.contains("SHA1-Digest:"))
+										jos.write(curPair.getBytes());
+									curPair = "";
+								}
+								else
+								{
+									curPair += line + "\n";
+								}
+							}
+							jos.write("\n".getBytes());
+							jos.closeEntry();
+						}
+						else{
 							jos.putNextEntry(outEntry);
 							InputStream is = jar.getInputStream(e);
 							byte[] buffer = new byte[1024];
@@ -284,7 +359,9 @@ public class Instrumenter {
 				
 			}
 			if(pass_number == PASS_OUTPUT)
+			{
 				jos.close();
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error("Unable to process jar" + f ,e);

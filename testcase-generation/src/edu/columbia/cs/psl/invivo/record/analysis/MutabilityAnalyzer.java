@@ -43,20 +43,20 @@ public class MutabilityAnalyzer implements Opcodes {
 				}
 			}
 		}
-		for(AnnotatedMethod m : lookupCache.values())
-		{
-//			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
-			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
-				System.out.println(m);
-				System.out.println("[");
-				for(FieldExpression f : m.getPutFieldInsnsPossiblyCalled())
-				{
-					System.out.println(f.printParents());
-				}
-				System.out.println("]");
-			}
-				
-		}
+//		for(AnnotatedMethod m : lookupCache.values())
+//		{
+////			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+//			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
+//				System.out.println(m);
+//				System.out.println("[");
+////				for(FieldExpression f : m.getPutFieldInsnsPossiblyCalled())
+////				{
+////					System.out.println(f.printParents());
+////				}
+//				System.out.println("]");
+//			}
+//				
+//		}
 	}
 	
 	private void addAllRecursively(AnnotatedMethod method) {
