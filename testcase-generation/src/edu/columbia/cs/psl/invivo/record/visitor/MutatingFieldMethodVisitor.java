@@ -132,9 +132,10 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 //			dup();
 //			dup();
 			loadThis();
+			loadThis();
+
 			super.visitFieldInsn(GETFIELD, owner, name, desc);
 			generateCloneOf(desc);
-			loadThis();
 //			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
 //			swap();
 //			invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
