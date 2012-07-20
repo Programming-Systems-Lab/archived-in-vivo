@@ -13,7 +13,9 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.util.Textifier;
 
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
 import edu.columbia.cs.psl.invivo.record.struct.Expression;
 import edu.columbia.cs.psl.invivo.record.struct.FieldExpression;
@@ -45,7 +47,8 @@ public class MutabilityAnalyzer implements Opcodes {
 		}
 //		for(AnnotatedMethod m : lookupCache.values())
 //		{
-////			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+//			if(m.getFullName().eq)
+//			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
 //			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
 //				System.out.println(m);
 //				System.out.println("[");
@@ -56,6 +59,12 @@ public class MutabilityAnalyzer implements Opcodes {
 //				System.out.println("]");
 //			}
 //				
+//		}
+//		AnnotatedMethod m = Instrumenter.annotatedMethods.get("org/apache/batik/dom/ExtensibleDOMImplementation.registerCustomElementFactory:(Ljava/lang/String;Ljava/lang/String;Lorg/apache/batik/dom/ExtensibleDOMImplementation$ElementFactory;)V");
+//		System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
+////		for(FieldExpression f : m.getPutFieldInsns())
+////		{
+////			System.out.println(f.getName() + ";"+f.getOwner() + ";"+Textifier.OPCODES[f.getOpcode()]);
 //		}
 	}
 	

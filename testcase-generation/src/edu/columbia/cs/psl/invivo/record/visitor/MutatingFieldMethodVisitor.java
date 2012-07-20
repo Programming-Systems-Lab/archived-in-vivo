@@ -144,7 +144,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 
 //			dup();
 			loadThis();
-			visitLdcInsn(1);
+			super.push(true);
 			super.visitFieldInsn(Opcodes.PUTFIELD, owner, Constants.BEEN_CLONED_PREFIX + name, Type.BOOLEAN_TYPE.getDescriptor());
 
 			visitLabel(lblbForReadThrough);

@@ -4,6 +4,9 @@ import java.io.File;
 
 public class SimpleClass {
 	public File f;
+	public static void main(String[] args) {
+		new SimpleClass().go();
+	}
 	public SimpleClass()
 	{
 		
@@ -11,6 +14,10 @@ public class SimpleClass {
 	public SimpleClass(String s)
 	{
 		
+	}
+	private void go()
+	{
+		o = new OtherClass();
 	}
 	public OtherClass o;
 	public OtherClass o2;
