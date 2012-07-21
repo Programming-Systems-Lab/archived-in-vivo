@@ -15,10 +15,10 @@ import com.rits.cloning.Cloner;
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
-public class CloningAdviceAdapter extends AdviceAdapter{
+public class CloningAdviceAdapter extends AdviceAdapter {
 
 	private static final HashSet<String> immutableClasses = new HashSet<String>();
-	static{
+	static {
 		immutableClasses.add("java/lang/Integer");
 		immutableClasses.add("java/lang/Long");
 		immutableClasses.add("java/lang/Short");
@@ -42,12 +42,15 @@ public class CloningAdviceAdapter extends AdviceAdapter{
 	}
 
 	public void fastCloneList(String fieldName, String fieldDesc) {
+		/* Null check */
 		mv.visitVarInsn(Opcodes.ALOAD, 0);
 		mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
 		Label ifNull = new Label();
 		mv.visitJumpInsn(Opcodes.IFNULL, ifNull);
 		Label notNull = new Label();
 		mv.visitLabel(notNull);
+		
+		/* Instantiation */
 		mv.visitVarInsn(Opcodes.ALOAD, 1);
 		mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
 		mv.visitInsn(Opcodes.DUP);
@@ -82,8 +85,58 @@ public class CloningAdviceAdapter extends AdviceAdapter{
 		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] {className, className}, 0, new Object[] {});
 	}
 	
-	public static void fastCloneMap() {
+	public void fastCloneMap(String fieldName, String keyDesc, String valueDesc) {
+		/* Null check */
+		loadThis();
+		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		Label l2 = new Label();
+		mv.visitJumpInsn(IFNULL, l2);
+		Label l3 = new Label();
+		mv.visitLabel(l3);
 		
+		/* Instantiate the hashmap */
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitTypeInsn(NEW, "java/util/HashMap");
+		mv.visitInsn(DUP);
+		mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V");
+		mv.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/HashMap;");
+		
+		/* Copy the entries */
+		loadThis();
+		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "entrySet", "()Ljava/util/Set;");
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Set", "iterator", "()Ljava/util/Iterator;");
+		mv.visitVarInsn(ASTORE, 3);
+		Label l5 = new Label();
+		mv.visitJumpInsn(GOTO, l5);
+		Label l6 = new Label();
+		mv.visitLabel(l6);
+		mv.visitFrame(Opcodes.F_FULL, 4, new Object[] {className, className, Opcodes.TOP, "java/util/Iterator"}, 0, new Object[] {});
+		mv.visitVarInsn(ALOAD, 3);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
+		mv.visitVarInsn(ASTORE, 2);
+		
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		mv.visitVarInsn(ALOAD, 2);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, keyDesc);
+		/* Put in the checks here or the call to copy */
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "toString", "()Ljava/lang/String;");
+		mv.visitVarInsn(ALOAD, 2);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, valueDesc);
+		/* Put in the checks here or the call to copy */
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitInsn(POP);
+		mv.visitLabel(l5);
+		mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+		mv.visitVarInsn(ALOAD, 3);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
+		mv.visitJumpInsn(IFNE, l6);
+		mv.visitLabel(l2);
+		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] {className, className}, 0, new Object[] {});
 	}
 	
 	public static void fastCloneSet() {
