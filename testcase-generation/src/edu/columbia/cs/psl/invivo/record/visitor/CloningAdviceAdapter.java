@@ -35,8 +35,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	}
 	private String className;
 
-	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access,
-			String name, String desc, String classname) {
+	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc, String classname) {
 		super(api, mv, access, name, desc);
 		this.className = className;
 	}
@@ -49,14 +48,14 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitJumpInsn(Opcodes.IFNULL, ifNull);
 		Label notNull = new Label();
 		mv.visitLabel(notNull);
-		
+
 		/* Instantiation */
 		mv.visitVarInsn(Opcodes.ALOAD, 1);
 		mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
 		mv.visitInsn(Opcodes.DUP);
 		mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
 		mv.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/ArrayList;");
-		
+
 		loadThis();
 		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "iterator", "()Ljava/util/Iterator;");
@@ -65,12 +64,12 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitJumpInsn(GOTO, l6);
 		Label l7 = new Label();
 		mv.visitLabel(l7);
-		mv.visitFrame(Opcodes.F_FULL, 4, new Object[] {className, className, Opcodes.TOP, "java/util/Iterator"}, 0, new Object[] {});
+		mv.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className, Opcodes.TOP, "java/util/Iterator" }, 0, new Object[] {});
 		mv.visitVarInsn(ALOAD, 3);
 		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
 		mv.visitTypeInsn(CHECKCAST, fieldDesc);
 		mv.visitVarInsn(ASTORE, 2);
-		
+
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
 		mv.visitVarInsn(ALOAD, 2);
@@ -82,9 +81,9 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
 		mv.visitJumpInsn(IFNE, l7);
 		mv.visitLabel(ifNull);
-		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] {className, className}, 0, new Object[] {});
+		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className }, 0, new Object[] {});
 	}
-	
+
 	public void fastCloneMap(String fieldName, String keyDesc, String valueDesc) {
 		/* Null check */
 		loadThis();
@@ -93,14 +92,14 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitJumpInsn(IFNULL, l2);
 		Label l3 = new Label();
 		mv.visitLabel(l3);
-		
+
 		/* Instantiate the hashmap */
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitTypeInsn(NEW, "java/util/HashMap");
 		mv.visitInsn(DUP);
 		mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V");
 		mv.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/HashMap;");
-		
+
 		/* Copy the entries */
 		loadThis();
 		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
@@ -111,12 +110,12 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitJumpInsn(GOTO, l5);
 		Label l6 = new Label();
 		mv.visitLabel(l6);
-		mv.visitFrame(Opcodes.F_FULL, 4, new Object[] {className, className, Opcodes.TOP, "java/util/Iterator"}, 0, new Object[] {});
+		mv.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className, Opcodes.TOP, "java/util/Iterator" }, 0, new Object[] {});
 		mv.visitVarInsn(ALOAD, 3);
 		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
 		mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
 		mv.visitVarInsn(ASTORE, 2);
-		
+
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
 		mv.visitVarInsn(ALOAD, 2);
@@ -136,22 +135,21 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
 		mv.visitJumpInsn(IFNE, l6);
 		mv.visitLabel(l2);
-		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] {className, className}, 0, new Object[] {});
+		mv.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className }, 0, new Object[] {});
 	}
-	
+
 	public static void fastCloneSet() {
-		
+
 	}
-	
+
 	public static void fastCloneQueue() {
-		
+
 	}
-	
+
 	protected void generateCopyMethod() {
 		Class<?> thisClass = null;
 		try {
-			thisClass = Instrumenter.loader.loadClass(className.replace("/",
-					"."));
+			thisClass = Instrumenter.loader.loadClass(className.replace("/", "."));
 		} catch (ClassNotFoundException e) {
 			// We have not instrumented this class!
 			e.printStackTrace();
@@ -160,17 +158,15 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		/* TODO: Get the caching to work later */
 
 		/* 1) Call the clone constructor */
-		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "clone",
-				"()Ljava/lang/Object;");
+		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "clone", "()Ljava/lang/Object;");
 		visitTypeInsn(CHECKCAST, className);
 		visitVarInsn(ASTORE, 1);
 
 		/*
-		 * 2) For each field do the following 
-		 * a) If its a primitive simply copy it 
-		 * b) If its an object, call the respective ._copy method 
-		 * c) If its an array, create a loop and do steps a) and b) 
-		 * d) If its a collection, take care of that e) If nothing works, call the
+		 * 2) For each field do the following a) If its a primitive simply copy
+		 * it b) If its an object, call the respective ._copy method c) If its
+		 * an array, create a loop and do steps a) and b) d) If its a
+		 * collection, take care of that e) If nothing works, call the
 		 * reflection cloning util
 		 */
 
@@ -180,27 +176,30 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			if (immutableClasses.contains(f.getType().getName())) {
 				visitVarInsn(ALOAD, 1);
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName()); // Put L and ; in front and back of getname
-				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType()
-						.getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName()); // Put
+																							// L
+																							// and
+																							// ;
+																							// in
+																							// front
+																							// and
+																							// back
+																							// of
+																							// getname
+				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType().getName());
 			} else if (fieldType.getSort() == Type.OBJECT) {
 				visitVarInsn(ALOAD, 0);
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
 				Label nullContinue = new Label();
 				visitJumpInsn(IFNULL, nullContinue);
 				Label nonNull = new Label();
 				visitLabel(nonNull);
-				
+
 				visitVarInsn(ALOAD, 1);
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName());
-				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
-						+ f.getType().getName());
-				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType()
-						.getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
+				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()" + f.getType().getName());
+				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType().getName());
 				visitLabel(nullContinue);
 				visitFrame(Opcodes.F_SAME, 0, null, 0, null);
 			} else if (fieldType.getSort() == Type.ARRAY) {
@@ -219,16 +218,16 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				visitInsn(ARRAYLENGTH);
 				visitTypeInsn(ANEWARRAY, f.getType().getName().substring(2).replace(";", ""));
 				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType().getName());
-				
+
 				/* Start copying */
 				mv.visitInsn(ICONST_0);
 				mv.visitVarInsn(ISTORE, 2);
-				
+
 				Label l7 = new Label();
 				mv.visitJumpInsn(GOTO, l7);
 				Label l8 = new Label();
 				mv.visitLabel(l8);
-				mv.visitFrame(Opcodes.F_APPEND,2, new Object[] {"edu/columbia/cs/psl/invivo/bench/ComplexObject", Opcodes.INTEGER}, 0, null);
+				mv.visitFrame(Opcodes.F_APPEND, 2, new Object[] { "edu/columbia/cs/psl/invivo/bench/ComplexObject", Opcodes.INTEGER }, 0, null);
 				mv.visitVarInsn(ALOAD, 1);
 				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
 				mv.visitVarInsn(ILOAD, 2);
@@ -236,8 +235,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
 				mv.visitVarInsn(ILOAD, 2);
 				mv.visitInsn(AALOAD);
-				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
-						+ f.getType().getName());
+				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()" + f.getType().getName());
 				mv.visitInsn(AASTORE);
 				mv.visitIincInsn(2, 1);
 				mv.visitLabel(l7);
@@ -247,16 +245,15 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
 				mv.visitInsn(ARRAYLENGTH);
 				mv.visitJumpInsn(IF_ICMPLT, l8);
-				
+
 				Label doneCopying = new Label();
 				mv.visitLabel(doneCopying);
-				mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
+				mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
 			}
 		}
 
 		loadThis();
-		visitFieldInsn(GETFIELD, className, "the field you want to visit",
-				"type of that field");
+		visitFieldInsn(GETFIELD, className, "the field you want to visit", "type of that field");
 	}
 
 	/**
@@ -268,8 +265,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected void generateCloneOf(String typeOfField) {
 		Type fieldType = Type.getType(typeOfField);
 		/* If we are simply working with primitives then move on */
-		if (fieldType.getSort() != Type.OBJECT
-				|| immutableClasses.contains(typeOfField)) {
+		if (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField)) {
 			return;
 		}
 
@@ -284,24 +280,18 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 
 	}
 
-	protected void logValueAtTopOfStackToArray(String logFieldOwner,
-			String logFieldName, String logFieldTypeDesc, Type elementType,
-			boolean isStaticLoggingField) {
-		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC
-				: Opcodes.GETFIELD);
-		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC
-				: Opcodes.PUTFIELD);
+	public void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField) {
+		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
+		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
 
 		// Grow the array if necessary
 
 		if (!isStaticLoggingField)
 			loadThis();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill",
-				Type.INT_TYPE.getDescriptor());
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 		if (!isStaticLoggingField)
 			loadThis();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-				logFieldTypeDesc);
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		super.arrayLength();
 		Label labelForNoNeedToGrow = new Label();
 		super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
@@ -311,8 +301,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		int newArray = newLocal(Type.getType(logFieldTypeDesc));
 		if (!isStaticLoggingField)
 			loadThis();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-				logFieldTypeDesc);
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		super.arrayLength();
 		super.visitInsn(Opcodes.I2D);
 		super.visitLdcInsn(Constants.LOG_GROWTH_RATE);
@@ -330,25 +319,21 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		// Do the copy
 		if (!isStaticLoggingField)
 			loadThis();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-				logFieldTypeDesc);
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		super.visitInsn(Opcodes.ICONST_0);
 		super.loadLocal(newArray);
 		super.visitInsn(Opcodes.ICONST_0);
 		if (!isStaticLoggingField)
 			super.loadThis();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-				logFieldTypeDesc);
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		super.arrayLength();
-		super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System",
-				"arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+		super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 
 		// array = newarray
 		if (!isStaticLoggingField)
 			super.loadThis();
 		super.loadLocal(newArray);
-		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName,
-				logFieldTypeDesc);
+		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 
 		visitLabel(labelForNoNeedToGrow);
 
@@ -357,51 +342,45 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			dup();
 			if (!isStaticLoggingField)
 				super.loadThis();
-			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-					logFieldTypeDesc);
+			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 			swap();
 			if (!isStaticLoggingField)
 				super.loadThis();
-			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName
-					+ "_fill", Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 			swap();
 		} else if (elementType.getSize() == 2) {
 			dup2();
 			if (!isStaticLoggingField)
 				super.loadThis();
-			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName,
-					logFieldTypeDesc);
+			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 			dupX2();
 			pop();
 			if (!isStaticLoggingField)
 				super.loadThis();
-			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName
-					+ "_fill", Type.INT_TYPE.getDescriptor());
+			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 			dupX2();
 			pop();
 		}
-		if (elementType.getSort() == Type.OBJECT
-				&& !elementType.getInternalName().equals("java/lang/String")) {
-			super.visitFieldInsn(GETSTATIC,
-					"edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner",
-					"Lcom/rits/cloning/Cloner;");
-			swap();
-			invokeVirtual(Type.getType(Cloner.class),
-					Method.getMethod("Object deepClone(Object)"));
-			checkCast(elementType);
-		}
-
+		// if (elementType.getSort() == Type.OBJECT
+		// && !elementType.getInternalName().equals("java/lang/String")) {
+		// super.visitFieldInsn(GETSTATIC,
+		// "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner",
+		// "Lcom/rits/cloning/Cloner;");
+		// swap();
+		// invokeVirtual(Type.getType(Cloner.class),
+		// Method.getMethod("Object deepClone(Object)"));
+		// checkCast(elementType);
+		// }
+		generateCloneOf(elementType.getDescriptor());
 		super.arrayStore(elementType);
 
 		if (!isStaticLoggingField)
 			super.loadThis();
 		if (!isStaticLoggingField)
 			super.dup();
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill",
-				Type.INT_TYPE.getDescriptor());
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 		super.visitInsn(Opcodes.ICONST_1);
 		super.visitInsn(Opcodes.IADD);
-		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill",
-				Type.INT_TYPE.getDescriptor());
+		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 	}
 }

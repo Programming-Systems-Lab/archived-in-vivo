@@ -1,6 +1,7 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
@@ -38,6 +39,8 @@ public class MethodInstance {
 	 * @see Method
 	 */
 	private Method method;
+
+	public List<Integer> tainted;
 
 	public MethodInstance(String fullName) {
 

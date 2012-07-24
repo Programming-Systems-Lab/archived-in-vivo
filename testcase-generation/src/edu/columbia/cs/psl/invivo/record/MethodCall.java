@@ -113,7 +113,7 @@ public class MethodCall {
 	public String getLogFieldName()
 	{
 //		Type[] args = Type.getArgumentTypes(methodDesc);
-		String r = sourceClass.replace("/", "_")+"$$$$"+sourceMethodName+"$$$$"+methodName+"$$$$";
+		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
 //		for(Type t : args)
 //		{
 //			r+=t.getInternalName().replace("/", "$")+"$$";

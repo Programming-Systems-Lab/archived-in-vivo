@@ -9,4 +9,5 @@ public interface Constants {
 	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
 	public static int DEFAULT_LOG_SIZE = 20;
 	public static double LOG_GROWTH_RATE = 1.5;
+	public static String LOG_CLASS_SUFFIX = "InvivoLog";
 }

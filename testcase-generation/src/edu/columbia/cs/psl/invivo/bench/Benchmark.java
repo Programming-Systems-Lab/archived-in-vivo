@@ -9,6 +9,11 @@ public class Benchmark {
 	private static Cloner cloner = new Cloner();
 	public static void main(String[] args) {
 		
+//		for(int i = 0; i< 35; i++)
+//		{
+//			System.out.println("if(annoying"+i+" != null) ret.annoying"+i+" = annoying"+i+"._copy();");
+//		}
+//		System.exit(0);
 		for(int i = 0; i < 5; i++)
 		{
 			SomeOtherObject o = generateObjects();
@@ -47,7 +52,7 @@ public class Benchmark {
 		n.setOtherObject(n);
 		SomeOtherObject n2 = new SomeOtherObject(n.getF(), n.getO(), null, "aslfdjsaf", 4);
 		n.getO().setChildren2(new ArrayList<ComplexObject>());
-		for(int i = 0; i< 10000; i++)
+		for(int i = 0; i< 1000; i++)
 		{
 			ComplexObject oo = new ComplexObject();
 			oo.setChildren(new ComplexObject[50]);

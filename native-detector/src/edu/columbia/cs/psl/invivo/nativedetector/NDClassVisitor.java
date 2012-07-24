@@ -42,7 +42,7 @@ public class NDClassVisitor extends ClassVisitor {
 			mi.setAccess(0);
 		if (mi.isNative())
 			mi.setNonDeterministic(true);
-		return new NDMethodVisitor(api, null, mi.getFullName(), access, methodLookupCache);
+		return new NDMethodVisitor(api, super.visitMethod(access, name, desc, signature, exceptions), mi.getFullName(), mi.getMethod().getName(), mi.getMethod().getDescriptor(), access, methodLookupCache);
 	}
 
 }

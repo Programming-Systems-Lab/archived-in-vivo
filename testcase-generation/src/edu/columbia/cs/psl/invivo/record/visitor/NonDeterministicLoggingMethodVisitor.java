@@ -3,6 +3,7 @@ package edu.columbia.cs.psl.invivo.record.visitor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -14,6 +15,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.Method;
+import org.objectweb.asm.tree.MethodInsnNode;
 
 import com.rits.cloning.Cloner;
 
@@ -78,6 +80,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	public void visitEnd() {
 		super.visitEnd();
 		parent.addFieldMarkup(methodCallsToClear);
+		parent.addCaptureMethodsToGenerate(captureMethodsToGenerate);
 	}
 
 	private int	lineNumber	= 0;
@@ -88,6 +91,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		lineNumber = line;
 	}
 
+	private HashMap<String, MethodInsnNode> captureMethodsToGenerate = new HashMap<String, MethodInsnNode>();
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		try {
@@ -97,8 +101,31 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 					&& nonDeterministicMethods.contains(owner + "." + name + ":" + desc)) {
 				logger.debug("Adding field in MV to list " + m.getLogFieldName());
 				methodCallsToClear.add(m);
-				super.visitMethodInsn(opcode, owner, name, desc);
-				logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
+				Type[] args = Type.getArgumentTypes(desc);
+				boolean hasArray = false;
+				for(Type t : args)
+					if(t.getSort() == Type.ARRAY)
+						hasArray = true;
+				if(hasArray)
+				{
+					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
+					String captureDesc = desc;
+					if(opcode != Opcodes.INVOKESTATIC)
+					{
+						//Need to put owner of the method on the top of the args list
+						captureDesc = "(L" +  owner +";";
+						for(Type t : args)
+							captureDesc += t.getDescriptor();
+						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
+					}
+					super.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
+					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
+				}
+				else
+				{
+					super.visitMethodInsn(opcode, owner, name, desc);
+					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
+				}
 			} else
 				super.visitMethodInsn(opcode, owner, name, desc);
 			pc++;
