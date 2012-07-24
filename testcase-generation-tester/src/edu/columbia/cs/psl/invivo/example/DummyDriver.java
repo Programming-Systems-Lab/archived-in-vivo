@@ -27,23 +27,25 @@ public class DummyDriver {
 		try
 		{
 		d.go();
+		d.evil();
 		}
 		catch(Exception ex)
 		{
-			try{
-				System.out.println("Serializing");
-			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
-				XStream xstream = new XStream(new StaticReflectionProvider());
-				String xml = xstream.toXML(logger.newInstance());
-				File output = new File("output.log");
-				FileWriter fw = new FileWriter(output);
-				fw.write(xml);
-				fw.close();
-				}
-			catch(Exception exi)
-			{
-				exi.printStackTrace();
-			}
+//			try{
+//				System.out.println("Serializing");
+//			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
+//				XStream xstream = new XStream(new StaticReflectionProvider());
+//				String xml = xstream.toXML(logger.newInstance());
+//				File output = new File("output.log");
+//				FileWriter fw = new FileWriter(output);
+//				fw.write(xml);
+//				fw.close();
+//				}
+//			catch(Exception exi)
+//			{
+//				exi.printStackTrace();
+//			}
+			ex.printStackTrace();
 		}
 //		try {
 //			getText(new File("in-vivo.log"), false, new File("scratch.out"));
@@ -55,6 +57,30 @@ public class DummyDriver {
 	}
 	private int bar = 3;
 //	private double evilzzz = Math.random();
+	
+	public String evil()
+	{
+//		String sample = "asdklfjalsdjfladsfjd";
+//		Scanner s = new Scanner(sample);
+//		while(s.hasNext())
+//		{
+//			byte x = s.nextByte();
+//		}
+//		s.close();
+		double r;
+		for(int i = 0; i< 50493; i++)
+		{
+			r = Math.random();
+//			System.out.println(r);
+		}
+		if(this.foo.equals("bar"))
+		{
+			return "bahaha";
+		}
+		else
+			return "asldfdsf";
+	}
+	
 	public DummyDriver() {
 		// TODO Auto-generated constructor stub
 		this.foo = "zz";
@@ -83,23 +109,7 @@ public class DummyDriver {
 	}
 	public String foo = "foo";
 	public Bar bar = new Bar();
-	public String evil()
-	{
-//		String sample = "asdklfjalsdjfladsfjd";
-//		Scanner s = new Scanner(sample);
-//		while(s.hasNext())
-//			if(s.next().equals("k"))
-//				throw new Exception();
-//		s.close();
-//		
-		double r = Math.random();
-		if(this.foo.equals("bar"))
-		{
-			return "bahaha";
-		}
-		else
-			return "asldfdsf";
-	}
+
 	public static void goStatic()
 	{
 		Scanner s = new Scanner(System.in);
