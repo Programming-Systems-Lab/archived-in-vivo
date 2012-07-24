@@ -177,8 +177,11 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		mv.visitTypeInsn(CHECKCAST, thisClass.getName().replace(".", "/"));
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(notCached);
-		
+
+		Label varStart = new Label();
+		visitLabel(varStart);
 		int localVar = this.newLocal(Type.getType("L"+className+";"));
+
 		/* 1) Call the clone constructor */
 		loadThis();
 		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "clone",
@@ -189,7 +192,10 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		loadThis();
 		visitVarInsn(ALOAD, localVar);
 		visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "_setFieldsOn", "(L"+className+";)L"+className+";");
-
+		
+		Label varEnd = new Label();
+		visitLabel(varEnd);
+		visitLocalVariable("myClone", "L"+className+";", null, varStart, varEnd, localVar);
 	}
 	
 	private boolean isCollection(String desc) {
@@ -239,7 +245,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				visitVarInsn(ALOAD, cloneVar);
 				loadThis();
 				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
-				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"	+ fieldType.getDescriptor());
+				visitMethodInsn(INVOKEVIRTUAL, fieldType.getInternalName(), "_copy", "()"	+ fieldType.getDescriptor());
 				visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());
 				visitLabel(nullContinue);
 			} else if (fieldType.getSort() == Type.ARRAY) {
@@ -321,6 +327,16 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				mv.visitTypeInsn(CHECKCAST, fieldType.getClassName().replace(".", "/"));
 				mv.visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());		
 			}
+		}
+		
+		/* If the super class is instrumented, we should probably call that as well */
+		
+		String parent = Instrumenter.instrumentedClasses.get(className);
+		if (Instrumenter.instrumentedClasses.containsKey(parent)) {
+			loadThis();
+			mv.visitVarInsn(ALOAD, cloneVar);
+			mv.visitMethodInsn(INVOKESPECIAL, parent, "_setFieldsOn", "(L" + parent +";)L" + parent + ";");
+			mv.visitInsn(POP);
 		}
 		
 		/* We are done, put the result in the cache */

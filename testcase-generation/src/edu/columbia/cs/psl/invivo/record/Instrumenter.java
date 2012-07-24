@@ -60,7 +60,8 @@ public class Instrumenter {
 	
 	private static void analyzeClass(InputStream inputStream) {
 		try {
-			instrumentedClasses.put(ma.analyzeClass(new ClassReader(inputStream)), null);
+			String analysisResult = ma.analyzeClass(new ClassReader(inputStream));
+			instrumentedClasses.put(analysisResult.split("[|]")[0], analysisResult.split("[|]")[1]);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -6,8 +6,10 @@ import java.util.IdentityHashMap;
 import java.util.Map.Entry;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
+import edu.columbia.cs.psl.invivo.sample.SimpleClass;
 
-public class ComplexObject implements Cloneable {
+public class ComplexObject extends SimpleClass implements Cloneable {
 	private String[] children;
 	private HashMap<String, Integer> children2;
 	private ComplexObject parent;
@@ -110,12 +112,18 @@ public class ComplexObject implements Cloneable {
 	}
 	
 	public ComplexObject _copy() throws CloneNotSupportedException {
-		/*if(BeingCloned.cloneCache.containsKey(this))
-			return (ComplexObject) BeingCloned.cloneCache.get(this);
-		*/
+		if(CloningUtils.cloneCache.containsKey(this))
+			return (ComplexObject) CloningUtils.cloneCache.get(this);
+		
 		final ComplexObject ret = (ComplexObject) clone();
 		
+		CloningUtils.cloneCache.put(ret, ret);
+		
 		ret.annoying0 = CloningUtils.cloner.deepClone(this.annoying0);
+		
+		if (Instrumenter.instrumentedClasses.containsKey(this.getClass().getSuperclass().getName())) {	
+			ret = super.setFieldsOn(ret);
+		}
 		
 		//BeingCloned.cloneCache.put(this, ret);
 		
@@ -129,7 +137,7 @@ public class ComplexObject implements Cloneable {
 		/*if(parent != null)
 			ret.parent = parent._copy();
 		*/
-		
+
 		if(children != null)
 		{
 			ret.children = new String[this.children.length];
@@ -152,6 +160,10 @@ public class ComplexObject implements Cloneable {
 		this.parent = parent;
 		this.s = s;
 		this.soo = soo;
+	}
+	public ComplexObject setFieldsOn(ComplexObject ret) {
+		super.setFieldsOn(ret);
+		return null;
 	}
 
 }
