@@ -41,6 +41,7 @@ public class Instrumenter {
 	public static URLClassLoader loader;
 	private static Logger logger = Logger.getLogger(Instrumenter.class);
 	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
+	public static HashMap<String, String> instrumentedClasses = new HashMap<String, String>();
 
 	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(annotatedMethods);
 	private static HashSet<MethodCall> methodCalls = new HashSet<MethodCall>();
@@ -59,7 +60,7 @@ public class Instrumenter {
 	
 	private static void analyzeClass(InputStream inputStream) {
 		try {
-			ma.analyzeClass(new ClassReader(inputStream));
+			instrumentedClasses.put(ma.analyzeClass(new ClassReader(inputStream)), null);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

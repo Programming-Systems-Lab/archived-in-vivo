@@ -164,7 +164,19 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			e.printStackTrace();
 		}
 
-		/* TODO: Get the caching to work later */
+		/* If what we are looking for is cached, just return that */
+		
+		mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+		loadThis();
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "containsKey", "(Ljava/lang/Object;)Z");
+		Label notCached = new Label();
+		mv.visitJumpInsn(IFEQ, notCached);
+		mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+		loadThis();
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, thisClass.getName().replace(".", "/"));
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(notCached);
 		
 		int localVar = this.newLocal(Type.getType("L"+className+";"));
 		/* 1) Call the clone constructor */
@@ -196,10 +208,11 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			// We have not instrumented this class!
 			e.printStackTrace();
 		}
+		
 		/*
 		 * 2) For each field do the following 
 		 * a) If its a primitive simply copy it 
-		 * b) If its an object, call the respective ._copy method 
+		 * b) If its an object, call the respective ._copy method iff its a class we have instrumented
 		 * c) If its an array, create a loop and do steps a) and b) 
 		 * d) If its a collection, take care of that e) If nothing works, call the
 		 * reflection cloning util
@@ -213,7 +226,9 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				loadThis();
 				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor()); // Put L and ; in front and back of getname
 				visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());
-			} else if (fieldType.getSort() == Type.OBJECT && (!fieldType.getDescriptor().startsWith("Ljava"))) {
+			} else if (fieldType.getSort() == Type.OBJECT && 
+					(!fieldType.getDescriptor().startsWith("Ljava")) &&
+					(!Instrumenter.instrumentedClasses.containsKey(fieldType.getClassName()))) {
 				loadThis();
 				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
 				Label nullContinue = new Label();
@@ -247,7 +262,6 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				
 				/* Start copying */
 				//TODO: Do a system.arraycopy if its an array of immutables
-				System.out.println("FUCK!" + arrayType);
 				if (immutableClasses.contains(arrayType)) {
 					loadThis();
 					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
@@ -276,8 +290,12 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
 					mv.visitVarInsn(ILOAD, iteratorVar);
 					mv.visitInsn(AALOAD);
-					visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
-							+ fieldType.getDescriptor());
+					if (!Instrumenter.instrumentedClasses.containsKey(arrayType)) {
+						visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
+								+ fieldType.getDescriptor());
+					} else {
+						// TODO: Call clone me
+					}
 					mv.visitInsn(AASTORE);
 					mv.visitIincInsn(2, 1);
 					mv.visitLabel(l7);
@@ -292,7 +310,6 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 					mv.visitLabel(doneCopying);
 					mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
 				}
-				
 				visitLabel(nullContinue);
 			} else {
 				/* All else fails, just call the reflective cloning */
@@ -305,6 +322,14 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				mv.visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());		
 			}
 		}
+		
+		/* We are done, put the result in the cache */
+		mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+		mv.visitVarInsn(ALOAD, cloneVar);
+		mv.visitVarInsn(ALOAD, cloneVar);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitInsn(POP);
+		
 		visitVarInsn(ALOAD, cloneVar);
 	}
 	/**

@@ -30,7 +30,7 @@ public class MutabilityAnalyzer implements Opcodes {
 		this.lookupCache = lookupCache;
 	}
 	private HashMap<String, AnnotatedMethod> lookupCache;
-
+	
 	/**
 	 * Call when done calling analyzeClass
 	 */
@@ -50,7 +50,7 @@ public class MutabilityAnalyzer implements Opcodes {
 //		{
 //			if(m.getFullName().eq)
 //			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
-//			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
+//			if(m.getClazz().startsWith("edu/columbia1/cs/psl/invivo") && m.isMutatesFields()){
 //				System.out.println(m);
 //				System.out.println("[");
 ////				for(FieldExpression f : m.getPutFieldInsnsPossiblyCalled())
@@ -102,16 +102,10 @@ public class MutabilityAnalyzer implements Opcodes {
 	 * If this method indirectly changes fields, store a local variable with the original value before the method is called
 	 * @param cr
 	 */
-	public void analyzeClass(ClassReader cr) {
+	public String analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
-		System.out.println("Analyzing: " + cn.name);
-		//Create the "_copy" method
-		MethodNode fastCloneMethod=new MethodNode(4, Opcodes.ACC_PUBLIC ,"_copy", "()V",null, null);
-		fastCloneMethod.instructions.add(new InsnNode(Opcodes.RETURN));
-		
-		cn.methods.add(fastCloneMethod);
-		
+		System.out.println("Analyzing: " + cn.name);		
 
 		for (Object o : cn.methods) {
 			MethodNode thisMethodNode = (MethodNode) o;
@@ -161,6 +155,7 @@ public class MutabilityAnalyzer implements Opcodes {
 				}
 			}
 		}
+		return cn.name;
 	}
 
 	
