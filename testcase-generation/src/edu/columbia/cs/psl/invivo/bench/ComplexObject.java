@@ -3,10 +3,13 @@ package edu.columbia.cs.psl.invivo.bench;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Map.Entry;
+
+import edu.columbia.cs.psl.invivo.record.CloningUtils;
 
 public class ComplexObject implements Cloneable {
-	private ComplexObject[] children;
-	private ArrayList<ComplexObject> children2;
+	private String[] children;
+	private HashMap<String, Integer> children2;
 	private ComplexObject parent;
 	private String s;
 	private SomeOtherObject soo;
@@ -61,11 +64,11 @@ public class ComplexObject implements Cloneable {
 		this.children = children;
 	}
 
-	public ArrayList<ComplexObject> getChildren2() {
+	public ArrayList<String> getChildren2() {
 		return children2;
 	}
 
-	public void setChildren2(ArrayList<ComplexObject> children2) {
+	public void setChildren2(ArrayList<String> children2) {
 		this.children2 = children2;
 	}
 
@@ -105,33 +108,45 @@ public class ComplexObject implements Cloneable {
 		}
 		return ret;
 	}
+	
 	public ComplexObject _copy() throws CloneNotSupportedException {
-		if(BeingCloned.cloneCache.containsKey(this))
+		/*if(BeingCloned.cloneCache.containsKey(this))
 			return (ComplexObject) BeingCloned.cloneCache.get(this);
-		
+		*/
 		final ComplexObject ret = (ComplexObject) clone();
-		BeingCloned.cloneCache.put(this, ret);
-		if(children != null){
-			ret.children = new ComplexObject[children.length];
-		for(int i =0; i<ret.children.length; i++)
-			ret.children[i] = children[i]._copy();
-		}
-		if(parent != null)
+		
+		ret.annoying0 = CloningUtils.cloner.deepClone(this.annoying0);
+		
+		//BeingCloned.cloneCache.put(this, ret);
+		
+		/*if (children2 != null) {
+			ret.children2 = new HashMap<String, Integer>();
+			
+			for (Entry<String, Integer> e : children2.entrySet())
+				ret.children2.put(e.getKey().toString(), e.getValue());
+		}*/
+		
+		/*if(parent != null)
 			ret.parent = parent._copy();
-		if(children2 != null)
+		*/
+		
+		if(children != null)
 		{
-			ret.children2 = new ArrayList<ComplexObject>(children2.size());
-			for(int i = 0; i<children2.size();i++)
-			{
-				ret.children2.add(children2.get(i)._copy());
-			}
+			ret.children = new String[this.children.length];
+			System.arraycopy(this.children, 0, ret.children, 0, this.children.length);
 		}
+		/*
 		if(soo != null)
 			ret.soo = soo._copy();
+		
+		if (s != null)
+			ret.s = s;
+		*/
+		
 		return ret;
 	}
 
-	public ComplexObject(ComplexObject[] children, ArrayList<ComplexObject> children2, ComplexObject parent, String s, SomeOtherObject soo) {
+	public ComplexObject(ComplexObject[] children, ArrayList<String> children2, ComplexObject parent, String s, SomeOtherObject soo) {
 		this.children = children;
 		this.children2 = children2;
 		this.parent = parent;

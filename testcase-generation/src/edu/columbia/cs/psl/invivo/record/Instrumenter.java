@@ -26,7 +26,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
@@ -127,11 +130,14 @@ public class Instrumenter {
 		}
 
 	}
+	
 	private static byte[] instrumentClass(InputStream is) {
 		try {
+			// We need to create the "_copy" method in the first pass, extremely inelegant. Discuss with @jon
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 //			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
+					
 			MutatingFieldClassVisitor mcv = new MutatingFieldClassVisitor(Opcodes.ASM4, cw);
 			cr.accept(mcv, ClassReader.EXPAND_FRAMES);
 //			methodCalls.addAll(cv.getLoggedMethodCalls());

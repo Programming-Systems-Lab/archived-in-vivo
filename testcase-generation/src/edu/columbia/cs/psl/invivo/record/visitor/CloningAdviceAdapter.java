@@ -19,6 +19,13 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 
 	private static final HashSet<String> immutableClasses = new HashSet<String>();
 	static {
+		immutableClasses.add("Ljava/lang/Integer;");
+		immutableClasses.add("Ljava/lang/Long;");
+		immutableClasses.add("Ljava/lang/Short;");
+		immutableClasses.add("Ljava/lang/Float;");
+		immutableClasses.add("Ljava/lang/String;");
+		immutableClasses.add("Ljava/lang/Char;");
+		immutableClasses.add("Ljava/lang/Byte;");
 		immutableClasses.add("java/lang/Integer");
 		immutableClasses.add("java/lang/Long");
 		immutableClasses.add("java/lang/Short");
@@ -38,7 +45,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access,
 			String name, String desc, String classname) {
 		super(api, mv, access, name, desc);
-		this.className = className;
+		this.className = classname;
 	}
 
 	public void fastCloneList(String fieldName, String fieldDesc) {
@@ -158,13 +165,37 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		}
 
 		/* TODO: Get the caching to work later */
-
+		
+		int localVar = this.newLocal(Type.getType("L"+className+";"));
 		/* 1) Call the clone constructor */
+		loadThis();
 		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "clone",
 				"()Ljava/lang/Object;");
 		visitTypeInsn(CHECKCAST, className);
-		visitVarInsn(ASTORE, 1);
+		visitVarInsn(ASTORE, localVar);
 
+		loadThis();
+		visitVarInsn(ALOAD, localVar);
+		visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "_setFieldsOn", "(L"+className+";)L"+className+";");
+
+	}
+	
+	private boolean isCollection(String desc) {
+		if (desc.contains("ArrayList") ||
+			desc.contains("HashMap"))
+			return true;
+		return false;
+	}
+	
+	public void generateSetFieldsMethod() {
+		Class<?> thisClass = null;
+		try {
+			thisClass = Instrumenter.loader.loadClass(className.replace("/",
+					"."));
+		} catch (ClassNotFoundException e) {
+			// We have not instrumented this class!
+			e.printStackTrace();
+		}
 		/*
 		 * 2) For each field do the following 
 		 * a) If its a primitive simply copy it 
@@ -173,92 +204,109 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		 * d) If its a collection, take care of that e) If nothing works, call the
 		 * reflection cloning util
 		 */
-
-		for (Field f : thisClass.getFields()) {
-			Type fieldType = Type.getType(f.getName());
-
-			if (immutableClasses.contains(f.getType().getName())) {
-				visitVarInsn(ALOAD, 1);
+		int cloneVar = 1;
+		int iteratorVar = this.newLocal(Type.getType(Integer.class));
+		for (Field f : thisClass.getDeclaredFields()) {
+			Type fieldType = Type.getType(f.getType());
+			if (immutableClasses.contains(fieldType.getDescriptor())) {
+				visitVarInsn(ALOAD, cloneVar);
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName()); // Put L and ; in front and back of getname
-				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType()
-						.getName());
-			} else if (fieldType.getSort() == Type.OBJECT) {
-				visitVarInsn(ALOAD, 0);
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor()); // Put L and ; in front and back of getname
+				visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());
+			} else if (fieldType.getSort() == Type.OBJECT && (!fieldType.getDescriptor().startsWith("Ljava"))) {
+				loadThis();
+				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
 				Label nullContinue = new Label();
 				visitJumpInsn(IFNULL, nullContinue);
 				Label nonNull = new Label();
 				visitLabel(nonNull);
 				
-				visitVarInsn(ALOAD, 1);
+				visitVarInsn(ALOAD, cloneVar);
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType()
-						.getName());
-				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
-						+ f.getType().getName());
-				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType()
-						.getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"	+ fieldType.getDescriptor());
+				visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());
 				visitLabel(nullContinue);
-				visitFrame(Opcodes.F_SAME, 0, null, 0, null);
 			} else if (fieldType.getSort() == Type.ARRAY) {
 				/* Check if non null */
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
 				Label nullContinue = new Label();
 				visitJumpInsn(IFNULL, nullContinue);
 				Label nonNull = new Label();
 				visitLabel(nonNull);
 
-				/* Instantiate new array */
-				visitVarInsn(ALOAD, 1);
+				/* Instantiate new array */ 
+				String arrayType = fieldType.getDescriptor().substring(2).replace(";", "");
+				visitVarInsn(ALOAD, cloneVar);
 				loadThis();
-				visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
+				visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
 				visitInsn(ARRAYLENGTH);
-				visitTypeInsn(ANEWARRAY, f.getType().getName().substring(2).replace(";", ""));
-				visitFieldInsn(PUTFIELD, className, f.getName(), f.getType().getName());
+				visitTypeInsn(ANEWARRAY, arrayType);
+				visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());
 				
 				/* Start copying */
-				mv.visitInsn(ICONST_0);
-				mv.visitVarInsn(ISTORE, 2);
+				//TODO: Do a system.arraycopy if its an array of immutables
+				System.out.println("FUCK!" + arrayType);
+				if (immutableClasses.contains(arrayType)) {
+					loadThis();
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitInsn(ICONST_0);
+					mv.visitVarInsn(ALOAD, cloneVar);
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitInsn(ICONST_0);
+					loadThis();
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitInsn(ARRAYLENGTH);
+					mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+				} else {
 				
-				Label l7 = new Label();
-				mv.visitJumpInsn(GOTO, l7);
-				Label l8 = new Label();
-				mv.visitLabel(l8);
-				mv.visitFrame(Opcodes.F_APPEND,2, new Object[] {"edu/columbia/cs/psl/invivo/bench/ComplexObject", Opcodes.INTEGER}, 0, null);
-				mv.visitVarInsn(ALOAD, 1);
-				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
-				mv.visitVarInsn(ILOAD, 2);
+					mv.visitInsn(ICONST_0);
+					mv.visitVarInsn(ISTORE, iteratorVar);
+					
+					Label l7 = new Label();
+					mv.visitJumpInsn(GOTO, l7);
+					Label l8 = new Label();
+					mv.visitLabel(l8);
+					mv.visitFrame(Opcodes.F_APPEND,2, new Object[] {className, Opcodes.INTEGER}, 0, null);
+					mv.visitVarInsn(ALOAD, cloneVar);
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitVarInsn(ILOAD, iteratorVar);
+					loadThis();
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitVarInsn(ILOAD, iteratorVar);
+					mv.visitInsn(AALOAD);
+					visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
+							+ fieldType.getDescriptor());
+					mv.visitInsn(AASTORE);
+					mv.visitIincInsn(2, 1);
+					mv.visitLabel(l7);
+					mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+					mv.visitVarInsn(ILOAD, iteratorVar);
+					mv.visitVarInsn(ALOAD, cloneVar);
+					mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+					mv.visitInsn(ARRAYLENGTH);
+					mv.visitJumpInsn(IF_ICMPLT, l8);
+					
+					Label doneCopying = new Label();
+					mv.visitLabel(doneCopying);
+					mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
+				}
+				
+				visitLabel(nullContinue);
+			} else {
+				/* All else fails, just call the reflective cloning */
+				mv.visitVarInsn(ALOAD, cloneVar);
+				mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
 				loadThis();
-				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
-				mv.visitVarInsn(ILOAD, 2);
-				mv.visitInsn(AALOAD);
-				visitMethodInsn(INVOKEVIRTUAL, className, "_copy", "()"
-						+ f.getType().getName());
-				mv.visitInsn(AASTORE);
-				mv.visitIincInsn(2, 1);
-				mv.visitLabel(l7);
-				mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-				mv.visitVarInsn(ILOAD, 2);
-				mv.visitVarInsn(ALOAD, 1);
-				mv.visitFieldInsn(GETFIELD, className, f.getName(), f.getType().getName());
-				mv.visitInsn(ARRAYLENGTH);
-				mv.visitJumpInsn(IF_ICMPLT, l8);
-				
-				Label doneCopying = new Label();
-				mv.visitLabel(doneCopying);
-				mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
+				mv.visitFieldInsn(GETFIELD, className, f.getName(), fieldType.getDescriptor());
+				mv.visitMethodInsn(INVOKEVIRTUAL, "com/rits/cloning/Cloner", "deepClone", "(Ljava/lang/Object;)Ljava/lang/Object;");
+				mv.visitTypeInsn(CHECKCAST, fieldType.getClassName().replace(".", "/"));
+				mv.visitFieldInsn(PUTFIELD, className, f.getName(), fieldType.getDescriptor());		
 			}
 		}
-
-		loadThis();
-		visitFieldInsn(GETFIELD, className, "the field you want to visit",
-				"type of that field");
+		visitVarInsn(ALOAD, cloneVar);
 	}
-
 	/**
 	 * Precondition: Current element at the top of the stack is the element we
 	 * need cloned Post condition: Current element at the top of the stack is
@@ -272,16 +320,9 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				|| immutableClasses.contains(typeOfField)) {
 			return;
 		}
-
-		// super.visitFieldInsn(GETSTATIC,
-		// "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner",
-		// "Lcom/rits/cloning/Cloner;");
-		// swap();
-		// invokeVirtual(Type.getType(Cloner.class),
-		// Method.getMethod("Object deepClone(Object)"));
-		// checkCast(Type.getType(typeOfField));
-		// visitInsn(Opcodes.POP);
-
+		
+		System.out.println("We encountered: " + this.className);
+		//mv.visitMethodInsn(INVOKEVIRTUAL, "edu/columbia/cs/psl/invivo/example/CopyTester", "_copy", "()V");
 	}
 
 	protected void logValueAtTopOfStackToArray(String logFieldOwner,
@@ -404,4 +445,6 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill",
 				Type.INT_TYPE.getDescriptor());
 	}
+
+
 }

@@ -11,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Textifier;
@@ -104,6 +105,13 @@ public class MutabilityAnalyzer implements Opcodes {
 	public void analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
+		System.out.println("Analyzing: " + cn.name);
+		//Create the "_copy" method
+		MethodNode fastCloneMethod=new MethodNode(4, Opcodes.ACC_PUBLIC ,"_copy", "()V",null, null);
+		fastCloneMethod.instructions.add(new InsnNode(Opcodes.RETURN));
+		
+		cn.methods.add(fastCloneMethod);
+		
 
 		for (Object o : cn.methods) {
 			MethodNode thisMethodNode = (MethodNode) o;
