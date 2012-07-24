@@ -8,16 +8,19 @@ import org.objectweb.asm.MethodVisitor;
 public class NDClassVisitor extends ClassVisitor {
 
 	private String className;
-	private HashMap<String, MethodInstance> lookupCache;
+	private HashMap<String, MethodInstance> methodLookupCache;
+	private HashMap<String, ClassInstance> classLookupCache;
 
-	public NDClassVisitor(int api, ClassVisitor cv, HashMap<String, MethodInstance> lookupCache) {
+	public NDClassVisitor(int api, ClassVisitor cv, HashMap<String, MethodInstance> lookupCache, HashMap<String, ClassInstance> classMap) {
 		super(api, cv);
-		this.lookupCache = lookupCache;
+		this.methodLookupCache = lookupCache;
+		this.classLookupCache = classMap;
 	}
 
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		this.className = name;
+		classLookupCache.put(name, new ClassInstance(name, superName, interfaces));
 	}
 
 	/**
@@ -27,11 +30,11 @@ public class NDClassVisitor extends ClassVisitor {
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 
 		MethodInstance mi = new MethodInstance(name, desc, this.className, access);
-		if (lookupCache.containsKey(mi.getFullName()))
-			lookupCache.get(mi.getFullName()).setAccess(access);
+		if (methodLookupCache.containsKey(mi.getFullName()))
+			methodLookupCache.get(mi.getFullName()).setAccess(access);
 		else
-			lookupCache.put(mi.getFullName(), mi);
-		mi = lookupCache.get(mi.getFullName());
+			methodLookupCache.put(mi.getFullName(), mi);
+		mi = methodLookupCache.get(mi.getFullName());
 
 		if ((className.startsWith("java/io") || className.startsWith("java/lang/Readable.")) && !className.startsWith("java/io/String"))
 			mi.forceNative();
@@ -39,7 +42,7 @@ public class NDClassVisitor extends ClassVisitor {
 			mi.setAccess(0);
 		if (mi.isNative())
 			mi.setNonDeterministic(true);
-		return new NDMethodVisitor(api, null, mi.getFullName(), access, lookupCache);
+		return new NDMethodVisitor(api, null, mi.getFullName(), access, methodLookupCache);
 	}
 
 }

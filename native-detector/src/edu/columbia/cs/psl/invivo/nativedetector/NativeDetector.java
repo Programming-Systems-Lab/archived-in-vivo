@@ -52,7 +52,8 @@ public class NativeDetector {
 	}
 
 	private HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>();
-
+	private HashMap<String, ClassInstance> classMap = new HashMap<String, ClassInstance>();
+	
 	private Collection<MethodInstance> nonDeterministicMethodCache = null;
 
 	public NativeDetector(String jarPath) {
@@ -69,7 +70,7 @@ public class NativeDetector {
 				name = name.substring(0, name.length() - 6);
 
 				ClassReader cr = new ClassReader(name);
-				NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, methodMap);
+				NDClassVisitor ccv = new NDClassVisitor(Opcodes.ASM4, null, methodMap, classMap);
 				cr.accept(ccv, 0);
 				i++;
 				if (i % 5000 == 0)
@@ -94,6 +95,12 @@ public class NativeDetector {
 	public Collection<MethodInstance> getNonDeterministicMethods() {
 		if (nonDeterministicMethodCache != null)
 			return nonDeterministicMethodCache;
+		buildNonDeterministicMethods();
+		return nonDeterministicMethodCache;
+	}
+
+	private void buildNonDeterministicMethods()
+	{
 		HashMap<String, MethodInstance> toReturn = new HashMap<String, MethodInstance>();
 		for (String s : methodMap.keySet()) {
 			MethodInstance mi = methodMap.get(s);
@@ -104,9 +111,38 @@ public class NativeDetector {
 			}
 		}
 		nonDeterministicMethodCache = toReturn.values();
-		return nonDeterministicMethodCache;
+		
+		int numChanged = 0;
+		for(MethodInstance mi : toReturn.values())
+		{
+			ClassInstance ci = classMap.get(mi.getClazz());
+			if(ci == null)
+				continue;
+			if(ci.parent != null && !ci.parent.equals("java/lang/Object"))
+			{
+				String fName = ci.parent + "." + mi.getMethod().getName()+ ":" + mi.getMethod().getDescriptor();
+				if(methodMap.containsKey(fName) && ! methodMap.get(fName).isNonDeterministic())
+				{
+					methodMap.get(fName).setNonDeterministic(true);
+					numChanged++;
+				}
+			}
+			if(ci.interfaces != null && ci.interfaces.length > 0)
+			{
+				for(String iName : ci.interfaces)
+				{
+					String fName = ci.parent + "." + mi.getMethod().getName()+ ":" + mi.getMethod().getDescriptor();
+					if(methodMap.containsKey(fName) && ! methodMap.get(fName).isNonDeterministic())
+					{
+					methodMap.get(fName).setNonDeterministic(true);
+					numChanged++;
+					}
+				}
+			}
+		}
+		if(numChanged != 0)
+			buildNonDeterministicMethods();
 	}
-
 	/**
 	 * Handy for debugging... Call it with level =0, alreadyPrinted a new hashSet, fallback as mi.getFullName
 	 * @param mi
