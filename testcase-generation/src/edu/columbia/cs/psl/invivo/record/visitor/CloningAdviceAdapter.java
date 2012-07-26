@@ -51,7 +51,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	}
 	private String className;
 
-	protected CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc, String classname) {
+	public CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc, String classname) {
 		super(api, mv, access, name, desc);
 		this.className = classname;
 	}
@@ -332,6 +332,17 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 					// mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
 				}
 				visitLabel(nullContinue);
+			} else if (this.isCollection(className)) {
+				if (className.contains("HashMap")) {
+					String hashMapDesc = fieldType.getDescriptor();
+					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
+					this.fastCloneMap(f.getName(), entryDesc.split(";")[0], entryDesc.split(";")[1]);
+				}
+				else if (className.contains("ArrayList")) {
+					String hashMapDesc = fieldType.getDescriptor();
+					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
+					this.fastCloneList(f.getName(), entryDesc);
+				}
 			} else {
 				/* All else fails, just call the reflective cloning */
 				mv.visitVarInsn(ALOAD, cloneVar);
