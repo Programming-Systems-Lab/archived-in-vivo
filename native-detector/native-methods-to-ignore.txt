@@ -72,3 +72,4 @@ java/util/zip/Inflater.initIDs:()V
 java/util/zip/Inflater.reset:(J)V
 java/util/zip/Inflater.setDictionary:(J[BII)V
 java/lang/Object.clone:()Ljava/lang/Object;
+java/lang/Thread.getContextClassLoader:()Ljava/lang/ClassLoader;

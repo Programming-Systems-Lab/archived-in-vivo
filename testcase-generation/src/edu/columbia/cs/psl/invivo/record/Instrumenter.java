@@ -42,7 +42,7 @@ public class Instrumenter {
 	private static Logger logger = Logger.getLogger(Instrumenter.class);
 	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
 	public static HashMap<String, String> instrumentedClasses = new HashMap<String, String>();
-
+	
 	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(annotatedMethods);
 	private static HashMap<String, HashSet<MethodCall>> methodCalls = new HashMap<String, HashSet<MethodCall>>();
 	private static final int NUM_PASSES = 2;
@@ -147,8 +147,8 @@ public class Instrumenter {
 	}
 	
 	private static void generateLogOfLogClass() {
-		if(1 ==1 ) //TODO let this run on some things 
-		return;
+//		if(1 ==1 ) //TODO let this run on some things 
+//		return;
 		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 //		CheckClassAdapter cv = new CheckClassAdapter(cw);
 		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);

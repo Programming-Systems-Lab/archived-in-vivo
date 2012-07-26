@@ -19,6 +19,8 @@ import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
 public class CloningAdviceAdapter extends AdviceAdapter {
 
+	private static final HashSet<String> ignoredClasses = new HashSet<String>();
+
 	private static final HashSet<String> immutableClasses = new HashSet<String>();
 	static {
 		immutableClasses.add("Ljava/lang/Integer;");
@@ -35,6 +37,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		immutableClasses.add("Ljava/lang/String;");
 		immutableClasses.add("Ljava/lang/Char;");
 		immutableClasses.add("Ljava/lang/Byte;");
+
 		immutableClasses.add("Z");
 		immutableClasses.add("B");
 		immutableClasses.add("C");
@@ -383,57 +386,74 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	 */
 
 	protected void cloneValAtTopOfStack(String typeOfField) {
-		_generateClone(typeOfField, Constants.OUTER_COPY_METHOD_NAME);
+		_generateClone(typeOfField, Constants.OUTER_COPY_METHOD_NAME, null);
+	}
+	protected void cloneValAtTopOfStack(String typeOfField,String debug) {
+		_generateClone(typeOfField, Constants.OUTER_COPY_METHOD_NAME, debug);
 	}
 
 	protected void generateCloneInner(String typeOfField) {
-		_generateClone(typeOfField, Constants.INNER_COPY_METHOD_NAME);
+		_generateClone(typeOfField, Constants.INNER_COPY_METHOD_NAME, null);
 	}
+	private void println(String toPrint)
+	{
+//		visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+//		visitLdcInsn(toPrint);
+//		super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 
-	private void _generateClone(String typeOfField, String copyMethodToCall) {
+	}
+	private void _generateClone(String typeOfField, String copyMethodToCall, String debug) {
 		Type fieldType = Type.getType(typeOfField);
 		// Also need to special case here for the fast cloners
 		if (fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField))) {
 			return;
 		}
-		if (fieldType.getSort() == Type.ARRAY) {
-			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-				// Just need to duplicate the array
-				dup();
-				Label nullContinue = new Label();
-				ifNull(nullContinue);
-				dup();
-				visitInsn(ARRAYLENGTH);
-				visitTypeInsn(ANEWARRAY, fieldType.getDescriptor().replace("[L", "["));
-				dupX2();
-				swap();
-				push(0);
-				dupX2();
-				swap();
-				super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-				dup();
-				visitLabel(nullContinue);
-
-			} else if (Instrumenter.instrumentedClasses.containsKey(fieldType.getElementType().getDescriptor())) {
-				// TODO Need to iterate, clone fast?
-				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-				swap();
-				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
-				checkCast(fieldType);
-			} else {
-				// Just use the reflective cloner
-				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-				swap();
-				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
-				checkCast(fieldType);
-			}
-		} else if (Instrumenter.instrumentedClasses.containsKey(fieldType.getDescriptor()))
+//		if (fieldType.getSort() == Type.ARRAY) {
+//			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
+//				// Just need to duplicate the array
+//				dup();
+//				Label nullContinue = new Label();
+//				ifNull(nullContinue);
+//				dup();
+//				visitInsn(ARRAYLENGTH);
+//				visitTypeInsn(ANEWARRAY, fieldType.getDescriptor().replace("[L", "[")); //TODO this is working wrong
+//				dupX2();
+//				swap();
+//				push(0);
+//				dupX2();
+//				swap();
+//				super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+//				dup();
+//				visitLabel(nullContinue);
+//
+//			} else if (Instrumenter.instrumentedClasses.containsKey(fieldType.getElementType().getDescriptor())) {
+//				// TODO Need to iterate, clone fast?
+//				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
+//				swap();
+//				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
+//				checkCast(fieldType);
+//			} else {
+//				// Just use the reflective cloner
+//				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
+//				swap();
+//				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
+//				checkCast(fieldType);
+//			}
+//		} else
+		if (Instrumenter.instrumentedClasses.containsKey(fieldType.getDescriptor()))
+		{
+			println("Slick clone" + typeOfField);
 			mv.visitMethodInsn(INVOKEVIRTUAL, fieldType.getClassName(), copyMethodToCall, "()" + fieldType.getDescriptor());
+			println("end Slick clone" + typeOfField);
+		}
 		else {
+			println("Simple clone" + typeOfField + " from " + debug);
 			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
 			swap();
 			invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
 			checkCast(fieldType);
+			println("Success");
+		
 		}
 	}
 
@@ -454,6 +474,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
 		// In this case, it's necessary to grow it
 
+//		println("Growing the array for " + logFieldOwner + logFieldName);
 		// Create the new array and initialize its size
 		int newArray = newLocal(Type.getType(logFieldTypeDesc));
 		if (!isStaticLoggingField)
@@ -492,7 +513,6 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 
 		visitLabel(labelForNoNeedToGrow);
-
 		// Load this into the end piece of the array
 		if (elementType.getSize() == 1) {
 			dup();
@@ -517,8 +537,9 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			dupX2();
 			pop();
 		}
-		cloneValAtTopOfStack(elementType.getDescriptor());
-
+		println("Calling clone" + logFieldOwner + logFieldName);
+		cloneValAtTopOfStack(elementType.getDescriptor(),logFieldOwner + logFieldName);
+		println("Called clone" + logFieldOwner + logFieldName);
 		super.arrayStore(elementType);
 
 		if (!isStaticLoggingField)

@@ -29,16 +29,16 @@ public class DummyDriver extends SimpleClass {
 	public String foo="bar";
 	private String[] sarray = new String[4];
 	private static String vm_Version = System.getProperty("java.runtime.version");
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
 		DummyDriver d = new DummyDriver();
-		try
-		{
+//		try
+//		{
 		d.go();
 		d.evil();
-		}
-		catch(Exception ex)
-		{
+//		}
+//		catch(Exception ex)
+//		{
 //			try{
 //				System.out.println("Serializing");
 //			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
@@ -53,7 +53,7 @@ public class DummyDriver extends SimpleClass {
 //			{
 //				exi.printStackTrace();
 //			}
-			ex.printStackTrace();
+//			ex.printStackTrace();
 		}
 //		try {
 //			getText(new File("in-vivo.log"), false, new File("scratch.out"));
@@ -62,7 +62,7 @@ public class DummyDriver extends SimpleClass {
 //			e.printStackTrace();
 //		}
 //		DummyDriver.goStatic();
-	}
+//	}
 	private int bar = 3;
 //	private double evilzzz = Math.random();
 	
@@ -197,52 +197,52 @@ public class DummyDriver extends SimpleClass {
 		doMore();
 		double ret = Math.cos(1);
 		System.out.println(ret);
-//		if(Math.random() < .9)
-//			throw new Exception("Crashed");
+		if(Math.random() < .9)
+			throw new Exception("Crashed");
 		System.out.println(System.getProperty("java.runtime.version"));
-		for(Field f : DummyDriver.class.getDeclaredFields())
-		{
-			if(Modifier.isStatic(f.getModifiers()))
-				continue;
-			try {
-				System.out.print(f.getName()+ "->");
-				if(f.getType().isArray())
-				{
-					if(f.getType().getComponentType().isPrimitive())
-						System.out.println(f.get(this));
-					else
-						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
-				}
-				else
-					System.out.println(f.get(this));
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		for(Field f : Class.forName(DummyDriver.class.getName()+"InvivoLog").getDeclaredFields())
-		{
-			try {
-				System.out.print(f.getName()+ "->");
-				if(f.getType().isArray())
-				{
-					if(f.getType().getComponentType().isPrimitive())
-						System.out.println(f.get(this));
-					else
-						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
-				}
-				else
-					System.out.println(f.get(this));
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		for(Field f : DummyDriver.class.getDeclaredFields())
+//		{
+//			if(Modifier.isStatic(f.getModifiers()))
+//				continue;
+//			try {
+//				System.out.print(f.getName()+ "->");
+//				if(f.getType().isArray())
+//				{
+//					if(f.getType().getComponentType().isPrimitive())
+//						System.out.println(f.get(this));
+//					else
+//						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
+//				}
+//				else
+//					System.out.println(f.get(this));
+//			} catch (IllegalArgumentException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IllegalAccessException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		for(Field f : Class.forName(DummyDriver.class.getName()+"InvivoLog").getDeclaredFields())
+//		{
+//			try {
+//				System.out.print(f.getName()+ "->");
+//				if(f.getType().isArray())
+//				{
+//					if(f.getType().getComponentType().isPrimitive())
+//						System.out.println(f.get(this));
+//					else
+//						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
+//				}
+//				else
+//					System.out.println(f.get(this));
+//			} catch (IllegalArgumentException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IllegalAccessException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 	}
 }
