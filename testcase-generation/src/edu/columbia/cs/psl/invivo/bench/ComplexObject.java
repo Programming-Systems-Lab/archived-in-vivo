@@ -58,21 +58,21 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 		
 	}
 	
-	public ComplexObject[] getChildren() {
-		return children;
-	}
-
-	public void setChildren(ComplexObject[] children) {
-		this.children = children;
-	}
-
-	public ArrayList<String> getChildren2() {
-		return children2;
-	}
-
-	public void setChildren2(ArrayList<String> children2) {
-		this.children2 = children2;
-	}
+//	public ComplexObject[] getChildren() {
+//		return children;
+//	}
+//
+//	public void setChildren(ComplexObject[] children) {
+//		this.children = children;
+//	}
+//
+//	public ArrayList<String> getChildren2() {
+//		return children2;
+//	}
+//
+//	public void setChildren2(ArrayList<String> children2) {
+//		this.children2 = children2;
+//	}
 
 	public ComplexObject getParent() {
 		return parent;
@@ -122,7 +122,7 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 		ret.annoying0 = CloningUtils.cloner.deepClone(this.annoying0);
 		
 		if (Instrumenter.instrumentedClasses.containsKey(this.getClass().getSuperclass().getName())) {	
-			ret = super.setFieldsOn(ret);
+//			ret = super.setFieldsOn(ret);
 		}
 		
 		//BeingCloned.cloneCache.put(this, ret);
@@ -155,8 +155,8 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 	}
 
 	public ComplexObject(ComplexObject[] children, ArrayList<String> children2, ComplexObject parent, String s, SomeOtherObject soo) {
-		this.children = children;
-		this.children2 = children2;
+//		this.children = children;
+//		this.children2 = children2;
 		this.parent = parent;
 		this.s = s;
 		this.soo = soo;
