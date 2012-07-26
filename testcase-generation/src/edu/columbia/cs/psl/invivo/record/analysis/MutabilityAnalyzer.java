@@ -102,7 +102,7 @@ public class MutabilityAnalyzer implements Opcodes {
 	 * If this method indirectly changes fields, store a local variable with the original value before the method is called
 	 * @param cr
 	 */
-	public String analyzeClass(ClassReader cr) {
+	public ClassNode analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
 		
@@ -155,7 +155,7 @@ public class MutabilityAnalyzer implements Opcodes {
 			}
 		}
 		
-		return cn.name + "|" + cn.superName;
+		return cn;
 	}
 
 	

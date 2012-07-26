@@ -43,8 +43,9 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	@Override
 	public MethodVisitor visitMethod(int acc, String name, String desc, String signature, String[] exceptions) {
 		// TODO need an annotation to disable doing this to some apps
-		if (isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME))// &&
-																																											// className.startsWith("edu"))
+		if (isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME)
+				&& !className.startsWith("org/apache/juli")
+				)
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
 			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
