@@ -59,7 +59,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 	protected void onMethodEnter() {
 		super.onMethodEnter();
 		// Soo... what fields is that exactly?
-
+		System.out.println(this.name + " " + this.methodDesc);
 	}
 
 	/**
@@ -131,15 +131,16 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 
 //			dup();
 //			dup();
+
+			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			mv.visitLdcInsn("Calling copy");
+			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+
 			loadThis();
 			loadThis();
 
 			super.visitFieldInsn(GETFIELD, owner, name, desc);
 			generateCloneOf(desc);
-//			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-//			swap();
-//			invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
-//			checkCast(Type.getType(desc));
 			super.visitFieldInsn(Opcodes.PUTFIELD, owner, Constants.PREV_VALUE_PREFIX + name, desc);
 
 //			dup();

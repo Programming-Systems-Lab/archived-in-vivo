@@ -5,6 +5,10 @@ import java.io.File;
 public class OtherClass {
 	public SimpleClass c;
 	
+	@Override
+	public String toString() {
+		return "OtherClass [c=" + (c != null && c.o != this ? c.toString() : "(recurse)") + "]";
+	}
 	public OtherClass()
 	{
 		

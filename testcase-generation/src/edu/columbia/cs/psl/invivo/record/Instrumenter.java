@@ -26,7 +26,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
@@ -38,6 +41,7 @@ public class Instrumenter {
 	public static URLClassLoader loader;
 	private static Logger logger = Logger.getLogger(Instrumenter.class);
 	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
+	public static HashMap<String, String> instrumentedClasses = new HashMap<String, String>();
 
 	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(annotatedMethods);
 	private static HashMap<String, HashSet<MethodCall>> methodCalls = new HashMap<String, HashSet<MethodCall>>();
@@ -57,7 +61,8 @@ public class Instrumenter {
 
 	private static void analyzeClass(InputStream inputStream) {
 		try {
-			ma.analyzeClass(new ClassReader(inputStream));
+			String analysisResult = ma.analyzeClass(new ClassReader(inputStream));
+			instrumentedClasses.put(analysisResult.split("[|]")[0], analysisResult.split("[|]")[1]);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -205,9 +210,9 @@ public class Instrumenter {
 		}
 
 	}
-
 	private static byte[] instrumentClass(InputStream is) {
 		try {
+			// We need to create the "_copy" method in the first pass, extremely inelegant. Discuss with @jon
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);

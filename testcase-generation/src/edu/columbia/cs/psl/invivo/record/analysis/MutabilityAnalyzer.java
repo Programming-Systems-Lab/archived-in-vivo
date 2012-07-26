@@ -11,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Textifier;
@@ -29,7 +30,7 @@ public class MutabilityAnalyzer implements Opcodes {
 		this.lookupCache = lookupCache;
 	}
 	private HashMap<String, AnnotatedMethod> lookupCache;
-
+	
 	/**
 	 * Call when done calling analyzeClass
 	 */
@@ -49,7 +50,7 @@ public class MutabilityAnalyzer implements Opcodes {
 //		{
 //			if(m.getFullName().eq)
 //			System.out.println(m.getFullName() + (m.isFullyDiscovered() ? (m.isMutatesFields() ? "M" : "-") + (m.isMutatesFieldsDirectly() ? "D" : "-") : "??"));
-//			if(m.getClazz().startsWith("edu/columbia/cs/psl/invivo") && m.isMutatesFields()){
+//			if(m.getClazz().startsWith("edu/columbia1/cs/psl/invivo") && m.isMutatesFields()){
 //				System.out.println(m);
 //				System.out.println("[");
 ////				for(FieldExpression f : m.getPutFieldInsnsPossiblyCalled())
@@ -101,10 +102,10 @@ public class MutabilityAnalyzer implements Opcodes {
 	 * If this method indirectly changes fields, store a local variable with the original value before the method is called
 	 * @param cr
 	 */
-	public void analyzeClass(ClassReader cr) {
+	public String analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
-
+		
 		for (Object o : cn.methods) {
 			MethodNode thisMethodNode = (MethodNode) o;
 			AnnotatedMethod thisMethod = findOrAddMethod(cn.name, thisMethodNode);
@@ -153,6 +154,8 @@ public class MutabilityAnalyzer implements Opcodes {
 				}
 			}
 		}
+		
+		return cn.name + "|" + cn.superName;
 	}
 
 	

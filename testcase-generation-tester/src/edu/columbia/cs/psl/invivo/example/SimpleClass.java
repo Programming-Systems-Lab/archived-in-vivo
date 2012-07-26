@@ -1,8 +1,9 @@
 package edu.columbia.cs.psl.invivo.example;
 
 import java.io.File;
+import java.util.ArrayList;
 
-public class SimpleClass {
+public class SimpleClass extends ArrayList {
 	public File f;
 	public SimpleClass()
 	{
@@ -11,6 +12,10 @@ public class SimpleClass {
 	public SimpleClass(String s)
 	{
 		
+	}
+	@Override
+	public String toString() {
+		return "SimpleClass [f=" + f + ", o=" + o + ", o2=" + o2 + "]";
 	}
 	public OtherClass o;
 	public OtherClass o2;

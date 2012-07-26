@@ -18,7 +18,7 @@ import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 
-public class DummyDriver {
+public class DummyDriver extends SimpleClass {
 	public String foo="bar";
 	private String[] sarray = new String[4];
 	private static String vm_Version = System.getProperty("java.runtime.version");
@@ -147,11 +147,27 @@ public class DummyDriver {
 		x = "zzzz";
 	}
 	private String x;
+	private SimpleClass sc;
 	public void go() throws Exception
 	{
 //		System.out.println(bar.foo.result);
-	
+		sc = new SimpleClass("asb");
+		sc.f = new File("foo");
+		sc.o = new OtherClass();
+		sc.o.c=sc;
+		sc = null;
 		x = "yz";
+		for (int i = 0; i < sarray.length; i++) {
+			this.sarray[i] = String.valueOf(i);
+		}
+		
+		String[] newArray = new String[sarray.length];
+		for (int i = 0; i < sarray.length; i++) {
+			newArray[i] = String.valueOf(i + 1);
+		}
+		
+		this.sarray = newArray;
+		
 		doMore();
 		double ret = Math.cos(1);
 		System.out.println(ret);

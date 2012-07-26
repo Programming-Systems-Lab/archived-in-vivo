@@ -29,16 +29,22 @@ public class MutatingFieldClassVisitor extends ClassVisitor {
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		// TODO Auto-generated method stub
+		if(interfaces == null)
+			interfaces = new String[]{"java/lang/Cloneable"};
+		else
+		{
+			//Add cloneable to the list of interfaces if it's not already there
+		}
 		super.visit(version, access, name, signature, superName, interfaces);
 		className = name;
 	}
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-
 		MethodVisitor smv = super.visitMethod(access, name, desc, signature, exceptions);
 		JSRInlinerAdapter  mv = new JSRInlinerAdapter(smv, access, name, desc, signature, exceptions);
-
+		if(name.equals("_copy") || name.equals("_setFieldsOn")) //FIXME this is a bad hack
+			return mv;
 		if (Instrumenter.getAnnotatedMethod(className, name, desc).isMutatesFieldsDirectly()) {
 			for (FieldExpression f : Instrumenter.getAnnotatedMethod(className, name, desc).getPutFieldInsns()) {
 //				System.out.println("\t" + f.getName());
@@ -55,7 +61,7 @@ public class MutatingFieldClassVisitor extends ClassVisitor {
 				}
 			}
 		}
-		if (Instrumenter.getAnnotatedMethod(className, name, desc).isMutatesFields())
+		if (Instrumenter.getAnnotatedMethod(className, name, desc).isMutatesFields() || name.startsWith("_copy"))
 			return new MutatingFieldMethodVisitor(access, mv, access, name, desc, className);
 		else
 			return mv;
@@ -78,6 +84,21 @@ public class MutatingFieldClassVisitor extends ClassVisitor {
 
 			fn2.accept(cv);
 		}
+		{
+		MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, "_copy", "()L"+className+";", null, null);
+		CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, "_copy", "()L"+className+";", className);
+		cloningAdapter.generateCopyMethod();
+		mv.visitMaxs(0, 0);
+		cloningAdapter.returnValue();
+		mv.visitEnd();
+	}{	
+		MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, "_setFieldsOn", "(L"+className+";)L"+className+";", null, null);
+		CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, "_copy", "(L"+className+";)L"+className+";", className);
+		cloningAdapter.generateSetFieldsMethod();
+		mv.visitMaxs(0, 0);
+		cloningAdapter.returnValue();
+		mv.visitEnd();
+	}
 		super.visitEnd();
 	}
 }

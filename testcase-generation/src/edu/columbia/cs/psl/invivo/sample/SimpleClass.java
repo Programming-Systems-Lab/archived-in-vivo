@@ -59,4 +59,8 @@ public class SimpleClass {
 		
 //		new OtherClass().c.f = new File("sdf");
 	}
+	public SimpleClass setFieldsOn(SimpleClass ret) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
