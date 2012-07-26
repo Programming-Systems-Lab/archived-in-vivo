@@ -78,6 +78,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 
 	@Override
 	public void visitEnd() {
+//		System.out.println(classDesc + " " + name);
 		super.visitEnd();
 		parent.addFieldMarkup(methodCallsToClear);
 		parent.addCaptureMethodsToGenerate(captureMethodsToGenerate);

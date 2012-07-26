@@ -140,7 +140,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 			loadThis();
 
 			super.visitFieldInsn(GETFIELD, owner, name, desc);
-			generateCloneOf(desc);
+			cloneValAtTopOfStack(desc);
 			super.visitFieldInsn(Opcodes.PUTFIELD, owner, Constants.PREV_VALUE_PREFIX + name, desc);
 
 //			dup();
