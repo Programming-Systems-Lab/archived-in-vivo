@@ -336,12 +336,12 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				if (className.contains("HashMap")) {
 					String hashMapDesc = fieldType.getDescriptor();
 					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
-					this.fastCloneMap(f.getName(), entryDesc.split(";")[0], entryDesc.split(";")[1]);
+					this.fastCloneMap(f.name, entryDesc.split(";")[0], entryDesc.split(";")[1]);
 				}
 				else if (className.contains("ArrayList")) {
 					String hashMapDesc = fieldType.getDescriptor();
 					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
-					this.fastCloneList(f.getName(), entryDesc);
+					this.fastCloneList(f.name, entryDesc);
 				}
 			} else {
 				/* All else fails, just call the reflective cloning */
