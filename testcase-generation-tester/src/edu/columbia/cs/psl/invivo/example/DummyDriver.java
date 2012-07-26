@@ -2,15 +2,22 @@ package edu.columbia.cs.psl.invivo.example;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Scanner;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -23,6 +30,7 @@ public class DummyDriver extends SimpleClass {
 	private String[] sarray = new String[4];
 	private static String vm_Version = System.getProperty("java.runtime.version");
 	public static void main(String[] args) {
+
 		DummyDriver d = new DummyDriver();
 		try
 		{
@@ -80,13 +88,31 @@ public class DummyDriver extends SimpleClass {
 		else
 			return "asldfdsf";
 	}
-	
+	JFrame f = new JFrame();
+
 	public DummyDriver() {
 		// TODO Auto-generated constructor stub
 		this.foo = "zz";
 		this.sarray = new String[6];
 		this.sarray[4] = "zz";
 		bar = 6;
+		
+		try{
+		File file = new File("fooObject");
+		if(file.exists())
+			file.delete();
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+		oos.writeObject(f);
+		oos.close();
+		
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+		f = (JFrame) ois.readObject();
+		ois.close();
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+		}
+		
 //		vm_Version = System.getProperty("java.runtime.version");
 //		System.out.println(vm_Version);
 //		vm_Version = System.getProperty("java.runtime.version");
@@ -178,6 +204,27 @@ public class DummyDriver extends SimpleClass {
 		{
 			if(Modifier.isStatic(f.getModifiers()))
 				continue;
+			try {
+				System.out.print(f.getName()+ "->");
+				if(f.getType().isArray())
+				{
+					if(f.getType().getComponentType().isPrimitive())
+						System.out.println(f.get(this));
+					else
+						System.out.println(Arrays.deepToString((Object[]) f.get(this)));
+				}
+				else
+					System.out.println(f.get(this));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		for(Field f : Class.forName(DummyDriver.class.getName()+"InvivoLog").getDeclaredFields())
+		{
 			try {
 				System.out.print(f.getName()+ "->");
 				if(f.getType().isArray())

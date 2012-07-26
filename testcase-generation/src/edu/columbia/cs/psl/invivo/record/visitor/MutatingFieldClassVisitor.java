@@ -84,21 +84,7 @@ public class MutatingFieldClassVisitor extends ClassVisitor {
 
 			fn2.accept(cv);
 		}
-		{
-		MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, "_copy", "()L"+className+";", null, null);
-		CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, "_copy", "()L"+className+";", className);
-		cloningAdapter.generateCopyMethod();
-		mv.visitMaxs(0, 0);
-		cloningAdapter.returnValue();
-		mv.visitEnd();
-	}{	
-		MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, "_setFieldsOn", "(L"+className+";)L"+className+";", null, null);
-		CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, "_copy", "(L"+className+";)L"+className+";", className);
-		cloningAdapter.generateSetFieldsMethod();
-		mv.visitMaxs(0, 0);
-		cloningAdapter.returnValue();
-		mv.visitEnd();
-	}
+		
 		super.visitEnd();
 	}
 }

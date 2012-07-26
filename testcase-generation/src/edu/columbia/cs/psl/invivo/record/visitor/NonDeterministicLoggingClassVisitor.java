@@ -40,7 +40,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	public MethodVisitor visitMethod(int acc, String name, String desc,
 			String signature, String[] exceptions) {
 		//TODO need an annotation to disable doing this to some apps
-		if(isAClass)// && className.startsWith("edu"))
+		if(isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME))// && className.startsWith("edu"))
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature,
 					exceptions);
@@ -108,6 +108,31 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			}
 			caa.returnValue();
 			mv.visitMaxs(0, 0);
+			mv.visitEnd();
+		}
+		
+		{
+			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", null, null);
+			CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", className);
+			cloningAdapter.generateCopyMethod();
+			mv.visitMaxs(0, 0);
+			cloningAdapter.returnValue();
+			mv.visitEnd();
+		}
+		{
+			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L"+className+";", null, null);
+			CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L"+className+";", className);
+			cloningAdapter.generateOuterCopyMethod();
+			mv.visitMaxs(0, 0);
+			cloningAdapter.returnValue();
+			mv.visitEnd();
+		}
+		{	
+			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L"+className+";)L"+className+";", null, null);
+			CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L"+className+";)L"+className+";", className);
+			cloningAdapter.generateSetFieldsMethod();
+			mv.visitMaxs(0, 0);
+			cloningAdapter.returnValue();
 			mv.visitEnd();
 		}
 	}
