@@ -100,7 +100,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				if (args[i].getSort() == Type.ARRAY) {
 					caa.loadArg(i);
 					caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName + "_" + (i - (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)), "[" + args[i].getDescriptor(),
-							args[i], true);
+							args[i], true, mi.name+"_"+i+"\t"+args[i].getDescriptor());
 					if (args[i].getSize() == 1)
 						caa.pop();
 					else

@@ -412,38 +412,41 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 //			println("Doing nothing");
 			return;
 		}
-//		if (fieldType.getSort() == Type.ARRAY) {
-//			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-//				// Just need to duplicate the array
-//				dup();
-//				Label nullContinue = new Label();
-//				ifNull(nullContinue);
-//				dup();
-//				visitInsn(ARRAYLENGTH);
-//				visitTypeInsn(ANEWARRAY, fieldType.getDescriptor().replace("[L", "L"));
-//				dupX2();
-//				swap();
-//				push(0);
-//				dupX2();
-//				swap();
-//				super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-//				dup();
-//				visitLabel(nullContinue);
-//
-//			} else {
-//				// Just use the reflective cloner
-//				invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object)"));
-//				checkCast(fieldType);
-//			}
-//		} else
+		if (fieldType.getSort() == Type.ARRAY) {
+			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
+				// Just need to duplicate the array
+				dup();
+				Label nullContinue = new Label();
+				ifNull(nullContinue);
+				dup();
+				visitInsn(ARRAYLENGTH);
+				dup();
+				newArray(Type.getType(fieldType.getDescriptor().substring(1)));
+				dupX2();
+				swap();
+				push(0);
+				dupX2();
+				swap();
+				super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+				visitLabel(nullContinue);
+
+			} else
+			{
+				// Just use the reflective cloner
+				visitLdcInsn(debug);
+				invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
+				checkCast(fieldType);
+			}
+		} else
 		{
-			invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object)"));
+			visitLdcInsn(debug);
+			invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
 			checkCast(fieldType);
 		
 		}
 	}
 
-	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField) {
+	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
 
@@ -523,7 +526,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			dupX2();
 			pop();
 		}
-		cloneValAtTopOfStack(elementType.getDescriptor(),logFieldOwner + logFieldName);
+		cloneValAtTopOfStack(elementType.getDescriptor(),debug);
 //		generateCloneInner(elementType.getDescriptor());
 //		println("Called clone on " + elementType.getDescriptor() +"\t:\t" + logFieldOwner + logFieldName);
 

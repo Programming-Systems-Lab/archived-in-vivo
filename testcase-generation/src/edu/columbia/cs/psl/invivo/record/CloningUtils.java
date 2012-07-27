@@ -1,7 +1,10 @@
 package edu.columbia.cs.psl.invivo.record;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -30,6 +33,7 @@ public class CloningUtils {
 	private static 		Cloner cloner = new Cloner();
 
 	private static HashSet<Class<?>> moreIgnoredImmutables;
+	private static BufferedWriter log;
 	static
 	{
 		moreIgnoredImmutables = new HashSet<Class<?>>();
@@ -55,8 +59,17 @@ public class CloningUtils {
 		{
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
+		try {
+			File f = new File("cloneLog");
+			if(f.exists())
+				f.delete();
+			log = new BufferedWriter(new FileWriter("cloneLog"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	public static final <T> T clone(T obj)
+	public static final <T> T clone(T obj, String debug)
 	{
 //		System.out.println(Thread.currentThread().getId());
 		if(obj != null && !obj.getClass().isArray() && ! obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
@@ -65,7 +78,14 @@ public class CloningUtils {
 				&& !obj.getClass().getName().contains("JarURLConnection"))
 		{
 //			cloner.setDumpClonedClasses(true);
-//			System.out.println(debug);
+			try{
+			log.append(debug+"\n");
+			log.flush();
+			}
+			catch(Exception ex)
+			{
+				ex.printStackTrace();
+			}
 				return cloner.deepClone(obj);			
 
 //			System.out.println(obj.getClass());

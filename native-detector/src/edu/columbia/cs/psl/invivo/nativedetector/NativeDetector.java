@@ -119,6 +119,11 @@ public class NativeDetector {
 			methodMap.get(s).setNonDeterministic(false);
 			nonDeterministicMethodCache.remove(methodMap.get(s));
 		}
+		for(String s : methodMap.keySet())
+		{
+			if(s.startsWith("java/util/concurrent"))
+				nonDeterministicMethodCache.remove(methodMap.get(s));
+		}
 		return nonDeterministicMethodCache;
 	}
 
