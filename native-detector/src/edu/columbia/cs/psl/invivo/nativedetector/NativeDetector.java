@@ -47,12 +47,14 @@ public class NativeDetector {
 
 	public static void main(String[] args) {
 		logger.info("Building links");
-		NativeDetector detector = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
+		NativeDetector detector = new NativeDetector(
+				new String[] {"/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar"}
+				);
 		logger.info("Initialized.. now writing to disk");
 
 		// detector.printNativeDeterministic();
 		// System.exit(-1);
-		detector.whyNative("org/w3c/dom/Node.getAttributes");
+		detector.whyNative("java/nio/channels/Selector");
 		try {
 			File f = new File("nondeterministic-methods.txt");
 			if (f.exists())
@@ -73,10 +75,12 @@ public class NativeDetector {
 
 	private Collection<MethodInstance>		nonDeterministicMethodCache	= null;
 
-	public NativeDetector(String jarPath) {
+	public NativeDetector(String[] jarPath) {
 		JarFile classJar;
+		for(String path : jarPath)
+		{
 		try {
-			classJar = new JarFile(jarPath);
+			classJar = new JarFile(path);
 
 			Enumeration<JarEntry> jarContents = classJar.entries();
 			int i = 0;
@@ -97,6 +101,7 @@ public class NativeDetector {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
 		}
 	}
 

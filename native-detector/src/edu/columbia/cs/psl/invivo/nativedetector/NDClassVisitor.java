@@ -40,7 +40,8 @@ public class NDClassVisitor extends ClassVisitor {
 			mi.setNonDeterministic(false);
 			mi.setAccess(0);
 		}
-		else if ((className.startsWith("java/io") || className.startsWith("java/lang/Readable.")) && !className.startsWith("java/io/String"))
+		else if ((className.startsWith("java/io") || className.startsWith("java/nio") || className.startsWith("java/lang/Readable.")) 
+				&& !className.startsWith("java/io/String"))
 			mi.forceNative();
 		else if (NativeDetector.deterministicNativeMethods.contains(mi.getFullName()))
 			mi.setAccess(0);

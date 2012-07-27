@@ -90,6 +90,7 @@ public class MethodInstance {
 
 	public void forceNative() {
 		this.setAccess(Opcodes.ACC_NATIVE);
+		this.setNonDeterministic(true);
 	}
 
 	public int getAccess() {
