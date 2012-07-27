@@ -394,7 +394,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected void generateCloneInner(String typeOfField) {
 		_generateClone(typeOfField, Constants.INNER_COPY_METHOD_NAME, null);
 	}
-	private void println(String toPrint)
+	protected void println(String toPrint)
 	{
 		visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 		visitLdcInsn(toPrint + " : ");
@@ -420,7 +420,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 //				ifNull(nullContinue);
 //				dup();
 //				visitInsn(ARRAYLENGTH);
-//				visitTypeInsn(ANEWARRAY, fieldType.getDescriptor().replace("[L", "[")); //TODO this is working wrong
+//				visitTypeInsn(ANEWARRAY, fieldType.getDescriptor().replace("[L", "L"));
 //				dupX2();
 //				swap();
 //				push(0);
@@ -430,36 +430,17 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 //				dup();
 //				visitLabel(nullContinue);
 //
-//			} else if (Instrumenter.instrumentedClasses.containsKey(fieldType.getElementType().getDescriptor())) {
-//				// TODO Need to iterate, clone fast?
-//				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-//				swap();
-//				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
-//				checkCast(fieldType);
 //			} else {
 //				// Just use the reflective cloner
-//				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-//				swap();
-//				invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
+//				invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object)"));
 //				checkCast(fieldType);
 //			}
 //		} else
-//		if (Instrumenter.instrumentedClasses.containsKey(fieldType.getDescriptor()))
-//		{
-//			println("Slick clone" + typeOfField);
-//			mv.visitMethodInsn(INVOKEVIRTUAL, fieldType.getClassName(), copyMethodToCall, "()" + fieldType.getDescriptor());
-//			println("end Slick clone" + typeOfField);
-//		}
-//		else {
-//			println("Simple clone" + typeOfField + " from " + debug);
-//		println("Calling clone on " + typeOfField +"\t:\t" + debug);
-//
-			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
-			swap();
-			invokeVirtual(Type.getType(Cloner.class), Method.getMethod("Object deepClone(Object)"));
+		{
+			invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object)"));
 			checkCast(fieldType);
 		
-//		}
+		}
 	}
 
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField) {
@@ -543,6 +524,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			pop();
 		}
 		cloneValAtTopOfStack(elementType.getDescriptor(),logFieldOwner + logFieldName);
+//		generateCloneInner(elementType.getDescriptor());
 //		println("Called clone on " + elementType.getDescriptor() +"\t:\t" + logFieldOwner + logFieldName);
 
 		super.arrayStore(elementType);

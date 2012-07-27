@@ -154,8 +154,11 @@ public class MutabilityAnalyzer implements Opcodes {
 				}
 			}
 		}
-		
-		return cn;
+		ClassNode ret = new ClassNode();
+		ret.name = cn.name;
+		ret.fields = cn.fields;
+		ret.superName = cn.superName;
+		return ret;
 	}
 
 	

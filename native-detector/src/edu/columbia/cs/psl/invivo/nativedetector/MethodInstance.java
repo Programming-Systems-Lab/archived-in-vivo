@@ -138,6 +138,7 @@ public class MethodInstance {
 
 	public void setNonDeterministic(boolean isNonDeterministic) {
 		this.isNonDeterministic = isNonDeterministic;
+		this.access = 0;
 	}
 
 	@Override

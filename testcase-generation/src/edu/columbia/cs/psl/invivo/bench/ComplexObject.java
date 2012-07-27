@@ -119,7 +119,7 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 		
 		CloningUtils.cloneCache.put(ret, ret);
 		
-		ret.annoying0 = CloningUtils.cloner.deepClone(this.annoying0);
+//		ret.annoying0 = CloningUtils.cloner.deepClone(this.annoying0);
 		
 		if (Instrumenter.instrumentedClasses.containsKey(this.getClass().getSuperclass().getName())) {	
 //			ret = super.setFieldsOn(ret);

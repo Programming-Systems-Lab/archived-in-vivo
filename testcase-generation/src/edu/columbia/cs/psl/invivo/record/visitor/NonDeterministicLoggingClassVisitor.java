@@ -112,31 +112,32 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			mv.visitEnd();
 		}
 		if (isAClass) {
-			{
-				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
-				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", className);
-				cloningAdapter.generateCopyMethod();
-				mv.visitMaxs(0, 0);
-				cloningAdapter.returnValue();
-				mv.visitEnd();
-			}
-			{
-				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
-				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", className);
-				cloningAdapter.generateOuterCopyMethod();
-				mv.visitMaxs(0, 0);
-				cloningAdapter.returnValue();
-				mv.visitEnd();
-			}
-			{
-				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";", null, null);
-				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";",
-						className);
-				cloningAdapter.generateSetFieldsMethod();
-				mv.visitMaxs(0, 0);
-				cloningAdapter.returnValue();
-				mv.visitEnd();
-			}
+			//TODO re-enable this
+//			{
+//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
+//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", className);
+//				cloningAdapter.generateCopyMethod();
+//				mv.visitMaxs(0, 0);
+//				cloningAdapter.returnValue();
+//				mv.visitEnd();
+//			}
+//			{
+//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
+//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", className);
+//				cloningAdapter.generateOuterCopyMethod();
+//				mv.visitMaxs(0, 0);
+//				cloningAdapter.returnValue();
+//				mv.visitEnd();
+//			}
+//			{
+//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";", null, null);
+//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";",
+//						className);
+//				cloningAdapter.generateSetFieldsMethod();
+//				mv.visitMaxs(0, 0);
+//				cloningAdapter.returnValue();
+//				mv.visitEnd();
+//			}
 		}
 	}
 

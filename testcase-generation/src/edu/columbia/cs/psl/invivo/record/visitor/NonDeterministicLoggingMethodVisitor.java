@@ -19,6 +19,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 
 import com.rits.cloning.Cloner;
 
+import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
@@ -107,26 +108,35 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 				for(Type t : args)
 					if(t.getSort() == Type.ARRAY)
 						hasArray = true;
-				if(hasArray)
-				{
-					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
-					String captureDesc = desc;
-					if(opcode != Opcodes.INVOKESTATIC)
-					{
-						//Need to put owner of the method on the top of the args list
-						captureDesc = "(L" +  owner +";";
-						for(Type t : args)
-							captureDesc += t.getDescriptor();
-						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
-					}
-					super.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
-					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
-				}
-				else
-				{
+			
+//				if(hasArray)
+//				{	//TODO uncomment this block
+//					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
+//					String captureDesc = desc;
+//					if(opcode != Opcodes.INVOKESTATIC)
+//					{
+//						//Need to put owner of the method on the top of the args list
+//						captureDesc = "(L" +  owner +";";
+//						for(Type t : args)
+//							captureDesc += t.getDescriptor();
+//						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
+//					}
+//					super.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
+//					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
+//				}
+//				else
+//				{
 					super.visitMethodInsn(opcode, owner, name, desc);
+//					if(returnType.getSort() == Type.OBJECT)
+//					{
+//						println(owner +"."+name+":"+desc);
+//						dup();
+//						visitLdcInsn(owner +"."+name+":"+desc);
+//					invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
+//						pop();
+//					}
 					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true);
-				}
+//				}
 			} else
 				super.visitMethodInsn(opcode, owner, name, desc);
 			pc++;

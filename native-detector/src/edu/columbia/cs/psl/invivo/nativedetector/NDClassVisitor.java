@@ -35,12 +35,16 @@ public class NDClassVisitor extends ClassVisitor {
 		else
 			methodLookupCache.put(mi.getFullName(), mi);
 		mi = methodLookupCache.get(mi.getFullName());
-
-		if ((className.startsWith("java/io") || className.startsWith("java/lang/Readable.")) && !className.startsWith("java/io/String"))
-			mi.forceNative();
-		if (NativeDetector.deterministicNativeMethods.contains(mi.getFullName()))
+		if(className.contains("Exception") || className.contains("Throwable"))
+		{
+			mi.setNonDeterministic(false);
 			mi.setAccess(0);
-		if (mi.isNative())
+		}
+		else if ((className.startsWith("java/io") || className.startsWith("java/lang/Readable.")) && !className.startsWith("java/io/String"))
+			mi.forceNative();
+		else if (NativeDetector.deterministicNativeMethods.contains(mi.getFullName()))
+			mi.setAccess(0);
+		else if (mi.isNative())
 			mi.setNonDeterministic(true);
 		return new NDMethodVisitor(api, super.visitMethod(access, name, desc, signature, exceptions), mi.getFullName(), mi.getMethod().getName(), mi.getMethod().getDescriptor(), access, methodLookupCache);
 	}

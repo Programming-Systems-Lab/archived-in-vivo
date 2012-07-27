@@ -19,43 +19,40 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 public class NativeDetector {
-	public static HashSet<String> deterministicNativeMethods = new HashSet<String>();
+	public static HashSet<String>	deterministicNativeMethods	= new HashSet<String>();
 
-	private static Logger logger = Logger.getLogger(NativeDetector.class);
+	private static Logger			logger						= Logger.getLogger(NativeDetector.class);
 	static {
-		try{
+		try {
 			Scanner s = new Scanner(new File("native-methods-to-ignore.txt"));
-			while(s.hasNextLine())
+			while (s.hasNextLine())
 				deterministicNativeMethods.add(s.nextLine());
-		}
-		catch(IOException ex)
-		{
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
-	public void printNativeDeterministic()
-	{
+
+	public void printNativeDeterministic() {
 		ArrayList<String> toPrint = new ArrayList<String>();
-		for(MethodInstance mi : methodMap.values())
-		{
-			if(mi.isNative())
-			{
-				if(mi.tainted != null && mi.tainted.size() > 0)
-				toPrint.add(mi.getFullName() + mi.tainted);
+		for (MethodInstance mi : methodMap.values()) {
+			if (mi.isNative()) {
+				if (mi.tainted != null && mi.tainted.size() > 0)
+					toPrint.add(mi.getFullName() + mi.tainted);
 			}
 		}
 		Collections.sort(toPrint);
-		for(String s : toPrint)
+		for (String s : toPrint)
 			System.out.println(s);
 	}
+
 	public static void main(String[] args) {
 		logger.info("Building links");
 		NativeDetector detector = new NativeDetector("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar");
 		logger.info("Initialized.. now writing to disk");
-		
-//		detector.printNativeDeterministic();
-//		System.exit(-1);
-		// detector.whyNative("java/io/StringWriter.append");
+
+		// detector.printNativeDeterministic();
+		// System.exit(-1);
+		detector.whyNative("java/util/HashMap.keySet");
 		try {
 			File f = new File("nondeterministic-methods.txt");
 			if (f.exists())
@@ -71,10 +68,10 @@ public class NativeDetector {
 
 	}
 
-	private HashMap<String, MethodInstance> methodMap = new HashMap<String, MethodInstance>();
-	private HashMap<String, ClassInstance> classMap = new HashMap<String, ClassInstance>();
-	
-	private Collection<MethodInstance> nonDeterministicMethodCache = null;
+	private HashMap<String, MethodInstance>	methodMap					= new HashMap<String, MethodInstance>();
+	private HashMap<String, ClassInstance>	classMap					= new HashMap<String, ClassInstance>();
+
+	private Collection<MethodInstance>		nonDeterministicMethodCache	= null;
 
 	public NativeDetector(String jarPath) {
 		JarFile classJar;
@@ -106,21 +103,26 @@ public class NativeDetector {
 	private void addAllRecursively(MethodInstance methodInstance, HashMap<String, MethodInstance> toReturn) {
 		if (toReturn.containsKey(methodInstance.getFullName()))
 			return;
-		toReturn.put(methodInstance.getFullName(), methodInstance);
-		methodInstance.setNonDeterministic(true);
-		for (String caller : methodInstance.functionsThatCallMe)
-			addAllRecursively(methodMap.get(caller), toReturn);
+		if (!deterministicNativeMethods.contains(methodInstance.getFullName())) {
+			toReturn.put(methodInstance.getFullName(), methodInstance);
+			methodInstance.setNonDeterministic(true);
+			for (String caller : methodInstance.functionsThatCallMe)
+				addAllRecursively(methodMap.get(caller), toReturn);
+		}
 	}
 
 	public Collection<MethodInstance> getNonDeterministicMethods() {
 		if (nonDeterministicMethodCache != null)
 			return nonDeterministicMethodCache;
 		buildNonDeterministicMethods();
+		for (String s : deterministicNativeMethods) {
+			methodMap.get(s).setNonDeterministic(false);
+			nonDeterministicMethodCache.remove(methodMap.get(s));
+		}
 		return nonDeterministicMethodCache;
 	}
 
-	private void buildNonDeterministicMethods()
-	{
+	private void buildNonDeterministicMethods() {
 		HashMap<String, MethodInstance> toReturn = new HashMap<String, MethodInstance>();
 		for (String s : methodMap.keySet()) {
 			MethodInstance mi = methodMap.get(s);
@@ -131,40 +133,37 @@ public class NativeDetector {
 			}
 		}
 		nonDeterministicMethodCache = toReturn.values();
-		
+
 		int numChanged = 0;
-		for(MethodInstance mi : toReturn.values())
-		{
+		for (MethodInstance mi : toReturn.values()) {
 			ClassInstance ci = classMap.get(mi.getClazz());
-			if(ci == null)
+			if (ci == null)
 				continue;
-			if(ci.parent != null && !ci.parent.equals("java/lang/Object"))
-			{
-				String fName = ci.parent + "." + mi.getMethod().getName()+ ":" + mi.getMethod().getDescriptor();
-				if(methodMap.containsKey(fName) && ! methodMap.get(fName).isNonDeterministic())
-				{
+			if (ci.parent != null && !ci.parent.equals("java/lang/Object") && ! ci.parent.contains("Exception") && ! ci.parent.contains("Throwable") && !mi.getMethod().getName().contains("<init>")) {
+				String fName = ci.parent + "." + mi.getMethod().getName() + ":" + mi.getMethod().getDescriptor();
+				if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic()) {
 					methodMap.get(fName).setNonDeterministic(true);
 					numChanged++;
 				}
 			}
-			if(ci.interfaces != null && ci.interfaces.length > 0)
-			{
-				for(String iName : ci.interfaces)
-				{
-					String fName = iName + "." + mi.getMethod().getName()+ ":" + mi.getMethod().getDescriptor();
-					if(methodMap.containsKey(fName) && ! methodMap.get(fName).isNonDeterministic())
-					{
-					methodMap.get(fName).setNonDeterministic(true);
-					numChanged++;
+			if (ci.interfaces != null && ci.interfaces.length > 0) {
+				for (String iName : ci.interfaces) {
+					String fName = iName + "." + mi.getMethod().getName() + ":" + mi.getMethod().getDescriptor();
+					if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic()) {
+						methodMap.get(fName).setNonDeterministic(true);
+						numChanged++;
 					}
 				}
 			}
 		}
-		if(numChanged != 0)
+		if (numChanged != 0)
 			buildNonDeterministicMethods();
 	}
+
 	/**
-	 * Handy for debugging... Call it with level =0, alreadyPrinted a new hashSet, fallback as mi.getFullName
+	 * Handy for debugging... Call it with level =0, alreadyPrinted a new
+	 * hashSet, fallback as mi.getFullName
+	 * 
 	 * @param mi
 	 * @param level
 	 * @param alreadyPrinted
