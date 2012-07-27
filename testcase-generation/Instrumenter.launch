@@ -9,5 +9,4 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.columbia.cs.psl.invivo.record.Instrumenter"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="instrumented  ../testcase-generation-tester/bin ../testcase-generation-tester/bin"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="test case generation"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx4048M"/>
 </launchConfiguration>

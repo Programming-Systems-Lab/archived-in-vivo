@@ -236,6 +236,7 @@ public class Instrumenter {
 			System.err.println("Usage: java edu.columbia.cs.psl.invivo.record.Instrumenter [outputFolder] [inputfolder] [classpath]\n Paths can be classes, directories, or jar files");
 			System.exit(-1);
 		}
+		System.out.println("Hi");
 		String outputFolder = args[0];
 		rootOutputDir = new File(outputFolder);
 		if (!rootOutputDir.exists())

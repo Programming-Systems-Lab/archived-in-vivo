@@ -28,6 +28,10 @@ public class OtherClass {
 		// TODO Auto-generated constructor stub
 	}
 
+	public OtherClass() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public int foo(int a, float b, double c, short d, String e) {
 		a += (int) Math.random();
 		a += System.currentTimeMillis();

@@ -10,6 +10,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
+import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.MethodInsnNode;
 
@@ -49,9 +50,9 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
 			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
-
+			LocalVariablesSorter sorter  = new LocalVariablesSorter(acc, desc, mv);
 			// CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
-			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, mv, acc, name, desc, className, isFirstConstructor);
+			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor);
 			if (name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);

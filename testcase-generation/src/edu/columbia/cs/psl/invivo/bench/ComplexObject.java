@@ -111,6 +111,9 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 		return ret;
 	}
 	
+	static String[][] children1 = null;
+	static int children1_fill;
+	
 	public ComplexObject _copy() throws CloneNotSupportedException {
 		if(CloningUtils.cloneCache.containsKey(this))
 			return (ComplexObject) CloningUtils.cloneCache.get(this);
@@ -140,8 +143,11 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 
 		if(children != null)
 		{
-			ret.children = new String[this.children.length];
-			System.arraycopy(this.children, 0, ret.children, 0, this.children.length);
+			String[] children2 = children1[children1_fill++];
+			
+			String[] children = new String[children2.length];
+			
+			System.arraycopy(children2, 0, children, 0, children2.length);
 		}
 		/*
 		if(soo != null)

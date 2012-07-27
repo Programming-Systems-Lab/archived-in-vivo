@@ -179,7 +179,7 @@ public class DummyDriver extends SimpleClass {
 //		System.out.println(bar.foo.result);
 		sc = new SimpleClass("asb");
 		sc.f = new File("foo");
-		sc.o = new OtherClass();
+//		sc.o = new OtherClass();
 		sc.o.c=sc;
 		sc = null;
 		x = "yz";

@@ -11,12 +11,18 @@ import java.util.Arrays;
 public class ReaderUser {
 	private void go() {
 		try {
+			int c = 0;
+			int d = 0;
+			int[] x = new int[4];
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
 			char[] buf = new char[1024];
 			int charsRead = 0;
 			charsRead = r.read(buf, 0, buf.length);
 			System.out.println(buf);
-			
+			c++;
+			System.out.println(c);
+			d++;
+			x[2]=2;
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
