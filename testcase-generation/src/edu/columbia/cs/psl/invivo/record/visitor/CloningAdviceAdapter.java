@@ -58,103 +58,103 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 
 	public void fastCloneList(String fieldName, String fieldDesc) {
 		/* Null check */
-		mv.visitVarInsn(Opcodes.ALOAD, 0);
-		mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
+		super.visitVarInsn(Opcodes.ALOAD, 0);
+		super.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
 		Label ifNull = new Label();
-		mv.visitJumpInsn(Opcodes.IFNULL, ifNull);
+		super.visitJumpInsn(Opcodes.IFNULL, ifNull);
 		Label notNull = new Label();
-		mv.visitLabel(notNull);
+		super.visitLabel(notNull);
 
 		/* Instantiation */
-		mv.visitVarInsn(Opcodes.ALOAD, 1);
-		mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
-		mv.visitInsn(Opcodes.DUP);
-		mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
-		mv.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/ArrayList;");
+		super.visitVarInsn(Opcodes.ALOAD, 1);
+		super.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
+		super.visitInsn(Opcodes.DUP);
+		super.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
+		super.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/ArrayList;");
 
 		loadThis();
-		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "iterator", "()Ljava/util/Iterator;");
-		mv.visitVarInsn(ASTORE, 3);
+		super.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "iterator", "()Ljava/util/Iterator;");
+		super.visitVarInsn(ASTORE, 3);
 		Label l6 = new Label();
-		mv.visitJumpInsn(GOTO, l6);
+		super.visitJumpInsn(GOTO, l6);
 		Label l7 = new Label();
-		mv.visitLabel(l7);
-		// mv.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className,
+		super.visitLabel(l7);
+		// super.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className,
 		// Opcodes.TOP, "java/util/Iterator" }, 0, new Object[] {});
-		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
-		mv.visitTypeInsn(CHECKCAST, fieldDesc);
-		mv.visitVarInsn(ASTORE, 2);
+		super.visitVarInsn(ALOAD, 3);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
+		super.visitTypeInsn(CHECKCAST, fieldDesc);
+		super.visitVarInsn(ASTORE, 2);
 
-		mv.visitVarInsn(ALOAD, 1);
-		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
-		mv.visitVarInsn(ALOAD, 2);
+		super.visitVarInsn(ALOAD, 1);
+		super.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/ArrayList;");
+		super.visitVarInsn(ALOAD, 2);
 		visitMethodInsn(INVOKEVIRTUAL, className, Constants.INNER_COPY_METHOD_NAME, "()" + fieldDesc);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "add", "(Ljava/lang/Object;)Z");
-		mv.visitInsn(POP);
-		// mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
-		mv.visitJumpInsn(IFNE, l7);
-		mv.visitLabel(ifNull);
-		// mv.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "add", "(Ljava/lang/Object;)Z");
+		super.visitInsn(POP);
+		// super.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+		super.visitVarInsn(ALOAD, 3);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
+		super.visitJumpInsn(IFNE, l7);
+		super.visitLabel(ifNull);
+		// super.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className
 		// }, 0, new Object[] {});
 	}
 
 	public void fastCloneMap(String fieldName, String keyDesc, String valueDesc) {
 		/* Null check */
 		loadThis();
-		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		super.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
 		Label l2 = new Label();
-		mv.visitJumpInsn(IFNULL, l2);
+		super.visitJumpInsn(IFNULL, l2);
 		Label l3 = new Label();
-		mv.visitLabel(l3);
+		super.visitLabel(l3);
 
 		/* Instantiate the hashmap */
-		mv.visitVarInsn(ALOAD, 1);
-		mv.visitTypeInsn(NEW, "java/util/HashMap");
-		mv.visitInsn(DUP);
-		mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V");
-		mv.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/HashMap;");
+		super.visitVarInsn(ALOAD, 1);
+		super.visitTypeInsn(NEW, "java/util/HashMap");
+		super.visitInsn(DUP);
+		super.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V");
+		super.visitFieldInsn(PUTFIELD, className, fieldName, "Ljava/util/HashMap;");
 
 		/* Copy the entries */
 		loadThis();
-		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "entrySet", "()Ljava/util/Set;");
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Set", "iterator", "()Ljava/util/Iterator;");
-		mv.visitVarInsn(ASTORE, 3);
+		super.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "entrySet", "()Ljava/util/Set;");
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Set", "iterator", "()Ljava/util/Iterator;");
+		super.visitVarInsn(ASTORE, 3);
 		Label l5 = new Label();
-		mv.visitJumpInsn(GOTO, l5);
+		super.visitJumpInsn(GOTO, l5);
 		Label l6 = new Label();
-		mv.visitLabel(l6);
-		// mv.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className,
+		super.visitLabel(l6);
+		// super.visitFrame(Opcodes.F_FULL, 4, new Object[] { className, className,
 		// Opcodes.TOP, "java/util/Iterator" }, 0, new Object[] {});
-		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
-		mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
-		mv.visitVarInsn(ASTORE, 2);
+		super.visitVarInsn(ALOAD, 3);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
+		super.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
+		super.visitVarInsn(ASTORE, 2);
 
-		mv.visitVarInsn(ALOAD, 1);
-		mv.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
-		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;");
-		mv.visitTypeInsn(CHECKCAST, keyDesc);
+		super.visitVarInsn(ALOAD, 1);
+		super.visitFieldInsn(GETFIELD, className, fieldName, "Ljava/util/HashMap;");
+		super.visitVarInsn(ALOAD, 2);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;");
+		super.visitTypeInsn(CHECKCAST, keyDesc);
 		/* Put in the checks here or the call to copy */
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "toString", "()Ljava/lang/String;");
-		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;");
-		mv.visitTypeInsn(CHECKCAST, valueDesc);
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "toString", "()Ljava/lang/String;");
+		super.visitVarInsn(ALOAD, 2);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;");
+		super.visitTypeInsn(CHECKCAST, valueDesc);
 		/* Put in the checks here or the call to copy */
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-		mv.visitInsn(POP);
-		mv.visitLabel(l5);
-		// mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
-		mv.visitJumpInsn(IFNE, l6);
-		mv.visitLabel(l2);
-		// mv.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+		super.visitInsn(POP);
+		super.visitLabel(l5);
+		// super.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+		super.visitVarInsn(ALOAD, 3);
+		super.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
+		super.visitJumpInsn(IFNE, l6);
+		super.visitLabel(l2);
+		// super.visitFrame(Opcodes.F_FULL, 2, new Object[] { className, className
 		// }, 0, new Object[] {});
 	}
 
@@ -167,12 +167,12 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	}
 
 	protected void generateOuterCopyMethod() {
-		mv.visitTypeInsn(NEW, "java/util/IdentityHashMap");
-		mv.visitInsn(DUP);
-		mv.visitMethodInsn(INVOKESPECIAL, "java/util/IdentityHashMap", "<init>", "()V");
-		mv.visitFieldInsn(PUTSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+		super.visitTypeInsn(NEW, "java/util/IdentityHashMap");
+		super.visitInsn(DUP);
+		super.visitMethodInsn(INVOKESPECIAL, "java/util/IdentityHashMap", "<init>", "()V");
+		super.visitFieldInsn(PUTSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
 		loadThis();
-		mv.visitMethodInsn(INVOKEVIRTUAL, className, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";");
+		super.visitMethodInsn(INVOKEVIRTUAL, className, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";");
 	}
 
 	protected void generateCopyMethod() {
@@ -181,17 +181,17 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 
 			/* If what we are looking for is cached, just return that */
 
-			mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
 			loadThis();
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "containsKey", "(Ljava/lang/Object;)Z");
+			super.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "containsKey", "(Ljava/lang/Object;)Z");
 			Label notCached = new Label();
-			mv.visitJumpInsn(IFEQ, notCached);
-			mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+			super.visitJumpInsn(IFEQ, notCached);
+			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
 			loadThis();
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
-			mv.visitTypeInsn(CHECKCAST, className);
-			mv.visitInsn(ARETURN);
-			mv.visitLabel(notCached);
+			super.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+			super.visitTypeInsn(CHECKCAST, className);
+			super.visitInsn(ARETURN);
+			super.visitLabel(notCached);
 
 			Label varStart = new Label();
 			visitLabel(varStart);
@@ -287,49 +287,49 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				// TODO: Do a system.arraycopy if its an array of immutables
 				if (immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
 					loadThis();
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitInsn(ICONST_0);
-					mv.visitVarInsn(ALOAD, cloneVar);
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitInsn(ICONST_0);
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitInsn(ICONST_0);
+					super.visitVarInsn(ALOAD, cloneVar);
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitInsn(ICONST_0);
 					loadThis();
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitInsn(ARRAYLENGTH);
-					mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitInsn(ARRAYLENGTH);
+					super.visitMethodInsn(INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 				} else {
 
-					mv.visitInsn(ICONST_0);
-					mv.visitVarInsn(ISTORE, iteratorVar);
+					super.visitInsn(ICONST_0);
+					super.visitVarInsn(ISTORE, iteratorVar);
 
 					Label l7 = new Label();
-					mv.visitJumpInsn(GOTO, l7);
+					super.visitJumpInsn(GOTO, l7);
 					Label l8 = new Label();
-					mv.visitLabel(l8);
-					// mv.visitFrame(Opcodes.F_APPEND, 2, new Object[] {
+					super.visitLabel(l8);
+					// super.visitFrame(Opcodes.F_APPEND, 2, new Object[] {
 					// className, Opcodes.INTEGER }, 0, null);
-					mv.visitVarInsn(ALOAD, cloneVar);
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitVarInsn(ILOAD, iteratorVar);
+					super.visitVarInsn(ALOAD, cloneVar);
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitVarInsn(ILOAD, iteratorVar);
 					loadThis();
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitVarInsn(ILOAD, iteratorVar);
-					mv.visitInsn(AALOAD);
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitVarInsn(ILOAD, iteratorVar);
+					super.visitInsn(AALOAD);
 
 					generateCloneInner(arrayTypeDescriptor);
 
-					mv.visitInsn(AASTORE);
-					mv.visitIincInsn(2, 1);
-					mv.visitLabel(l7);
-					// mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-					mv.visitVarInsn(ILOAD, iteratorVar);
-					mv.visitVarInsn(ALOAD, cloneVar);
-					mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-					mv.visitInsn(ARRAYLENGTH);
-					mv.visitJumpInsn(IF_ICMPLT, l8);
+					super.visitInsn(AASTORE);
+					super.visitIincInsn(2, 1);
+					super.visitLabel(l7);
+					// super.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+					super.visitVarInsn(ILOAD, iteratorVar);
+					super.visitVarInsn(ALOAD, cloneVar);
+					super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+					super.visitInsn(ARRAYLENGTH);
+					super.visitJumpInsn(IF_ICMPLT, l8);
 
 					Label doneCopying = new Label();
-					mv.visitLabel(doneCopying);
-					// mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
+					super.visitLabel(doneCopying);
+					// super.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
 				}
 				visitLabel(nullContinue);
 			} else if (this.isCollection(className)) {
@@ -345,13 +345,13 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				}
 			} else {
 				/* All else fails, just call the reflective cloning */
-				mv.visitVarInsn(ALOAD, cloneVar);
-				mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
+				super.visitVarInsn(ALOAD, cloneVar);
+				super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloner", "Lcom/rits/cloning/Cloner;");
 				loadThis();
-				mv.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
-				mv.visitMethodInsn(INVOKEVIRTUAL, "com/rits/cloning/Cloner", "deepClone", "(Ljava/lang/Object;)Ljava/lang/Object;");
-				mv.visitTypeInsn(CHECKCAST, fieldType.getClassName().replace(".", "/"));
-				mv.visitFieldInsn(PUTFIELD, className, f.name, fieldType.getDescriptor());
+				super.visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor());
+				super.visitMethodInsn(INVOKEVIRTUAL, "com/rits/cloning/Cloner", "deepClone", "(Ljava/lang/Object;)Ljava/lang/Object;");
+				super.visitTypeInsn(CHECKCAST, fieldType.getClassName().replace(".", "/"));
+				super.visitFieldInsn(PUTFIELD, className, f.name, fieldType.getDescriptor());
 			}
 		}
 
@@ -363,17 +363,17 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		String parent = Instrumenter.instrumentedClasses.get(className).superName;
 		if (Instrumenter.instrumentedClasses.containsKey(parent)) {
 			loadThis();
-			mv.visitVarInsn(ALOAD, cloneVar);
-			mv.visitMethodInsn(INVOKESPECIAL, parent, Constants.SET_FIELDS_METHOD_NAME, "(L" + parent + ";)L" + parent + ";");
-			mv.visitInsn(POP);
+			super.visitVarInsn(ALOAD, cloneVar);
+			super.visitMethodInsn(INVOKESPECIAL, parent, Constants.SET_FIELDS_METHOD_NAME, "(L" + parent + ";)L" + parent + ";");
+			super.visitInsn(POP);
 		}
 
 		/* We are done, put the result in the cache */
-		mv.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
-		mv.visitVarInsn(ALOAD, cloneVar);
-		mv.visitVarInsn(ALOAD, cloneVar);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-		mv.visitInsn(POP);
+		super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
+		super.visitVarInsn(ALOAD, cloneVar);
+		super.visitVarInsn(ALOAD, cloneVar);
+		super.visitMethodInsn(INVOKEVIRTUAL, "java/util/IdentityHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+		super.visitInsn(POP);
 
 		visitVarInsn(ALOAD, cloneVar);
 	}
@@ -464,13 +464,19 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
-
 		Label monitorStart = new Label();
+		Label monitorEndLabel = new Label();
+		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+
+
 		visitLabel(monitorStart);
+		
 		//Lock
 		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		dup();
-		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+
 		super.visitVarInsn(ASTORE,monitorIndx);
 		super.monitorEnter();
 		
@@ -567,10 +573,8 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		//Unlock
 		super.visitVarInsn(ALOAD, monitorIndx);
 		super.monitorExit();
-		Label monitorEndLabel = new Label();
 		visitLabel(monitorEndLabel);
 		
-		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
 }
