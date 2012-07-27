@@ -33,7 +33,7 @@ public class SimpleClass extends ArrayList {
 		if(Math.random() > .5)
 			return o2;
 		else if(Math.random() < .4)
-			return o.getSimpleClass().o;
+			return null;
 		return o;
 	}
 	public void makeCrash()
@@ -52,7 +52,7 @@ public class SimpleClass extends ArrayList {
 //		new OtherClass().getSimpleClass(this).f = new File("sdf");
 //		new OtherClass(new SimpleClass("a")).c = this;
 //		getOtherClass().getSimpleClass(getOtherClass().c).f = new File("sdf");
-		getOtherClass().getSimpleClass(new OtherClass().getSimpleClass(new SimpleClass())).f = new File("stuff");
+		//getOtherClass().getSimpleClass().f = new File("stuff");
 //		OtherClass o = new OtherClass();
 		
 //		new OtherClass().c.f = new File("sdf");
