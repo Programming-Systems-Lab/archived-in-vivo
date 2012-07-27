@@ -15,7 +15,7 @@ public class ReaderUser {
 			char[] buf = new char[1024];
 			int charsRead = 0;
 			charsRead = r.read(buf, 0, buf.length);
-//			System.out.println(buf);
+			System.out.println(buf);
 			
 			
 		} catch (Exception ex) {
@@ -28,7 +28,7 @@ public class ReaderUser {
 //	}
 	public static void main(String[] args) throws Exception{
 		new ReaderUser().go();
-		for(Field f : Class.forName("edu.columbia.cs.psl.invivo.example.ReaderUserInvivoLog").getDeclaredFields())
+		/*for(Field f : Class.forName("edu.columbia.cs.psl.invivo.example.ReaderUserInvivoLog").getDeclaredFields())
 		{
 			if(!Modifier.isStatic(f.getModifiers()))
 				continue;
@@ -57,6 +57,6 @@ public class ReaderUser {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		}*/
 	}
 }

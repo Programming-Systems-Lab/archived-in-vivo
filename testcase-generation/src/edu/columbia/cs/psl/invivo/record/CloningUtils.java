@@ -20,10 +20,8 @@ import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
-import org.ubiquity.Ubiquity;
 
 import com.rits.cloning.Cloner;
 import com.thoughtworks.xstream.XStream;

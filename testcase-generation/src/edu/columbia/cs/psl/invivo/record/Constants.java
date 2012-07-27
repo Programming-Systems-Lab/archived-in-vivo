@@ -10,6 +10,7 @@ public interface Constants {
 	public static int DEFAULT_LOG_SIZE = 20;
 	public static double LOG_GROWTH_RATE = 1.5;
 	public static String LOG_CLASS_SUFFIX = "InvivoLog";
+	public static String REPLAY_CLASS_SUFFIX = "InvivoReplay";
 	public static String INNER_COPY_METHOD_NAME = "_Invivo___copy";
 	public static String OUTER_COPY_METHOD_NAME = "_Invivo_copy";
 	public static String SET_FIELDS_METHOD_NAME = "_Invivo_set_fields";
