@@ -7,6 +7,8 @@ public class Bar implements C{
 	private double r;
 	public Foo foo = new Foo();
 	public String result;
+	public static int[] myArray = new int[40];
+
 	public void evil()
 	{
 		result = foo.result;

@@ -11,10 +11,16 @@ import java.util.Arrays;
 public class ReaderUser {
 	private void go() {
 		try {
-			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
-			char[] buf = new char[1024];
-			int charsRead = 0;
-			charsRead = r.read(buf, 0, buf.length);
+				BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
+				char[] buf = new char[1024];
+				int charsRead = 0;
+				charsRead = r.read(buf, 0, buf.length);
+				charsRead = r.read(buf, 0, buf.length);
+				charsRead = r.read(buf, 0, buf.length);
+				charsRead = r.read(buf, 0, buf.length);
+				charsRead = r.read(buf, 0, buf.length);
+				System.out.println(new String(buf));
+
 //			System.out.println(buf);
 			
 			
@@ -28,6 +34,7 @@ public class ReaderUser {
 //	}
 	public static void main(String[] args) throws Exception{
 		new ReaderUser().go();
+		System.exit(0);
 		for(Field f : Class.forName("edu.columbia.cs.psl.invivo.example.ReaderUserInvivoLog").getDeclaredFields())
 		{
 			if(!Modifier.isStatic(f.getModifiers()))

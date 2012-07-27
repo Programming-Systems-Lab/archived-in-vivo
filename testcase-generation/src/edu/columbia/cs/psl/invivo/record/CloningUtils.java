@@ -10,23 +10,15 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URL;
 import java.nio.channels.Channel;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.IdentityHashMap;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.lang3.SerializationUtils;
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-import org.ubiquity.Ubiquity;
-
 import com.rits.cloning.Cloner;
-import com.thoughtworks.xstream.XStream;
 
 public class CloningUtils {
 	public static boolean CATCH_ALL_ERRORS = true;
@@ -69,6 +61,7 @@ public class CloningUtils {
 			e.printStackTrace();
 		}
 	}
+
 	public static final <T> T clone(T obj, String debug)
 	{
 //		System.out.println(Thread.currentThread().getId());

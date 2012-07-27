@@ -52,7 +52,7 @@ public class NativeDetector {
 
 		// detector.printNativeDeterministic();
 		// System.exit(-1);
-		detector.whyNative("java/util/HashMap.keySet");
+		detector.whyNative("org/w3c/dom/Node.getAttributes");
 		try {
 			File f = new File("nondeterministic-methods.txt");
 			if (f.exists())

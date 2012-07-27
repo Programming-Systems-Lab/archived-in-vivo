@@ -405,6 +405,14 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
+	private static boolean[] bar;
+	private static int x;
+	private void foo()
+	{
+		synchronized (bar) {
+			x++;
+		}
+	}
 	private void _generateClone(String typeOfField, String copyMethodToCall, String debug) {
 		Type fieldType = Type.getType(typeOfField);
 		// Also need to special case here for the fast cloners
@@ -446,12 +454,27 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		}
 	}
 
+//	private static Object[] ar;
+//	private void magic()
+//	{
+//		synchronized (ar) {
+//			System.out.println("foo");
+//		}
+//	}
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
 
+		Label monitorStart = new Label();
+		visitLabel(monitorStart);
+		//Lock
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		dup();
+		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+		super.visitVarInsn(ASTORE,monitorIndx);
+		super.monitorEnter();
+		
 		// Grow the array if necessary
-
 		if (!isStaticLoggingField)
 			loadThis();
 		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
@@ -540,6 +563,14 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitInsn(Opcodes.ICONST_1);
 		super.visitInsn(Opcodes.IADD);
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
+
+		//Unlock
+		super.visitVarInsn(ALOAD, monitorIndx);
+		super.monitorExit();
+		Label monitorEndLabel = new Label();
+		visitLabel(monitorEndLabel);
+		
+		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
 }
