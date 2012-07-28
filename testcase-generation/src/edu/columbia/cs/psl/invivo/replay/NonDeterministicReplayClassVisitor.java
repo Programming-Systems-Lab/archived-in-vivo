@@ -113,7 +113,7 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 			mv.visitEnd();
 		}
 		
-		{
+		/*{
 			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", null, null);
 			CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", className);
 			//cloningAdapter.generateCopyMethod();
@@ -135,7 +135,7 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 			mv.visitMaxs(0, 0);
 			cloningAdapter.returnValue();
 			mv.visitEnd();
-		}
+		}*/
 	}
 	public String getClassName() {
 		return className;

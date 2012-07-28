@@ -1,5 +1,6 @@
 package edu.columbia.cs.psl.invivo.example;
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class ReaderUser {
 //	}
 	public static void main(String[] args) throws Exception{
 		new ReaderUser().go();
-		/*for(Field f : Class.forName("edu.columbia.cs.psl.invivo.example.ReaderUserInvivoLog").getDeclaredFields())
+		for(Field f : Class.forName("edu.columbia.cs.psl.invivo.example.ReaderUserInvivoLog").getDeclaredFields())
 		{
 			if(!Modifier.isStatic(f.getModifiers()))
 				continue;
@@ -63,6 +64,6 @@ public class ReaderUser {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}*/
+		}
 	}
 }

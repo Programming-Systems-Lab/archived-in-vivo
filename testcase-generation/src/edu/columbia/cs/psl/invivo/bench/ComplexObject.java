@@ -143,7 +143,7 @@ public class ComplexObject extends SimpleClass implements Cloneable {
 
 		if(children != null)
 		{
-			String[] children2 = children1[children1_fill++];
+			String[] children2 = children1[children1_fill];
 			
 			String[] children = new String[children2.length];
 			

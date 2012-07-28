@@ -120,24 +120,20 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
 					}
 					
-					System.out.println("HAS ARRAY!");
-					
 					Type[] targs = Type.getArgumentTypes(desc);
 					for (int i = targs.length - 1; i >= 0; i--) {
 						Type t = targs[i];
 						if (t.getSort() == Type.ARRAY) {
-							System.out.println(t.getDescriptor());
-							
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
+							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + "InvivoLog", 
 									m.getLogFieldName() + "_0", 
 									"[" + t.getDescriptor());
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
+							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + "InvivoLog", 
 									m.getLogFieldName() + "_0_fill", 
 									"I");
 							mv.visitInsn(DUP);
 							mv.visitInsn(ICONST_1);
 							mv.visitInsn(IADD);
-							mv.visitFieldInsn(PUTSTATIC, m.getSourceClass(), 
+							mv.visitFieldInsn(PUTSTATIC, m.getSourceClass() + "InvivoLog", 
 									m.getLogFieldName() + "_0_fill", 
 									"I");
 							mv.visitInsn(AALOAD);
@@ -146,16 +142,15 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							push(0);
 							swap();
 							push(0);
-							
 							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
 									m.getLogFieldName() + "_0", 
 									"[" + t.getDescriptor());
 							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
 									m.getLogFieldName() + "_0_fill", 
 									"I");
-							mv.visitInsn(DUP);
 							mv.visitInsn(AALOAD);
 							mv.visitInsn(ARRAYLENGTH);
+							
 							mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 						} else {
 							switch (t.getSize()) {
@@ -201,7 +196,7 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 					mv.visitInsn(DUP);
 					mv.visitInsn(ICONST_1);
 					mv.visitInsn(IADD);
-					mv.visitFieldInsn(PUTSTATIC, m.getLogFieldType().getClassName(), m.getLogFieldName()+"_fill", "I");
+					mv.visitFieldInsn(PUTSTATIC, m.getSourceClass() + "InvivoLog", m.getLogFieldName()+"_fill", "I");
 					arrayLoad(Type.getType(m.getLogFieldType().getDescriptor().substring(1)));
 				}
 
