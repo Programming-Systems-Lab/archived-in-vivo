@@ -164,10 +164,7 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							}
 						}
 					}
-					
-					/* 1) Start popping, when you encounter an array you need to
-					 *    fill that array up with the right value
-					 * 2) */					
+										
 				} else {
 					Type[] targs = Type.getArgumentTypes(desc);
 					for (Type t : targs) {
