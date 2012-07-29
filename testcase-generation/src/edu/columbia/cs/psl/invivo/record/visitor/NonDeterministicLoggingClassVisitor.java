@@ -148,4 +148,5 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	public void addCaptureMethodsToGenerate(HashMap<String, MethodInsnNode> captureMethodsToGenerate) {
 		this.captureMethodsToGenerate.putAll(captureMethodsToGenerate);
 	}
+
 }

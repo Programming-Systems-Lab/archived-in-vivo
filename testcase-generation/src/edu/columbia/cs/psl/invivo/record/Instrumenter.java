@@ -1,4 +1,4 @@
- package edu.columbia.cs.psl.invivo.record;
+package edu.columbia.cs.psl.invivo.record;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,24 +31,25 @@ import org.objectweb.asm.tree.FieldNode;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
+import edu.columbia.cs.psl.invivo.record.visitor.CloningAdviceAdapter;
 import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Instrumenter {
-	public static URLClassLoader loader;
-	private static Logger logger = Logger.getLogger(Instrumenter.class);
-	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
-	public static HashMap<String, ClassNode> instrumentedClasses = new HashMap<String, ClassNode>();
-	
-	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(annotatedMethods);
-	private static HashMap<String, HashSet<MethodCall>> methodCalls = new HashMap<String, HashSet<MethodCall>>();
-	private static final int NUM_PASSES = 2;
-	private static final int PASS_ANALYZE = 0;
-	private static final int PASS_OUTPUT = 1;
+	public static URLClassLoader						loader;
+	private static Logger								logger				= Logger.getLogger(Instrumenter.class);
+	public static HashMap<String, AnnotatedMethod>		annotatedMethods	= new HashMap<String, AnnotatedMethod>();
+	public static HashMap<String, ClassNode>			instrumentedClasses	= new HashMap<String, ClassNode>();
 
-	private static int pass_number = 0;
+	private static MutabilityAnalyzer					ma					= new MutabilityAnalyzer(annotatedMethods);
+	private static HashMap<String, HashSet<MethodCall>>	methodCalls			= new HashMap<String, HashSet<MethodCall>>();
+	private static final int							NUM_PASSES			= 2;
+	private static final int							PASS_ANALYZE		= 0;
+	private static final int							PASS_OUTPUT			= 1;
 
-	private static File rootOutputDir;
-	private static String lastInstrumentedClass;
+	private static int									pass_number			= 0;
+
+	private static File									rootOutputDir;
+	private static String								lastInstrumentedClass;
 
 	public static AnnotatedMethod getAnnotatedMethod(String owner, String name, String desc) {
 		String lookupKey = owner + "." + name + ":" + desc;
@@ -78,149 +79,161 @@ public class Instrumenter {
 
 	private static byte[] generateLogClass(String className) {
 		ClassWriter cw = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-		cw.visit(49, Opcodes.ACC_PUBLIC, className+Constants.LOG_CLASS_SUFFIX, null, "java/lang/Object", null);
+		cw.visit(49, Opcodes.ACC_PUBLIC, className + Constants.LOG_CLASS_SUFFIX, null, "java/lang/Object", null);
 		cw.visitSource(null, null);
-		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-		mvz.visitCode();
-		for (MethodCall call : methodCalls.get(className)) {
-			mvz.push(Constants.DEFAULT_LOG_SIZE);
-			mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
-			mvz.putStatic(Type.getType("L"+className + Constants.LOG_CLASS_SUFFIX+";"), call.getLogFieldName(),
-					Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
-			
-			Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-			for(int i = 0; i < argTypes.length; i++)
-			{
-				if(argTypes[i].getSort() == Type.ARRAY)
-				{
-					mvz.push(Constants.DEFAULT_LOG_SIZE);
-					mvz.newArray(argTypes[i]);
-					mvz.putStatic(Type.getType("L"+className + Constants.LOG_CLASS_SUFFIX+";"), call.getLogFieldName() + "_"+i,
-							Type.getType("[" + argTypes[i].getDescriptor()));
-				}
-			}
-		}
-		mvz.visitMaxs(0, 0);
-		mvz.returnValue();
-		mvz.visitEnd();
 
 		{
-			mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
+			mvz.visitCode();
+			for (MethodCall call : methodCalls.get(className)) {
+				mvz.push(Constants.DEFAULT_LOG_SIZE);
+				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
+				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
+						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+
+				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
+				for (int i = 0; i < argTypes.length; i++) {
+					if (argTypes[i].getSort() == Type.ARRAY) {
+						mvz.push(Constants.DEFAULT_LOG_SIZE);
+						mvz.newArray(argTypes[i]);
+						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
+								Type.getType("[" + argTypes[i].getDescriptor()));
+					}
+				}
+			}
+			mvz.visitMaxs(0, 0);
+			mvz.returnValue();
+			mvz.visitEnd();
+		}
+		{
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(1, 1);
 			mv.visitEnd();
 		}
+
+		{
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
+			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V");
+			mvz.visitCode();
+			for (MethodCall call : methodCalls.get(className)) {
+				mvz.push(Constants.DEFAULT_LOG_SIZE);
+				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
+				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
+						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+				mvz.push(0);
+				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_fill", Type.INT_TYPE);
+
+				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
+				for (int i = 0; i < argTypes.length; i++) {
+					if (argTypes[i].getSort() == Type.ARRAY) {
+						mvz.push(Constants.DEFAULT_LOG_SIZE);
+						mvz.newArray(argTypes[i]);
+						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
+								Type.getType("[" + argTypes[i].getDescriptor()));
+						mvz.push(0);
+						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i + "_fill",
+								Type.INT_TYPE);
+					}
+				}
+			}
+			mvz.visitMaxs(0, 0);
+			mvz.returnValue();
+			mvz.visitEnd();
+		}
+
 		for (MethodCall call : methodCalls.get(className)) {
 			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor(), null, null);
+			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "["
+					+ Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor(), null, null);
 			fn.accept(cw);
 			FieldNode fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
 			fn2.accept(cw);
-			
+
 			Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-			for(int i = 0; i < argTypes.length; i++)
-			{
-				if(argTypes[i].getSort() == Type.ARRAY)
-				{
-					fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName()+"_"+i, "[" + argTypes[i].getDescriptor(), null, null);
+			for (int i = 0; i < argTypes.length; i++) {
+				if (argTypes[i].getSort() == Type.ARRAY) {
+					fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_" + i, "[" + argTypes[i].getDescriptor(), null, null);
 					fn.accept(cw);
-					fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName()+"_"+i + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
+					fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_" + i + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
 					fn2.accept(cw);
-					
-					mvz.push(Constants.DEFAULT_LOG_SIZE);
-					mvz.newArray(argTypes[i]);
-					mvz.putStatic(Type.getType("L"+className + Constants.LOG_CLASS_SUFFIX+";"), call.getLogFieldName() + i,
-							Type.getType("[" + argTypes[i].getDescriptor()));
-				}	
-					
+				}
 			}
 		}
+
 		cw.visitEnd();
 		return cw.toByteArray();
 	}
-	
+
 	/*
-	 *   GETSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
-    IFNONNULL L4
-   L0
-    LINENUMBER 154 L0
-    NEW edu/columbia/cs/psl/invivo/record/Instrumenter
-    DUP
-    INVOKESPECIAL edu/columbia/cs/psl/invivo/record/Instrumenter.<init>()V
-    PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
-   L1
-    GOTO L4
-   L2
-    LINENUMBER 156 L2
-   FRAME SAME1 java/lang/Exception
-    ASTORE 0
-   L5
-    LINENUMBER 158 L5
-    ACONST_NULL
-    PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
-   L4
-    LINENUMBER 161 L4
-   FRAME SAME
+	 * GETSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
+	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; IFNONNULL L4 L0
+	 * LINENUMBER 154 L0 NEW edu/columbia/cs/psl/invivo/record/Instrumenter DUP
+	 * INVOKESPECIAL edu/columbia/cs/psl/invivo/record/Instrumenter.<init>()V
+	 * PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
+	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; L1 GOTO L4 L2 LINENUMBER
+	 * 156 L2 FRAME SAME1 java/lang/Exception ASTORE 0 L5 LINENUMBER 158 L5
+	 * ACONST_NULL PUTSTATIC
+	 * edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
+	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; L4 LINENUMBER 161 L4
+	 * FRAME SAME
 	 */
-	private static void magic()
-	{
-		try{
+	private static void magic() {
+		try {
 			System.out.println("foo");
-		}
-		catch(Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
+
 	private static void generateLogOfLogClass() {
-//		if(1 ==1 ) //TODO let this run on some things 
-//		return;
+		// if(1 ==1 ) //TODO let this run on some things
+		// return;
 		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-//		CheckClassAdapter cv = new CheckClassAdapter(cw);
+		// CheckClassAdapter cv = new CheckClassAdapter(cw);
 		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);
 		cv.visitSource(null, null);
 
-		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "initLogs", "()V", null, null);
-		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "initLogs", "()V");
+		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
 		mvz.visitCode();
 
 		for (String clazz : methodCalls.keySet()) {
-			if(methodCalls.get(clazz).size() == 0)
+			if (methodCalls.get(clazz).size() == 0)
 				continue;
-			Label labelContinue = new Label();
-			mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
-			mvz.visitJumpInsn(Opcodes.IFNONNULL, labelContinue);
-			Label labelStartTry = new Label();
-			Label labelEndTry = new Label();
-			Label labelStartCatch = new Label();
-			
-			mvz.visitTryCatchBlock(labelStartTry, labelEndTry, labelStartCatch, "java/lang/NoClassDefFoundError");
-			mvz.visitLabel(labelStartTry);
+			// Label labelContinue = new Label();
+			// mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS,
+			// clazz.replace("/", "_"), "L"+clazz +
+			// Constants.LOG_CLASS_SUFFIX+";");
+			// mvz.visitJumpInsn(Opcodes.IFNONNULL, labelContinue);
+			// Label labelStartTry = new Label();
+			// Label labelEndTry = new Label();
+			// Label labelStartCatch = new Label();
+
+			// mvz.visitTryCatchBlock(labelStartTry, labelEndTry,
+			// labelStartCatch, "java/lang/NoClassDefFoundError");
+			// mvz.visitLabel(labelStartTry);
 			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
 			mvz.visitInsn(Opcodes.DUP);
 			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
-			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
-			mvz.visitLabel(labelEndTry);
-			mvz.visitJumpInsn(Opcodes.GOTO, labelContinue);
-			mvz.visitLabel(labelStartCatch);
-			mvz.visitInsn(Opcodes.POP);
-			mvz.visitInsn(Opcodes.ACONST_NULL);
-			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
+			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
+			// mvz.visitLabel(labelEndTry);
+			// mvz.visitJumpInsn(Opcodes.GOTO, labelContinue);
+			// mvz.visitLabel(labelStartCatch);
+			// mvz.visitInsn(Opcodes.POP);
+			// mvz.visitInsn(Opcodes.ACONST_NULL);
+			// mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS,
+			// clazz.replace("/", "_"), "L"+clazz +
+			// Constants.LOG_CLASS_SUFFIX+";");
 
-			mvz.visitLabel(labelContinue);
-//			mvz.putStatic(Type.getType(Constants.LOG_DUMP_CLASS), clazz.replace("/", "-"), Type.getType(clazz + Constants.LOG_CLASS_SUFFIX));
+			// mvz.visitLabel(labelContinue);
+			// mvz.putStatic(Type.getType(Constants.LOG_DUMP_CLASS),
+			// clazz.replace("/", "-"), Type.getType(clazz +
+			// Constants.LOG_CLASS_SUFFIX));
 		}
-		mvz.returnValue();
-		mvz.visitMaxs(0, 0);
-		mvz.visitEnd();
-		
-		mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-		mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-		mvz.visitCode();
-		mvz.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS, "initLogs", "()V");
 		mvz.returnValue();
 		mvz.visitMaxs(0, 0);
 		mvz.visitEnd();
@@ -231,29 +244,44 @@ public class Instrumenter {
 		 */
 		{
 			mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+			mv.visitCode();
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(1, 1);
 			mv.visitEnd();
 		}
+		{
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
+			mv.visitCode();
+			for (String clazz : methodCalls.keySet()) {
+				if (methodCalls.get(clazz).size() == 0)
+					continue;
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
+			}
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(0, 0);
+			mv.visitEnd();
+		}
 
 		/*
 		 * Create the variable
 		 */
-		for (String clazz: methodCalls.keySet()) {
-			if(methodCalls.get(clazz).size() == 0)
+		for (String clazz : methodCalls.keySet()) {
+			if (methodCalls.get(clazz).size() == 0)
 				continue;
 			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";", null, null);
+			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
 			fn.accept(cv);
 		}
 		cv.visitEnd();
 
 		try {
-			File outputDir = new File(rootOutputDir + File.separator + "bin" + File.separator + Constants.LOG_DUMP_CLASS.substring(0, Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
+			File outputDir = new File(rootOutputDir + File.separator + "bin" + File.separator
+					+ Constants.LOG_DUMP_CLASS.substring(0, Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
 			outputDir.mkdirs();
-			FileOutputStream fos = new FileOutputStream(outputDir + Constants.LOG_DUMP_CLASS.substring(Constants.LOG_DUMP_CLASS.lastIndexOf("/")) + ".class");
+			FileOutputStream fos = new FileOutputStream(outputDir + Constants.LOG_DUMP_CLASS.substring(Constants.LOG_DUMP_CLASS.lastIndexOf("/"))
+					+ ".class");
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			bos.write(cv.toByteArray());
 			bos.writeTo(fos);
@@ -264,6 +292,7 @@ public class Instrumenter {
 		}
 
 	}
+
 	private static byte[] instrumentClass(InputStream is) {
 		try {
 			ClassReader cr = new ClassReader(is);
@@ -272,10 +301,10 @@ public class Instrumenter {
 
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
 			methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
-			lastInstrumentedClass	 = cv.getClassName();
+			lastInstrumentedClass = cv.getClassName();
 			byte[] out = cw.toByteArray();
-//			ClassReader cr2 = new ClassReader(out);
-//			cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			// ClassReader cr2 = new ClassReader(out);
+			// cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
 			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class:", ex);
@@ -285,7 +314,8 @@ public class Instrumenter {
 
 	public static void main(String[] args) {
 		if (args.length <= 1) {
-			System.err.println("Usage: java edu.columbia.cs.psl.invivo.record.Instrumenter [outputFolder] [inputfolder] [classpath]\n Paths can be classes, directories, or jar files");
+			System.err
+					.println("Usage: java edu.columbia.cs.psl.invivo.record.Instrumenter [outputFolder] [inputfolder] [classpath]\n Paths can be classes, directories, or jar files");
 			System.exit(-1);
 		}
 		String outputFolder = args[0];
@@ -356,7 +386,11 @@ public class Instrumenter {
 					fos.close();
 				}
 				{
-					FileOutputStream fos = new FileOutputStream(outputDir.getPath() + File.separator + name.replace(".class", Constants.LOG_CLASS_SUFFIX +".class"));
+					File parentDir = new File(rootOutputDir + File.separator + "bin" + File.separator + lastInstrumentedClass).getParentFile();
+					if (!parentDir.exists())
+						parentDir.mkdirs();
+					FileOutputStream fos = new FileOutputStream(rootOutputDir + File.separator + "bin" + File.separator + lastInstrumentedClass
+							+ Constants.LOG_CLASS_SUFFIX + ".class");
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					bos.write(generateLogClass());
 					bos.writeTo(fos);
@@ -447,23 +481,35 @@ public class Instrumenter {
 					}
 					break;
 				case PASS_OUTPUT:
-					if (e.getName().endsWith(".class") && !e.getName().startsWith("java") && !e.getName().startsWith("org/objenesis") && !e.getName().startsWith("com/thoughtworks/xstream/")
-							&& !e.getName().startsWith("com/rits/cloning") && !e.getName().startsWith("com/apple/java/Application")) {
+					if (e.getName().endsWith(".class") && !e.getName().startsWith("java") && !e.getName().startsWith("org/objenesis")
+							&& !e.getName().startsWith("com/thoughtworks/xstream/") && !e.getName().startsWith("com/rits/cloning")
+							&& !e.getName().startsWith("com/apple/java/Application")) {
 						{
-						JarEntry outEntry = new JarEntry(e.getName());
-						jos.putNextEntry(outEntry);
-						byte[] clazz = instrumentClass(jar.getInputStream(e));
-						jos.write(clazz);
-						jos.closeEntry();
-						}
-						{
-							JarEntry outEntry = new JarEntry(e.getName().replace(".class", Constants.LOG_CLASS_SUFFIX +".class"));
+							JarEntry outEntry = new JarEntry(e.getName());
 							jos.putNextEntry(outEntry);
-							byte[] clazz = generateLogClass();
+							byte[] clazz = instrumentClass(jar.getInputStream(e));
 							jos.write(clazz);
 							jos.closeEntry();
 						}
-						
+						{
+							// JarEntry outEntry = new
+							// JarEntry(e.getName().replace(".class",
+							// Constants.LOG_CLASS_SUFFIX +".class"));
+							// jos.putNextEntry(outEntry);
+							File parentDir = new File(rootOutputDir + File.separator + "bin" + File.separator + e.getName());
+							if (!parentDir.getParentFile().exists())
+								parentDir.getParentFile().mkdirs();
+							// System.out.println(e.getName());
+							FileOutputStream fos = new FileOutputStream(rootOutputDir + File.separator + "bin" + File.separator
+									+ e.getName().replace(".class", "") + Constants.LOG_CLASS_SUFFIX + ".class");
+							ByteArrayOutputStream bos = new ByteArrayOutputStream();
+							bos.write(generateLogClass());
+							bos.writeTo(fos);
+							fos.close();
+							// jos.write(clazz);
+							// jos.closeEntry();
+						}
+
 					} else {
 						JarEntry outEntry = new JarEntry(e.getName());
 						if (e.isDirectory()) {
