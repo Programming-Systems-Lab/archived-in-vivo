@@ -10,27 +10,17 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URL;
 import java.nio.channels.Channel;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.IdentityHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-
 import com.rits.cloning.Cloner;
-import com.thoughtworks.xstream.XStream;
-
-import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 public class CloningUtils {
 	public static boolean				CATCH_ALL_ERRORS	= true;

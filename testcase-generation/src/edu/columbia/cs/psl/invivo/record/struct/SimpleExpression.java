@@ -1,6 +1,5 @@
 package edu.columbia.cs.psl.invivo.record.struct;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;

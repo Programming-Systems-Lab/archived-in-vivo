@@ -1,22 +1,17 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.VarInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;
-import edu.columbia.cs.psl.invivo.record.struct.Expression;
 import edu.columbia.cs.psl.invivo.record.struct.FieldExpression;
-import edu.columbia.cs.psl.invivo.record.struct.SimpleExpression;
 
 public class MutatingFieldClassVisitor extends ClassVisitor {
 

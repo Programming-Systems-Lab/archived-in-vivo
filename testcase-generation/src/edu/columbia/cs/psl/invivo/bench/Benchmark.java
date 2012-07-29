@@ -1,7 +1,6 @@
 package edu.columbia.cs.psl.invivo.bench;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import com.rits.cloning.Cloner;
 

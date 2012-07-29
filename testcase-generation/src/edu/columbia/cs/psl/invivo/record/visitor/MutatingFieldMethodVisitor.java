@@ -1,18 +1,13 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.AdviceAdapter;
-import org.objectweb.asm.commons.Method;
-
-import com.rits.cloning.Cloner;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;

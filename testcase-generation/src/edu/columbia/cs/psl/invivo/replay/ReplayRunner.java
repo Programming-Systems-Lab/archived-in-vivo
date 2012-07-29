@@ -1,19 +1,6 @@
 package edu.columbia.cs.psl.invivo.replay;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.apache.log4j.Logger;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 
 public class ReplayRunner extends ClassLoader {
 	public static void run(byte[] code, String className) {		

@@ -1,8 +1,6 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -13,8 +11,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.FieldNode;
-
-import com.rits.cloning.Cloner;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
