@@ -38,6 +38,7 @@ public class CloningUtils {
 	public static ReadWriteLock		exportLock			= new ReentrantReadWriteLock();
 	private static HashSet<Class<?>>	moreIgnoredImmutables;
 	private static BufferedWriter		log;
+	private static WallaceExportRunner exporter = new WallaceExportRunner();
 	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
 		moreIgnoredImmutables.add(ClassLoader.class);
@@ -57,6 +58,8 @@ public class CloningUtils {
 
 		cloner.setExtraNullInsteadOfClone(moreIgnoredImmutables);
 		cloner.setExtraImmutables(moreIgnoredImmutables);
+		
+		exporter.start();
 		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
@@ -88,22 +91,9 @@ public class CloningUtils {
 	}
 
 	public static IdentityHashMap<Object, Object>	cloneCache	= new IdentityHashMap<Object, Object>();	;
-
+	
 	public static void exportLog() {
-		try {
-
-			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
-			XStream xstream = new XStream(new StaticReflectionProvider());
-			exportLock.writeLock().lock();
-			String xml = xstream.toXML(logger.newInstance());
-			exportLock.writeLock().unlock();
-			File output = new File("wallace_"+System.currentTimeMillis()+".log");
-			FileWriter fw = new FileWriter(output);
-			fw.write(xml);
-			fw.close();
-		} catch (Exception exi) {
-			exi.printStackTrace();
-		}
+		
 	}
 
 }

@@ -1,4 +1,4 @@
-package edu.columbia.cs.psl.invivo.record;
+ package edu.columbia.cs.psl.invivo.record;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -22,6 +22,7 @@ import java.util.jar.Manifest;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -146,6 +147,39 @@ public class Instrumenter {
 		return cw.toByteArray();
 	}
 	
+	/*
+	 *   GETSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
+    IFNONNULL L4
+   L0
+    LINENUMBER 154 L0
+    NEW edu/columbia/cs/psl/invivo/record/Instrumenter
+    DUP
+    INVOKESPECIAL edu/columbia/cs/psl/invivo/record/Instrumenter.<init>()V
+    PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
+   L1
+    GOTO L4
+   L2
+    LINENUMBER 156 L2
+   FRAME SAME1 java/lang/Exception
+    ASTORE 0
+   L5
+    LINENUMBER 158 L5
+    ACONST_NULL
+    PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance : Ledu/columbia/cs/psl/invivo/record/Instrumenter;
+   L4
+    LINENUMBER 161 L4
+   FRAME SAME
+	 */
+	private static void magic()
+	{
+		try{
+			System.out.println("foo");
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+	}
 	private static void generateLogOfLogClass() {
 //		if(1 ==1 ) //TODO let this run on some things 
 //		return;
@@ -154,19 +188,44 @@ public class Instrumenter {
 		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);
 		cv.visitSource(null, null);
 
-		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
+		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "initLogs", "()V", null, null);
+		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "initLogs", "()V");
 		mvz.visitCode();
 
 		for (String clazz : methodCalls.keySet()) {
 			if(methodCalls.get(clazz).size() == 0)
 				continue;
+			Label labelContinue = new Label();
+			mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
+			mvz.visitJumpInsn(Opcodes.IFNONNULL, labelContinue);
+			Label labelStartTry = new Label();
+			Label labelEndTry = new Label();
+			Label labelStartCatch = new Label();
+			
+			mvz.visitTryCatchBlock(labelStartTry, labelEndTry, labelStartCatch, "java/lang/NoClassDefFoundError");
+			mvz.visitLabel(labelStartTry);
 			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
 			mvz.visitInsn(Opcodes.DUP);
 			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
 			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
+			mvz.visitLabel(labelEndTry);
+			mvz.visitJumpInsn(Opcodes.GOTO, labelContinue);
+			mvz.visitLabel(labelStartCatch);
+			mvz.visitInsn(Opcodes.POP);
+			mvz.visitInsn(Opcodes.ACONST_NULL);
+			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L"+clazz + Constants.LOG_CLASS_SUFFIX+";");
+
+			mvz.visitLabel(labelContinue);
 //			mvz.putStatic(Type.getType(Constants.LOG_DUMP_CLASS), clazz.replace("/", "-"), Type.getType(clazz + Constants.LOG_CLASS_SUFFIX));
 		}
+		mvz.returnValue();
+		mvz.visitMaxs(0, 0);
+		mvz.visitEnd();
+		
+		mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+		mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
+		mvz.visitCode();
+		mvz.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS, "initLogs", "()V");
 		mvz.returnValue();
 		mvz.visitMaxs(0, 0);
 		mvz.visitEnd();
@@ -212,12 +271,10 @@ public class Instrumenter {
 	}
 	private static byte[] instrumentClass(InputStream is) {
 		try {
-			// We need to create the "_copy" method in the first pass, extremely inelegant. Discuss with @jon
 			ClassReader cr = new ClassReader(is);
 			ClassWriter cw = new InstrumenterClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
-			// MutatingFieldClassVisitor mcv = new
-			// MutatingFieldClassVisitor(Opcodes.ASM4, cw);
+
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
 			methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
 			lastInstrumentedClass	 = cv.getClassName();
