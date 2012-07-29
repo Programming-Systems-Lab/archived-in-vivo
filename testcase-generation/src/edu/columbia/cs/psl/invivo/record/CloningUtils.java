@@ -15,6 +15,10 @@ import java.nio.channels.Channel;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.IdentityHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
@@ -26,14 +30,15 @@ import org.objenesis.ObjenesisStd;
 import com.rits.cloning.Cloner;
 import com.thoughtworks.xstream.XStream;
 
-public class CloningUtils {
-	public static boolean CATCH_ALL_ERRORS = true;
-	private static 		Cloner cloner = new Cloner();
+import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
-	private static HashSet<Class<?>> moreIgnoredImmutables;
-	private static BufferedWriter log;
-	static
-	{
+public class CloningUtils {
+	public static boolean				CATCH_ALL_ERRORS	= true;
+	private static Cloner				cloner				= new Cloner();
+	public static ReadWriteLock		exportLock			= new ReentrantReadWriteLock();
+	private static HashSet<Class<?>>	moreIgnoredImmutables;
+	private static BufferedWriter		log;
+	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
 		moreIgnoredImmutables.add(ClassLoader.class);
 		moreIgnoredImmutables.add(Thread.class);
@@ -50,16 +55,14 @@ public class CloningUtils {
 		moreIgnoredImmutables.add(Channel.class);
 		moreIgnoredImmutables.add(Closeable.class);
 
-
 		cloner.setExtraNullInsteadOfClone(moreIgnoredImmutables);
 		cloner.setExtraImmutables(moreIgnoredImmutables);
-		if(CATCH_ALL_ERRORS)
-		{
+		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
 		try {
 			File f = new File("cloneLog");
-			if(f.exists())
+			if (f.exists())
 				f.delete();
 			log = new BufferedWriter(new FileWriter("cloneLog"));
 		} catch (IOException e) {
@@ -67,38 +70,40 @@ public class CloningUtils {
 			e.printStackTrace();
 		}
 	}
-	public static final <T> T clone(T obj, String debug)
-	{
-//		System.out.println(Thread.currentThread().getId());
-		if(obj != null && !obj.getClass().isArray() && ! obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
-				
-				&& ! obj.getClass().getName().contains("ClassLoader") && ! obj.getClass().getName().contains("InputStream")
-				&& !obj.getClass().getName().contains("JarURLConnection"))
-		{
-//			cloner.setDumpClonedClasses(true);
-			try{
-			log.append(debug+"\n");
-			log.flush();
-			}
-			catch(Exception ex)
-			{
+
+	public static final <T> T clone(T obj, String debug) {
+		if (obj != null && !obj.getClass().isArray() && !obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
+
+		&& !obj.getClass().getName().contains("ClassLoader") && !obj.getClass().getName().contains("InputStream")
+				&& !obj.getClass().getName().contains("JarURLConnection")) {
+			try {
+				log.append(debug + "\n");
+				log.flush();
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-				return cloner.deepClone(obj);			
-
-//			System.out.println(obj.getClass());
-//			Objenesis o = new ObjenesisStd();
-//			o.newInstance(obj.getClass());
-//		System.out.println("!!!Going to clone " + obj.getClass());
-
+			return cloner.deepClone(obj);
 		}
-//		synchronized (cloner) {
-//		}
 		return null;
-//		return SerializationUtils.clone(obj);
-//		Ubiquity u = new Ubiquity();
-//		return (T) u.map(obj, obj.getClass());
-//		return (T) xs.fromXML(xs.toXML(obj));
 	}
-	public static IdentityHashMap<Object, Object> cloneCache = new IdentityHashMap<Object, Object>();;
+
+	public static IdentityHashMap<Object, Object>	cloneCache	= new IdentityHashMap<Object, Object>();	;
+
+	public static void exportLog() {
+		try {
+
+			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
+			XStream xstream = new XStream(new StaticReflectionProvider());
+			exportLock.writeLock().lock();
+			String xml = xstream.toXML(logger.newInstance());
+			exportLock.writeLock().unlock();
+			File output = new File("wallace_"+System.currentTimeMillis()+".log");
+			FileWriter fw = new FileWriter(output);
+			fw.write(xml);
+			fw.close();
+		} catch (Exception exi) {
+			exi.printStackTrace();
+		}
+	}
+
 }

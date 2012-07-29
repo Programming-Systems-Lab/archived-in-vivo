@@ -3,6 +3,8 @@ package edu.columbia.cs.psl.invivo.record.visitor;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -417,13 +419,13 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		Type fieldType = Type.getType(typeOfField);
 
 		if (fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField))) {
-			println(debug);
+//			println(debug);
 //			println("Doing nothing");
 			return;
 		}
 		if (fieldType.getSort() == Type.ARRAY) {
 			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-				println(debug);
+//				println(debug);
 
 				// Just need to duplicate the array
 				dup();
@@ -479,9 +481,13 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		//Lock
 		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		dup();
-
 		super.visitVarInsn(ASTORE,monitorIndx);
 		super.monitorEnter();
+		
+		//Also acquire a read lock for the export lock
+		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
 		
 		// Grow the array if necessary
 		if (!isStaticLoggingField)
@@ -559,8 +565,6 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 			pop();
 		}
 		cloneValAtTopOfStack(elementType.getDescriptor(),debug);
-//		generateCloneInner(elementType.getDescriptor());
-//		println("Called clone on " + elementType.getDescriptor() +"\t:\t" + logFieldOwner + logFieldName);
 
 		super.arrayStore(elementType);
 
@@ -573,6 +577,11 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitInsn(Opcodes.IADD);
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 
+		//Release the export lock
+		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
+		
 		//Unlock
 		super.visitVarInsn(ALOAD, monitorIndx);
 		super.monitorExit();
