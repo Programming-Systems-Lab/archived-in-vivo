@@ -16,23 +16,27 @@ import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 public class ReplayRunner {
 	public static String[]	logFiles;
-	public static int		nextLog	= 0;
+	private static int		nextLog	= 0;
 
 	public static void loadNextLog() {
 		try {
-			Class<?> logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
-			logger.getMethod("clearLog").invoke(null);
-			XStream xstream = new XStream(new StaticReflectionProvider());
 			CloningUtils.exportLock.writeLock().lock();
-			Object o = xstream.fromXML(new File(logFiles[nextLog]));
-			logger.getMethod("clearReplayIndices").invoke(null);
+			_loadNextLog();
 			CloningUtils.exportLock.writeLock().unlock();
-			nextLog++;
 		} catch (Exception exi) {
 			exi.printStackTrace();
 		}
 	}
 
+	private static void _loadNextLog() {
+		try {
+			XStream xstream = new XStream(new StaticReflectionProvider());
+			Object o = xstream.fromXML(new File(logFiles[nextLog]));
+			nextLog++;
+		} catch (Exception exi) {
+			exi.printStackTrace();
+		}
+	}
 	public static void main(String[] args) {
 		if (args.length < 2) {
 			System.err.println("Usage: ReplayRunner <mainClass> log [log2...logN]");
@@ -42,7 +46,8 @@ public class ReplayRunner {
 		logFiles = new String[args.length - 1];
 		for (int i = 1; i < args.length; i++)
 			logFiles[i - 1] = args[i];
-		loadNextLog();
+		System.out.println("Available logs: " + Arrays.deepToString(logFiles));
+		_loadNextLog();
 
 		Class<?> toRun;
 		try {

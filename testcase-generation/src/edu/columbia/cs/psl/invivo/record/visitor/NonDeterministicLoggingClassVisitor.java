@@ -111,6 +111,8 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
+		
+		
 		if (isAClass) {
 			//TODO re-enable this
 //			{

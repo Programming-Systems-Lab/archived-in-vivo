@@ -16,11 +16,18 @@ public class ReaderUser {
 			int d = 0;
 			int[] x = new int[4];
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
-			char[] buf = new char[1024];
+			char[] buf = new char[2];
 			int charsRead = 0;
 			charsRead = r.read(buf, 0, buf.length);
 			System.out.println(charsRead);
 			System.out.println(buf);
+			while(charsRead > 0)
+			{
+				charsRead = r.read(buf, 0, buf.length);
+				System.out.println(charsRead);
+				System.out.println(buf);
+				Thread.sleep(100);
+			}
 			c++;
 			System.out.println(c);
 			d++;

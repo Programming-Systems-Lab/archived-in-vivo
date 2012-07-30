@@ -15,8 +15,9 @@ public class WallaceExportRunner extends Thread {
 		{
 			export();
 			try {
-				Thread.sleep(300000); //5 minutes
+//				Thread.sleep(300000); //5 minutes
 //				Thread.sleep(10000); //10 seconds
+				Thread.sleep(1000); //1 seconds
 			} catch (InterruptedException e) {
 
 			}

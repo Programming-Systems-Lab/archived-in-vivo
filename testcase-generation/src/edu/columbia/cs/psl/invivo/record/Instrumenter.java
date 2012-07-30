@@ -166,7 +166,7 @@ public class Instrumenter {
 			mvz.returnValue();
 			mvz.visitEnd();
 		}
-		
+	
 		for (MethodCall call : methodCalls.get(className)) {
 			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
 			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "["
@@ -174,6 +174,8 @@ public class Instrumenter {
 			fn.accept(cw);
 			FieldNode fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
 			fn2.accept(cw);
+			FieldNode fn3 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
+			fn3.accept(cw);
 
 			Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
 			for (int i = 0; i < argTypes.length; i++) {
@@ -182,6 +184,8 @@ public class Instrumenter {
 					fn.accept(cw);
 					fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_" + i + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
 					fn2.accept(cw);
+					fn3 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_"+i+"_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
+					fn3.accept(cw);					
 				}
 			}
 		}
@@ -260,18 +264,7 @@ public class Instrumenter {
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearReplayIndices", "()V", null, null);
-			mv.visitCode();
-			for (String clazz : methodCalls.keySet()) {
-				if (methodCalls.get(clazz).size() == 0)
-					continue;
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz, "clearReplayIndices", "()V");
-			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-		}
+
 		/*
 		 * Create the variable
 		 */

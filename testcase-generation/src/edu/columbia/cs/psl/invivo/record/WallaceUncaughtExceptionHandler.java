@@ -17,7 +17,7 @@ public class WallaceUncaughtExceptionHandler implements Thread.UncaughtException
 		Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
 			XStream xstream = new XStream(new StaticReflectionProvider());
 			String xml = xstream.toXML(logger.newInstance());
-			File output = new File("wallace.log");
+			File output = new File("wallace_"+System.currentTimeMillis()+".log");
 			FileWriter fw = new FileWriter(output);
 			fw.write(xml);
 			fw.close();
