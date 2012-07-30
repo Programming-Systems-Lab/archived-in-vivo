@@ -10,6 +10,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
@@ -111,7 +112,43 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
+		for(MethodCall call : loggedMethodCalls)
+		{
+			FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
+			fn.accept(this);
+			Type methodType = Type.getMethodType(call.getMethodDesc());
+			for(int i = 0; i<methodType.getArgumentTypes().length; i++)
+			{
+				if(methodType.getArgumentTypes()[i].getSort() == Type.ARRAY)
+				{
+					FieldNode fn2 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_"+i+"_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
+					fn2.accept(this);
+				}
+			}
+		}
 		
+		if(isAClass)
+		{
+		MethodVisitor mv = this.visitMethod(Opcodes.ACC_STATIC  + ACC_PUBLIC, "clearReplayIndices", "()V", null, null);
+		mv.visitCode();
+		for(MethodCall call : loggedMethodCalls)
+		{
+			mv.visitIntInsn(Opcodes.BIPUSH, 0);
+			mv.visitFieldInsn(Opcodes.PUTSTATIC, className, call.getLogFieldName()+"_replayIndex", Type.INT_TYPE.getDescriptor());
+			Type methodType = Type.getMethodType(call.getMethodDesc());
+			for(int i = 0; i<methodType.getArgumentTypes().length; i++)
+			{
+				if(methodType.getArgumentTypes()[i].getSort() == Type.ARRAY)
+				{
+					mv.visitIntInsn(Opcodes.BIPUSH, 0);
+					mv.visitFieldInsn(Opcodes.PUTSTATIC, className, call.getLogFieldName()+"_"+i+"_replayIndex", Type.INT_TYPE.getDescriptor());
+				}
+			}
+		}
+		mv.visitInsn(Opcodes.RETURN);
+		mv.visitMaxs(0, 0);
+		mv.visitEnd();
+		}
 		/*{
 			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", null, null);
 			CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", className);

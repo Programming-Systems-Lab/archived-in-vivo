@@ -261,12 +261,12 @@ public class Instrumenter {
 			mv.visitEnd();
 		}
 		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLogFill", "()V", null, null);
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearReplayIndices", "()V", null, null);
 			mv.visitCode();
 			for (String clazz : methodCalls.keySet()) {
 				if (methodCalls.get(clazz).size() == 0)
 					continue;
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLogFill", "()V");
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz, "clearReplayIndices", "()V");
 			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(0, 0);

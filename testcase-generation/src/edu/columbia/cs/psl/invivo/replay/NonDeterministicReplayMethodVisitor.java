@@ -127,8 +127,8 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
 									m.getLogFieldName() + "_" + i, 
 									"[" + t.getDescriptor());
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_fill", 
+							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
+									m.getLogFieldName() + "_"+i+"_replayIndex", 
 									"I");
 							arrayLoad(t);
 							/*
@@ -168,14 +168,14 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
 									m.getLogFieldName() + "_" + i, 
 									"[" + t.getDescriptor());
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_fill", 
+							mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
+									m.getLogFieldName() + "_"+i+"_replayIndex", 
 									"I");
 							mv.visitInsn(DUP);
 							mv.visitInsn(ICONST_1);
 							mv.visitInsn(IADD);
-							mv.visitFieldInsn(PUTSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_fill", 
+							mv.visitFieldInsn(PUTSTATIC, m.getSourceClass(), 
+									m.getLogFieldName() + "_"+i+"_replayIndex", 
 									"I");
 							arrayLoad(t);
 							mv.visitInsn(ARRAYLENGTH);
@@ -229,11 +229,11 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 					mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
 							m.getLogFieldName(), 
 							m.getLogFieldType().getDescriptor());
-					mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_fill", "I");
+					mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), m.getLogFieldName()+"_replayIndex", "I");
 					mv.visitInsn(DUP);
 					mv.visitInsn(ICONST_1);
 					mv.visitInsn(IADD);
-					mv.visitFieldInsn(PUTSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_fill", "I");
+					mv.visitFieldInsn(PUTSTATIC, m.getSourceClass(), m.getLogFieldName()+"_replayIndex", "I");
 					arrayLoad(Type.getType(m.getLogFieldType().getDescriptor().substring(1)));
 				}
 

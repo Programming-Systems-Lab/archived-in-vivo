@@ -29,7 +29,7 @@ public class ReaderUser {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-//		throw new Exception("AHHHH i CRASHED");
+		throw new Exception("AHHHH i CRASHED");
 	}
 //	private static int proxy(BufferedReader r,char[] cbuf, int o, int n) throws IOException
 //	{
