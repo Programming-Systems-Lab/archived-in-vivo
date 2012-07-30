@@ -11,7 +11,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
-import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
@@ -149,4 +148,5 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	public void addCaptureMethodsToGenerate(HashMap<String, MethodInsnNode> captureMethodsToGenerate) {
 		this.captureMethodsToGenerate.putAll(captureMethodsToGenerate);
 	}
+
 }

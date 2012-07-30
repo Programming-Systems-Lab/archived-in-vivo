@@ -7,7 +7,7 @@
 	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
 	<classpathentry kind="lib" path="lib/objenesis-1.2.jar"/>
 	<classpathentry kind="lib" path="dacapo-9.12-bach.jar"/>
-	<classpathentry kind="lib" path="lib/xstream-1.4.2.jar"/>
+	<classpathentry kind="lib" path="lib/xstream-1.4.2.jar" sourcepath="/Users/jon/.m2/repository/com/thoughtworks/xstream/xstream/1.4.2/xstream-1.4.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/kxml2-2.3.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

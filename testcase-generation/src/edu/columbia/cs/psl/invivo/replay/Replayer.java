@@ -17,28 +17,21 @@ import java.util.Scanner;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.InstrumenterClassWriter;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
-import edu.columbia.cs.psl.invivo.record.visitor.MutatingFieldClassVisitor;
-import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
 
 public class Replayer {
 	public static URLClassLoader loader;

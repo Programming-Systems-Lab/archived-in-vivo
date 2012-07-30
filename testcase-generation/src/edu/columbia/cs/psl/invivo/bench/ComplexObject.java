@@ -3,7 +3,6 @@ package edu.columbia.cs.psl.invivo.bench;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Map.Entry;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;

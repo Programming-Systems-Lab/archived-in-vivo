@@ -10,27 +10,17 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URL;
 import java.nio.channels.Channel;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.IdentityHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-
 import com.rits.cloning.Cloner;
-import com.thoughtworks.xstream.XStream;
-
-import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 public class CloningUtils {
 	public static boolean				CATCH_ALL_ERRORS	= true;
@@ -38,6 +28,7 @@ public class CloningUtils {
 	public static ReadWriteLock		exportLock			= new ReentrantReadWriteLock();
 	private static HashSet<Class<?>>	moreIgnoredImmutables;
 	private static BufferedWriter		log;
+	private static WallaceExportRunner exporter = new WallaceExportRunner();
 	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
 		moreIgnoredImmutables.add(ClassLoader.class);
@@ -57,6 +48,8 @@ public class CloningUtils {
 
 		cloner.setExtraNullInsteadOfClone(moreIgnoredImmutables);
 		cloner.setExtraImmutables(moreIgnoredImmutables);
+		
+		exporter.start();
 		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
@@ -88,22 +81,9 @@ public class CloningUtils {
 	}
 
 	public static IdentityHashMap<Object, Object>	cloneCache	= new IdentityHashMap<Object, Object>();	;
-
+	
 	public static void exportLog() {
-		try {
-
-			Class logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
-			XStream xstream = new XStream(new StaticReflectionProvider());
-			exportLock.writeLock().lock();
-			String xml = xstream.toXML(logger.newInstance());
-			exportLock.writeLock().unlock();
-			File output = new File("wallace_"+System.currentTimeMillis()+".log");
-			FileWriter fw = new FileWriter(output);
-			fw.write(xml);
-			fw.close();
-		} catch (Exception exi) {
-			exi.printStackTrace();
-		}
+		
 	}
 
 }

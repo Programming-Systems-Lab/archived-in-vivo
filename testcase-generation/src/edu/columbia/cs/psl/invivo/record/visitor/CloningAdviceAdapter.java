@@ -1,8 +1,6 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -13,8 +11,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.FieldNode;
-
-import com.rits.cloning.Cloner;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
@@ -396,7 +392,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected void generateCloneInner(String typeOfField) {
 		_generateClone(typeOfField, Constants.INNER_COPY_METHOD_NAME, null);
 	}
-	protected void println(String toPrint)
+	public void println(String toPrint)
 	{
 		visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 		visitLdcInsn(toPrint + " : ");
@@ -407,14 +403,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
 	}
-	private static boolean[] bar;
-	private static int x;
-	private void foo()
-	{
-		synchronized (bar) {
-			x++;
-		}
-	}
+
 	private void _generateClone(String typeOfField, String copyMethodToCall, String debug) {
 		Type fieldType = Type.getType(typeOfField);
 
@@ -473,7 +462,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		Label monitorEndLabel = new Label();
 		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
-		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+
 
 
 		visitLabel(monitorStart);
@@ -576,7 +565,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitInsn(Opcodes.ICONST_1);
 		super.visitInsn(Opcodes.IADD);
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
-
+//		println("Incremented fill for " + logFieldOwner+"."+logFieldName);
 		//Release the export lock
 		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
 		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
@@ -586,7 +575,7 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitVarInsn(ALOAD, monitorIndx);
 		super.monitorExit();
 		visitLabel(monitorEndLabel);
-		
+		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
 }
