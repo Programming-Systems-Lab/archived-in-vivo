@@ -5,43 +5,60 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import com.thoughtworks.xstream.converters.reflection.ObjectAccessException;
 import com.thoughtworks.xstream.converters.reflection.Sun14ReflectionProvider;
 
+public class StaticReflectionProvider extends Sun14ReflectionProvider {
+	public void writeField(Object object, String fieldName, Object value, Class definedIn) {
+		if (!Modifier.isStatic(fieldDictionary.field(object.getClass(), fieldName, definedIn).getModifiers())) {
+			super.writeField(object, fieldName, value, definedIn);
+		}
+		else
+		{
+			try {
+				fieldDictionary.field(object.getClass(), fieldName, definedIn).set(null, value);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
-public class StaticReflectionProvider extends Sun14ReflectionProvider{
-	
-	public StaticReflectionProvider()
-	{
+	public StaticReflectionProvider() {
 		super(new CatchClassErrorFieldDictionary());
 	}
+
 	@Override
 	public void visitSerializableFields(Object object, Visitor visitor) {
 		for (Iterator iterator = fieldDictionary.fieldsFor(object.getClass()); iterator.hasNext();) {
-            Field field = (Field) iterator.next();
-            if (!fieldModifiersSupported(field)) {
-                continue;
-            }
-            validateFieldAccess(field);
-            try {
-                Object value = field.get(object);
-                visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
+			Field field = (Field) iterator.next();
+			if (!fieldModifiersSupported(field)) {
+				continue;
+			}
+			validateFieldAccess(field);
+			try {
+				Object value = field.get(object);
+				visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
 
-            } catch (IllegalArgumentException e) {
-                throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
-            } catch (IllegalAccessException e) {
-                throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
-            } catch (SecurityException e) {
+			} catch (IllegalArgumentException e) {
+				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
+			} catch (IllegalAccessException e) {
+				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
+			} catch (SecurityException e) {
 				e.printStackTrace();
 			}
-        }
+		}
 	}
-	
-	
+
 	@Override
 	protected boolean fieldModifiersSupported(Field field) {
 		int modifiers = field.getModifiers();
-	    return !(Modifier.isTransient(modifiers)); 
+		return !(Modifier.isTransient(modifiers));
 	}
 }

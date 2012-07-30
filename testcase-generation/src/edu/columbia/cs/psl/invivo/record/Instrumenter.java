@@ -145,6 +145,28 @@ public class Instrumenter {
 			mvz.visitEnd();
 		}
 
+		{
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "clearLogFill", "()V", null, null);
+			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLogFill", "()V");
+			mvz.visitCode();
+			for (MethodCall call : methodCalls.get(className)) {
+				mvz.push(0);
+				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_fill", Type.INT_TYPE);
+
+				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
+				for (int i = 0; i < argTypes.length; i++) {
+					if (argTypes[i].getSort() == Type.ARRAY) {
+						mvz.push(0);
+						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i + "_fill",
+								Type.INT_TYPE);
+					}
+				}
+			}
+			mvz.visitMaxs(0, 0);
+			mvz.returnValue();
+			mvz.visitEnd();
+		}
+		
 		for (MethodCall call : methodCalls.get(className)) {
 			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
 			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "["
@@ -204,35 +226,10 @@ public class Instrumenter {
 		for (String clazz : methodCalls.keySet()) {
 			if (methodCalls.get(clazz).size() == 0)
 				continue;
-			// Label labelContinue = new Label();
-			// mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS,
-			// clazz.replace("/", "_"), "L"+clazz +
-			// Constants.LOG_CLASS_SUFFIX+";");
-			// mvz.visitJumpInsn(Opcodes.IFNONNULL, labelContinue);
-			// Label labelStartTry = new Label();
-			// Label labelEndTry = new Label();
-			// Label labelStartCatch = new Label();
-
-			// mvz.visitTryCatchBlock(labelStartTry, labelEndTry,
-			// labelStartCatch, "java/lang/NoClassDefFoundError");
-			// mvz.visitLabel(labelStartTry);
 			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
 			mvz.visitInsn(Opcodes.DUP);
 			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
 			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
-			// mvz.visitLabel(labelEndTry);
-			// mvz.visitJumpInsn(Opcodes.GOTO, labelContinue);
-			// mvz.visitLabel(labelStartCatch);
-			// mvz.visitInsn(Opcodes.POP);
-			// mvz.visitInsn(Opcodes.ACONST_NULL);
-			// mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS,
-			// clazz.replace("/", "_"), "L"+clazz +
-			// Constants.LOG_CLASS_SUFFIX+";");
-
-			// mvz.visitLabel(labelContinue);
-			// mvz.putStatic(Type.getType(Constants.LOG_DUMP_CLASS),
-			// clazz.replace("/", "-"), Type.getType(clazz +
-			// Constants.LOG_CLASS_SUFFIX));
 		}
 		mvz.returnValue();
 		mvz.visitMaxs(0, 0);
@@ -263,7 +260,18 @@ public class Instrumenter {
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
-
+		{
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLogFill", "()V", null, null);
+			mv.visitCode();
+			for (String clazz : methodCalls.keySet()) {
+				if (methodCalls.get(clazz).size() == 0)
+					continue;
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLogFill", "()V");
+			}
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(0, 0);
+			mv.visitEnd();
+		}
 		/*
 		 * Create the variable
 		 */

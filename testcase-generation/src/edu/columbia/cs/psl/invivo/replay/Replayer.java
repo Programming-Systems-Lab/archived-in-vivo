@@ -73,7 +73,6 @@ public class Replayer {
 			ma.doneSupplyingClasses();
 			break;
 		case PASS_OUTPUT:
-			generateLogOfLogClass();
 			break;
 		}
 	}
@@ -132,85 +131,6 @@ public class Replayer {
 	 * cw.toByteArray(); }
 	 */
 
-	private static void generateLogOfLogClass() {
-		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS
-				| ClassWriter.COMPUTE_FRAMES, loader);
-		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null,
-				"java/lang/Object", null);
-		cv.visitSource(null, null);
-
-		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
-				+ Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC
-				| Opcodes.ACC_STATIC, "<clinit>", "()V");
-		mvz.visitCode();
-
-		for (String clazz : methodCalls.keySet()) {
-			if (methodCalls.get(clazz).size() == 0)
-				continue;
-			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
-			mvz.visitInsn(Opcodes.DUP);
-			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz
-					+ Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
-			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS,
-					clazz.replace("/", "_"), "L" + clazz
-							+ Constants.LOG_CLASS_SUFFIX + ";");
-		}
-
-		mvz.returnValue();
-		mvz.visitMaxs(0, 0);
-		mvz.visitEnd();
-
-		/*
-		 * We need to generate a constructor for the class that does nothing, to
-		 * allow for serialization/deserialization
-		 */
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object",
-					"<init>", "()V");
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(1, 1);
-			mv.visitEnd();
-		}
-
-		/*
-		 * Create the variable
-		 */
-		for (String clazz : methodCalls.keySet()) {
-			if (methodCalls.get(clazz).size() == 0)
-				continue;
-			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace(
-					"/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";",
-					null, null);
-			fn.accept(cv);
-		}
-		cv.visitEnd();
-
-		try {
-			File outputDir = new File(rootOutputDir
-					+ File.separator
-					+ "bin"
-					+ File.separator
-					+ Constants.LOG_DUMP_CLASS.substring(0,
-							Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
-			outputDir.mkdirs();
-			FileOutputStream fos = new FileOutputStream(
-					outputDir
-							+ Constants.LOG_DUMP_CLASS
-									.substring(Constants.LOG_DUMP_CLASS
-											.lastIndexOf("/")) + ".class");
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			bos.write(cv.toByteArray());
-			bos.writeTo(fos);
-			fos.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-	}
 
 	private static byte[] instrumentClass(InputStream is) {
 		try {
@@ -300,16 +220,17 @@ public class Replayer {
 			break;
 		case PASS_OUTPUT:
 			try {
-				fos = new FileOutputStream(outputDir.getPath()
-						+ File.separator
-						+ name.replace(".class", Constants.REPLAY_CLASS_SUFFIX
-								+ ".class"));
+				File f = new File(outputDir.getPath()
+						+ File.separator + name);
+				if(f.exists())
+					f.delete();
+				fos = new FileOutputStream(f);
 				bos = new ByteArrayOutputStream();
 				bos.write(instrumentClass(is));
 				
-				if (name.contains("Reader")) {
-					ReplayRunner.run(bos.toByteArray(), "ReaderUser");
-				}
+//				if (name.contains("Reader")) {
+//					ReplayRunner.run(bos.toByteArray(), "ReaderUser");
+//				}
 	
 			} catch (Exception ex) {
 				ex.printStackTrace();
