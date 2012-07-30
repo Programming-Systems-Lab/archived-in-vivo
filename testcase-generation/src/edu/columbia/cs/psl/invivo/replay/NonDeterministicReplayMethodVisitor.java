@@ -78,7 +78,6 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 
 	@Override
 	public void visitEnd() {
-		System.out.println("Visiting: " + this.name);
 		super.visitEnd();
 		parent.addFieldMarkup(methodCallsToClear);
 		parent.addCaptureMethodsToGenerate(captureMethodsToGenerate);
