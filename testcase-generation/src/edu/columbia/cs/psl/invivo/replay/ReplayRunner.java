@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
@@ -37,22 +38,35 @@ public class ReplayRunner {
 			exi.printStackTrace();
 		}
 	}
+	
 	public static void main(String[] args) {
 		if (args.length < 2) {
-			System.err.println("Usage: ReplayRunner <mainClass> log [log2...logN]");
+			System.err.println("Usage: ReplayRunner <mainClass> log [log2...logN] class_args [arg1...argM]");
 			System.exit(-1);
 		}
 		String mainClass = args[0];
 		logFiles = new String[args.length - 1];
-		for (int i = 1; i < args.length; i++)
-			logFiles[i - 1] = args[i];
+		int class_args = args.length;
+		for (int i = 1; i < args.length; i++) {
+			if (!args[i].equals("class_args"))
+				logFiles[i - 1] = args[i];
+			else {
+				class_args = i + 1;
+				break;
+			}
+		}
+		
 		System.out.println("Available logs: " + Arrays.deepToString(logFiles));
 		_loadNextLog();
 
 		Class<?> toRun;
 		try {
 			toRun = Class.forName(mainClass);
-			toRun.getMethod("main", new Class<?>[] { args.getClass() }).invoke(null, new Object[] { new String[0] });
+			Method meth = toRun.getMethod("main", String[].class);
+			String[] params = new String[args.length - class_args];
+			if (class_args < args.length)
+				System.arraycopy(args, class_args, params, 0, params.length);
+		    meth.invoke(null, new Object[]{ params });
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
