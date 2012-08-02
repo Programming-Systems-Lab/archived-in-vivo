@@ -50,12 +50,6 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 		return null;
 	}
 
-	@Override
-	protected void onMethodEnter() {
-		super.onMethodEnter();
-		// Soo... what fields is that exactly?
-		System.out.println(this.name + " " + this.methodDesc);
-	}
 
 	/**
 	 * If this method directly changes fields, store a local variable with the

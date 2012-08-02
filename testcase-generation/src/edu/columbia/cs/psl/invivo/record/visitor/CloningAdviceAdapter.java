@@ -9,6 +9,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
+import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.FieldNode;
 
@@ -16,7 +17,7 @@ import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
-public class CloningAdviceAdapter extends AdviceAdapter {
+public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 
 	private static final HashSet<String> ignoredClasses = new HashSet<String>();
 

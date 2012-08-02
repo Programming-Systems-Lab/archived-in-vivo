@@ -67,10 +67,6 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		this.parent = coaClassVisitor;
 	}
 
-	@Override
-	protected void onMethodEnter() {
-		super.onMethodEnter();
-	}
 
 	@Override
 	public void visitEnd() {
@@ -116,18 +112,18 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 							captureDesc += t.getDescriptor();
 						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
 					}
-					super.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
+					mv.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
 					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							name + "\t" + desc);
 				}
 				else
 				{
-					super.visitMethodInsn(opcode, owner, name, desc);
+					mv.visitMethodInsn(opcode, owner, name, desc);
 					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							owner+"."+name + "\t" + desc);
 				}
 			} else
-				super.visitMethodInsn(opcode, owner, name, desc);
+				mv.visitMethodInsn(opcode, owner, name, desc);
 			pc++;
 		} catch (Exception ex) {
 			logger.error("Unable to instrument method call", ex);

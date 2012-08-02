@@ -214,7 +214,6 @@ public class Instrumenter {
 			ex.printStackTrace();
 		}
 	}
-
 	private static void generateLogOfLogClass() {
 		// if(1 ==1 ) //TODO let this run on some things
 		// return;
@@ -227,14 +226,18 @@ public class Instrumenter {
 		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
 		mvz.visitCode();
 
-		for (String clazz : methodCalls.keySet()) {
-			if (methodCalls.get(clazz).size() == 0)
-				continue;
-			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
-			mvz.visitInsn(Opcodes.DUP);
-			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
-			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
-		}
+//		for (String clazz : methodCalls.keySet()) {
+//			if (methodCalls.get(clazz).size() == 0)
+//				continue;
+//			mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, "log", Type.getDescriptor(HashMap.class));
+//			mvz.visitLdcInsn(clazz);
+//			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
+//			mvz.visitInsn(Opcodes.DUP);
+//			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
+//			mvz.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+//			mvz.visitInsn(Opcodes.POP);
+////			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
+//		}
 		mvz.returnValue();
 		mvz.visitMaxs(0, 0);
 		mvz.visitEnd();
@@ -255,26 +258,31 @@ public class Instrumenter {
 		{
 			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
 			mv.visitCode();
-			for (String clazz : methodCalls.keySet()) {
-				if (methodCalls.get(clazz).size() == 0)
-					continue;
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
-			}
+//			for (String clazz : methodCalls.keySet()) {
+//				if (methodCalls.get(clazz).size() == 0)
+//					continue;
+//				mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, "log", Type.getDescriptor(HashMap.class));
+//				mv.visitLdcInsn(clazz);
+//				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/HashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+//				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
+//			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
 
+		FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,"log", Type.getDescriptor(HashMap.class), null, null);
+		fn.accept(cv);
 		/*
 		 * Create the variable
 		 */
-		for (String clazz : methodCalls.keySet()) {
-			if (methodCalls.get(clazz).size() == 0)
-				continue;
-			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
-			fn.accept(cv);
-		}
+//		for (String clazz : methodCalls.keySet()) {
+//			if (methodCalls.get(clazz).size() == 0)
+//				continue;
+//			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
+//			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
+//			fn.accept(cv);
+//		}
 		cv.visitEnd();
 
 		try {
