@@ -439,8 +439,11 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 				invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
 				checkCast(fieldType);
 			}
-		} else
+		} else if(fieldType.getClassName().contains("InputStream") || fieldType.getClassName().contains("OutputStream") || fieldType.getClassName().contains("Socket") )
 		{
+			//Do nothing
+		}
+		else{
 			visitLdcInsn(debug);
 			invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
 			checkCast(fieldType);
@@ -458,25 +461,25 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
-		Label monitorStart = new Label();
-		Label monitorEndLabel = new Label();
-		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
-		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+//		Label monitorStart = new Label();
+//		Label monitorEndLabel = new Label();
+//		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+//		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
 
 
 
-		visitLabel(monitorStart);
+//		visitLabel(monitorStart);
 		
 		//Lock
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
-		dup();
-		super.visitVarInsn(ASTORE,monitorIndx);
-		super.monitorEnter();
+//		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+//		dup();
+//		super.visitVarInsn(ASTORE,monitorIndx);
+//		super.monitorEnter();
 		
 		//Also acquire a read lock for the export lock
-		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
-		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
-		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
+//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
 		
 		// Grow the array if necessary
 		if (!isStaticLoggingField)
@@ -567,15 +570,15 @@ public class CloningAdviceAdapter extends AdviceAdapter {
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 //		println("Incremented fill for " + logFieldOwner+"."+logFieldName);
 		//Release the export lock
-		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
-		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
-		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
+//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
 		
 		//Unlock
-		super.visitVarInsn(ALOAD, monitorIndx);
-		super.monitorExit();
-		visitLabel(monitorEndLabel);
-		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+//		super.visitVarInsn(ALOAD, monitorIndx);
+//		super.monitorExit();
+//		visitLabel(monitorEndLabel);
+//		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
 }

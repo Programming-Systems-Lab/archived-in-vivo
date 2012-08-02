@@ -3,6 +3,7 @@ Jetty
 1) 377550 set charset when content type is set
    Commit: 0524e2d47a0764b024b5783b6699ca0b7661200c
    file: test-jetty-servlet/src/test/java/org/eclipse/jetty/testing/HttpTesterTest.java
+https://bugs.eclipse.org/bugs/show_bug.cgi?id=377550
 
 2) 363993 EOFException parsing HEAD response in HttpTester
    Commit: 644ea655d5cc83adc952c8695456f3a84b592804

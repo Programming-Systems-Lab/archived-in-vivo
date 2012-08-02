@@ -27,7 +27,7 @@ public class CloningUtils {
 	private static Cloner				cloner				= new Cloner();
 	public static ReadWriteLock		exportLock			= new ReentrantReadWriteLock();
 	private static HashSet<Class<?>>	moreIgnoredImmutables;
-	private static BufferedWriter		log;
+//	private static BufferedWriter		log;
 	private static WallaceExportRunner exporter = new WallaceExportRunner();
 	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
@@ -53,37 +53,33 @@ public class CloningUtils {
 		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
-		try {
-			File f = new File("cloneLog");
-			if (f.exists())
-				f.delete();
-			log = new BufferedWriter(new FileWriter("cloneLog"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			File f = new File("cloneLog");
+//			if (f.exists())
+//				f.delete();
+//			log = new BufferedWriter(new FileWriter("cloneLog"));
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	public static final <T> T clone(T obj, String debug) {
-		if (obj != null && !obj.getClass().isArray() && !obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
+//				&& !obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
 
-		&& !obj.getClass().getName().contains("ClassLoader") && !obj.getClass().getName().contains("InputStream")
-				&& !obj.getClass().getName().contains("JarURLConnection")) {
-			try {
-				log.append(debug + "\n");
-				log.flush();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
+//		&& !obj.getClass().getName().contains("ClassLoader") && !obj.getClass().getName().contains("InputStream")
+//				&& !obj.getClass().getName().contains("JarURLConnection")
+//				) {
+//			try {
+//				log.append(debug + "->  " + obj.getClass() + "\n");
+//				log.flush();
+//			} catch (Exception ex) {
+//				ex.printStackTrace();
+//			}
 			return cloner.deepClone(obj);
-		}
-		return null;
 	}
 
 	public static IdentityHashMap<Object, Object>	cloneCache	= new IdentityHashMap<Object, Object>();	;
 	
-	public static void exportLog() {
-		
-	}
 
 }
