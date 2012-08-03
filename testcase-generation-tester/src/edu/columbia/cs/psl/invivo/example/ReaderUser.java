@@ -2,14 +2,27 @@ package edu.columbia.cs.psl.invivo.example;
 
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
-public class ReaderUser {
+public class ReaderUser extends FilterInputStream {
+	protected ReaderUser(InputStream in) {
+		super(in);
+		// TODO Auto-generated constructor stub
+	}
+	int x =0;
+	@Override
+	public int read(byte[] b) throws IOException {
+		x++;
+		return super.read(b);
+	}
 	private void go() throws Exception{
 		try {
 			int c = 0;
@@ -17,6 +30,8 @@ public class ReaderUser {
 			int[] x = new int[4];
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
 			char[] buf = new char[2];
+			int zz = read(new byte[4]);
+			System.out.println("zz: " + zz);
 			int charsRead = 0;
 			charsRead = r.read(buf, 0, buf.length);
 			System.out.println(charsRead);
@@ -43,6 +58,6 @@ public class ReaderUser {
 //		return r.read(cbuf, o, n);
 //	}
 	public static void main(String[] args) throws Exception{
-		new ReaderUser().go();
+		new ReaderUser(new FileInputStream("in-vivo.log")).go();
 	}
 }

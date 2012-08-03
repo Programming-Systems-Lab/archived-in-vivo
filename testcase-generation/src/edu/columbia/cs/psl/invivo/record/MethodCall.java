@@ -61,7 +61,6 @@ public class MethodCall {
 		result = prime * result + ((methodOwner == null) ? 0 : methodOwner.hashCode());
 		result = prime * result + pc;
 		result = prime * result + ((sourceClass == null) ? 0 : sourceClass.hashCode());
-		result = prime * result + ((sourceMethodDesc == null) ? 0 : sourceMethodDesc.hashCode());
 		result = prime * result + ((sourceMethodName == null) ? 0 : sourceMethodName.hashCode());
 		return result;
 	}
@@ -74,45 +73,13 @@ public class MethodCall {
 		if (getClass() != obj.getClass())
 			return false;
 		MethodCall other = (MethodCall) obj;
-		if (lineNumber != other.lineNumber)
-			return false;
-		if (methodDesc == null) {
-			if (other.methodDesc != null)
-				return false;
-		} else if (!methodDesc.equals(other.methodDesc))
-			return false;
-		if (methodName == null) {
-			if (other.methodName != null)
-				return false;
-		} else if (!methodName.equals(other.methodName))
-			return false;
-		if (methodOwner == null) {
-			if (other.methodOwner != null)
-				return false;
-		} else if (!methodOwner.equals(other.methodOwner))
-			return false;
-		if (pc != other.pc)
-			return false;
-		if (sourceClass == null) {
-			if (other.sourceClass != null)
-				return false;
-		} else if (!sourceClass.equals(other.sourceClass))
-			return false;
-		if (sourceMethodDesc == null) {
-			if (other.sourceMethodDesc != null)
-				return false;
-		} else if (!sourceMethodDesc.equals(other.sourceMethodDesc))
-			return false;
-		if (sourceMethodName == null) {
-			if (other.sourceMethodName != null)
-				return false;
-		} else if (!sourceMethodName.equals(other.sourceMethodName))
-			return false;
-		return true;
+		if(other.getLogFieldName().equals(this.getLogFieldName()) && other.sourceClass.equals(this.sourceClass))
+			return true;
+		return false;
 	}
 	public String getLogFieldName()
 	{
-//		Type[] args = Type.getArgumentTypes(methodDesc);
+		Type[] args = Type.getArgumentTypes(methodDesc);
 		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
 //		for(Type t : args)
 //		{

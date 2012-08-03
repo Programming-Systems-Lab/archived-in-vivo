@@ -28,6 +28,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.analysis.MutabilityAnalyzer;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
@@ -312,8 +313,8 @@ public class Instrumenter {
 			methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
 			lastInstrumentedClass = cv.getClassName();
 			byte[] out = cw.toByteArray();
-			// ClassReader cr2 = new ClassReader(out);
-			// cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+//			 ClassReader cr2 = new ClassReader(out);
+//			 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
 			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class:", ex);

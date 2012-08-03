@@ -104,7 +104,13 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 				{	//TODO uncomment this block
 					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
 					String captureDesc = desc;
-					if(opcode != Opcodes.INVOKESTATIC)
+					
+					int invokeOpcode = Opcodes.INVOKESTATIC;
+					if(opcode == Opcodes.INVOKESPECIAL && !name.equals("<init>"))
+					{
+						invokeOpcode = Opcodes.INVOKESPECIAL;
+					}
+					else if(opcode != Opcodes.INVOKESTATIC)
 					{
 						//Need to put owner of the method on the top of the args list
 						captureDesc = "(L" +  owner +";";
@@ -112,7 +118,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 							captureDesc += t.getDescriptor();
 						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
 					}
-					mv.visitMethodInsn(Opcodes.INVOKESTATIC, classDesc, m.getLogFieldName()+"_capture", captureDesc);
+					mv.visitMethodInsn(invokeOpcode, classDesc, m.getLogFieldName()+"_capture", captureDesc);
 					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							name + "\t" + desc);
 				}
@@ -130,7 +136,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		}
 	}
 
-	private ArrayList<MethodCall>	methodCallsToClear	= new ArrayList<MethodCall>();
+	private HashSet<MethodCall>	methodCallsToClear	= new HashSet<MethodCall>();
 
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {

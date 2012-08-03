@@ -462,20 +462,20 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
-//		Label monitorStart = new Label();
-//		Label monitorEndLabel = new Label();
-//		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
-//		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+		Label monitorStart = new Label();
+		Label monitorEndLabel = new Label();
+		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
 
 
 
-//		visitLabel(monitorStart);
+		visitLabel(monitorStart);
 		
 		//Lock
-//		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
-//		dup();
-//		super.visitVarInsn(ASTORE,monitorIndx);
-//		super.monitorEnter();
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		dup();
+		super.visitVarInsn(ASTORE,monitorIndx);
+		super.monitorEnter();
 		
 		//Also acquire a read lock for the export lock
 //		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
@@ -576,10 +576,10 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 //		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
 		
 		//Unlock
-//		super.visitVarInsn(ALOAD, monitorIndx);
-//		super.monitorExit();
-//		visitLabel(monitorEndLabel);
-//		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+		super.visitVarInsn(ALOAD, monitorIndx);
+		super.monitorExit();
+		visitLabel(monitorEndLabel);
+		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
 }

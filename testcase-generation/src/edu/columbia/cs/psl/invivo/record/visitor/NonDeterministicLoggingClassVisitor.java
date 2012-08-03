@@ -1,6 +1,7 @@
 package edu.columbia.cs.psl.invivo.record.visitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -67,7 +68,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	private HashSet<MethodCall> loggedMethodCalls = new HashSet<MethodCall>();
 	private HashMap<String, MethodInsnNode> captureMethodsToGenerate = new HashMap<String, MethodInsnNode>();
 
-	public void addFieldMarkup(ArrayList<MethodCall> calls) {
+	public void addFieldMarkup(Collection<MethodCall> calls) {
 		logger.debug("Received field markup from method visitor (" + calls.size() + ")");
 		loggedMethodCalls.addAll(calls);
 		// TODO also setup the new method to retrieve the list of replacements
@@ -82,16 +83,22 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			String methodDesc = mi.desc;
 
 			String captureDesc = mi.desc;
-			if (mi.getOpcode() != Opcodes.INVOKESTATIC) {
+			
+			int opcode = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
+			if(mi.getOpcode() == Opcodes.INVOKESPECIAL && !mi.name.equals("<init>"))
+				opcode = Opcodes.ACC_PRIVATE;
+			else if (mi.getOpcode() != Opcodes.INVOKESTATIC) {
 				// Need to put owner of the method on the top of the args list
 				captureDesc = "(L" + mi.owner + ";";
 				for (Type t : Type.getArgumentTypes(mi.desc))
 					captureDesc += t.getDescriptor();
 				captureDesc += ")" + Type.getReturnType(mi.desc).getDescriptor();
 			}
-			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, logFieldName + "_capture", captureDesc, null, null);
-			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, logFieldName + "_capture", captureDesc, className);
+			MethodVisitor mv = super.visitMethod(opcode, logFieldName + "_capture", captureDesc, null, null);
+			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, opcode, logFieldName + "_capture", captureDesc, className);
 			Type[] args = Type.getArgumentTypes(captureDesc);
+			if(opcode == Opcodes.ACC_PRIVATE)
+				caa.loadThis();
 			for (int i = 0; i < args.length; i++) {
 				caa.loadArg(i);
 			}
@@ -99,7 +106,8 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].getSort() == Type.ARRAY) {
 					caa.loadArg(i);
-					caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName + "_" + (i - (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)), "[" + args[i].getDescriptor(),
+					//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
+					caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName + "_" + (i - (mi.getOpcode() == Opcodes.INVOKESTATIC || opcode == Opcodes.ACC_PRIVATE ? 0 : 1)), "[" + args[i].getDescriptor(),
 							args[i], true, mi.name+"_"+i+"\t"+args[i].getDescriptor());
 					if (args[i].getSize() == 1)
 						caa.pop();
