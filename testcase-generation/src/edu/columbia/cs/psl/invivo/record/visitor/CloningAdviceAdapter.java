@@ -582,4 +582,9 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
 	}
 
+	protected void onMethodEnter() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
