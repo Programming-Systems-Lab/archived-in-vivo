@@ -120,7 +120,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 					}
 					mv.visitMethodInsn(invokeOpcode, classDesc, m.getLogFieldName()+"_capture", captureDesc);
 					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
-							name + "\t" + desc);
+							owner+"."+name + "\t" + desc);
 				}
 				else
 				{

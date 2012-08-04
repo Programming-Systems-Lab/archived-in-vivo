@@ -15,9 +15,7 @@ public class StaticReflectionProvider extends Sun14ReflectionProvider {
 	public void writeField(Object object, String fieldName, Object value, Class definedIn) {
 		if (!Modifier.isStatic(fieldDictionary.field(object.getClass(), fieldName, definedIn).getModifiers())) {
 			super.writeField(object, fieldName, value, definedIn);
-		}
-		else
-		{
+		} else {
 			try {
 				fieldDictionary.field(object.getClass(), fieldName, definedIn).set(null, value);
 			} catch (IllegalArgumentException e) {
@@ -44,7 +42,12 @@ public class StaticReflectionProvider extends Sun14ReflectionProvider {
 			validateFieldAccess(field);
 			try {
 				Object value = field.get(object);
-				visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
+				if (value != null)
+					synchronized (value) {
+						visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
+					}
+				else
+					visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
 
 			} catch (IllegalArgumentException e) {
 				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);

@@ -20,7 +20,7 @@ import edu.columbia.cs.psl.invivo.record.Instrumenter;
 public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 
 	private static final HashSet<String>	ignoredClasses		= new HashSet<String>();
-	private static boolean					threadSafe			= true;
+	private static boolean					threadSafe			= false;
 	private static final HashSet<String>	immutableClasses	= new HashSet<String>();
 	static {
 		immutableClasses.add("Ljava/lang/Integer;");
