@@ -195,50 +195,26 @@ public class Instrumenter {
 		return cw.toByteArray();
 	}
 
-	/*
-	 * GETSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
-	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; IFNONNULL L4 L0
-	 * LINENUMBER 154 L0 NEW edu/columbia/cs/psl/invivo/record/Instrumenter DUP
-	 * INVOKESPECIAL edu/columbia/cs/psl/invivo/record/Instrumenter.<init>()V
-	 * PUTSTATIC edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
-	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; L1 GOTO L4 L2 LINENUMBER
-	 * 156 L2 FRAME SAME1 java/lang/Exception ASTORE 0 L5 LINENUMBER 158 L5
-	 * ACONST_NULL PUTSTATIC
-	 * edu/columbia/cs/psl/invivo/record/Instrumenter.instance :
-	 * Ledu/columbia/cs/psl/invivo/record/Instrumenter; L4 LINENUMBER 161 L4
-	 * FRAME SAME
-	 */
-	private static void magic() {
-		try {
-			System.out.println("foo");
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	private static void generateLogOfLogClass() {
-		// if(1 ==1 ) //TODO let this run on some things
-		// return;
+	private static void generateLogOfLogClass(int logSuffix, HashSet<String> methodCalls)
+	{
+
 		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
 		// CheckClassAdapter cv = new CheckClassAdapter(cw);
-		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);
+		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS + logSuffix, null, "java/lang/Object", null);
 		cv.visitSource(null, null);
 
 		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
 		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
 		mvz.visitCode();
 
-//		for (String clazz : methodCalls.keySet()) {
-//			if (methodCalls.get(clazz).size() == 0)
-//				continue;
-//			mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, "log", Type.getDescriptor(HashMap.class));
-//			mvz.visitLdcInsn(clazz);
-//			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
-//			mvz.visitInsn(Opcodes.DUP);
-//			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
-//			mvz.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-//			mvz.visitInsn(Opcodes.POP);
-////			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
-//		}
+		for (String clazz : methodCalls) {
+			if (Instrumenter.methodCalls.get(clazz).size() == 0)
+				continue;
+			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
+			mvz.visitInsn(Opcodes.DUP);
+			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
+			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS+ logSuffix, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
+		}
 		mvz.returnValue();
 		mvz.visitMaxs(0, 0);
 		mvz.visitEnd();
@@ -259,29 +235,112 @@ public class Instrumenter {
 		{
 			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
 			mv.visitCode();
-//			for (String clazz : methodCalls.keySet()) {
-//				if (methodCalls.get(clazz).size() == 0)
-//					continue;
-//				mvz.visitFieldInsn(Opcodes.GETSTATIC, Constants.LOG_DUMP_CLASS, "log", Type.getDescriptor(HashMap.class));
-//				mv.visitLdcInsn(clazz);
-//				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/HashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
-//				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
+			for (String clazz : methodCalls) {
+				if (Instrumenter.methodCalls.get(clazz).size() == 0)
+					continue;
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
+			}
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(0, 0);
+			mv.visitEnd();
+		}
+		/*
+		 * Create the variable
+		 */
+		for (String clazz : methodCalls) {
+			if (Instrumenter.methodCalls.get(clazz).size() == 0)
+				continue;
+			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
+			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
+			fn.accept(cv);
+		}
+		cv.visitEnd();
+
+		try {
+			File outputDir = new File(rootOutputDir + File.separator + "bin" + File.separator
+					+ Constants.LOG_DUMP_CLASS.substring(0, Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
+			outputDir.mkdirs();
+			FileOutputStream fos = new FileOutputStream(outputDir + Constants.LOG_DUMP_CLASS.substring(Constants.LOG_DUMP_CLASS.lastIndexOf("/")) + logSuffix
+					+ ".class");
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			bos.write(cv.toByteArray());
+			bos.writeTo(fos);
+			fos.close();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	private static void generateLogOfLogClass() {
+		
+		HashSet<String> calls = new HashSet<String>();
+		int maxLog = 0;
+		for(String clazz : methodCalls.keySet())
+		{
+			calls.add(clazz);
+			if(calls.size() > 500)
+			{
+				generateLogOfLogClass(maxLog,calls);
+				calls.clear();
+				maxLog++;
+			}
+		}
+		if(calls.size() > 0)
+		{
+			generateLogOfLogClass(maxLog, calls);
+			calls.clear();
+			maxLog++;
+		}
+		
+		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
+		// CheckClassAdapter cv = new CheckClassAdapter(cw);
+		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);
+		cv.visitSource(null, null);
+		MethodVisitor mv;
+		/*
+		 * We need to generate a constructor for the class that does nothing, to
+		 * allow for serialization/deserialization
+		 */
+		{
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+			mv.visitCode();
+			mv.visitVarInsn(Opcodes.ALOAD, 0);
+			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(1, 1);
+			mv.visitEnd();
+		}
+//		{
+//			mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+//			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
+//			mvz.visitCode();
+//	
+//			for (int i = 0; i < maxLog; i++) {
+//				mvz.visitTypeInsn(Opcodes.NEW,Constants.LOG_DUMP_CLASS + i);
+//				mvz.visitInsn(Opcodes.DUP);
+//				mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, Constants.LOG_DUMP_CLASS + i, "<init>", "()V");
+//				mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i+ ";");
+//			}
+//			mvz.returnValue();
+//			mvz.visitMaxs(0, 0);
+//			mvz.visitEnd();
+//		}
+		{
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
+			mv.visitCode();
+//			for (int i = 0; i< maxLog; i++) {
+//				mv.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS + i, "clearLog", "()V");
 //			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 		}
-
-		FieldNode fn = new FieldNode(Opcodes.ASM4, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,"log", Type.getDescriptor(HashMap.class), null, null);
-		fn.accept(cv);
-		/*
-		 * Create the variable
-		 */
-//		for (String clazz : methodCalls.keySet()) {
-//			if (methodCalls.get(clazz).size() == 0)
-//				continue;
+//		/*
+//		 * Create the variable
+//		 */
+//		for (int i = 0; i < maxLog; i++) {
 //			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-//			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
+//			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i + ";", null, null);
 //			fn.accept(cv);
 //		}
 		cv.visitEnd();
@@ -310,7 +369,10 @@ public class Instrumenter {
 			NonDeterministicLoggingClassVisitor cv = new NonDeterministicLoggingClassVisitor(Opcodes.ASM4, cw);
 
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
-			methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
+			if(methodCalls.containsKey(cv.getClassName()))
+				methodCalls.get(cv.getClassName()).addAll(cv.getLoggedMethodCalls());
+			else
+				methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
 			lastInstrumentedClass = cv.getClassName();
 			byte[] out = cw.toByteArray();
 //			 ClassReader cr2 = new ClassReader(out);

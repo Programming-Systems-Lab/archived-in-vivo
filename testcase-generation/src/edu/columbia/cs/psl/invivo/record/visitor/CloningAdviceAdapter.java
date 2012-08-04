@@ -19,9 +19,9 @@ import edu.columbia.cs.psl.invivo.record.Instrumenter;
 
 public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 
-	private static final HashSet<String> ignoredClasses = new HashSet<String>();
-
-	private static final HashSet<String> immutableClasses = new HashSet<String>();
+	private static final HashSet<String>	ignoredClasses		= new HashSet<String>();
+	private static boolean					threadSafe			= true;
+	private static final HashSet<String>	immutableClasses	= new HashSet<String>();
 	static {
 		immutableClasses.add("Ljava/lang/Integer;");
 		immutableClasses.add("Ljava/lang/Long;");
@@ -37,7 +37,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		immutableClasses.add("Ljava/lang/String;");
 		immutableClasses.add("Ljava/lang/Char;");
 		immutableClasses.add("Ljava/lang/Byte;");
-
+		immutableClasses.add("Ljava/lang/Class;");
 		immutableClasses.add("Z");
 		immutableClasses.add("B");
 		immutableClasses.add("C");
@@ -48,7 +48,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		immutableClasses.add("L");
 
 	}
-	private String className;
+	private String							className;
 
 	public CloningAdviceAdapter(int api, MethodVisitor mv, int access, String name, String desc, String classname) {
 		super(api, mv, access, name, desc);
@@ -177,7 +177,6 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 	protected void generateCopyMethod() {
 		if (Instrumenter.instrumentedClasses.containsKey(className)) {
 
-
 			/* If what we are looking for is cached, just return that */
 
 			super.visitFieldInsn(GETSTATIC, "edu/columbia/cs/psl/invivo/record/CloningUtils", "cloneCache", "Ljava/util/IdentityHashMap;");
@@ -211,7 +210,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			visitLocalVariable("myClone", "L" + className + ";", null, varStart, varEnd, localVar);
 		} else {
 			loadThis();
-			cloneValAtTopOfStack("L"+className+";");
+			cloneValAtTopOfStack("L" + className + ";");
 		}
 	}
 
@@ -224,11 +223,9 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 	public void generateSetFieldsMethod() {
 
 		/*
-		 * 2) For each field do the following a) If its a primitive simply copy
-		 * it b) If its an object, call the respective ._copy method iff its a
-		 * class we have instrumented c) If its an array, create a loop and do
-		 * steps a) and b) d) If its a collection, take care of that e) If
-		 * nothing works, call the reflection cloning util
+		 * 2) For each field do the following a) If its a primitive simply copy it b) If its an object, call the respective ._copy method iff its a
+		 * class we have instrumented c) If its an array, create a loop and do steps a) and b) d) If its a collection, take care of that e) If nothing
+		 * works, call the reflection cloning util
 		 */
 		int cloneVar = 1;
 		int iteratorVar = this.newLocal(Type.getType(Integer.class));
@@ -239,15 +236,15 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 				visitVarInsn(ALOAD, cloneVar);
 				loadThis();
 				visitFieldInsn(GETFIELD, className, f.name, fieldType.getDescriptor()); // Put
-																								// L
-																								// and
-																								// ;
-																								// in
-																								// front
-																								// and
-																								// back
-																								// of
-																								// getname
+																						// L
+																						// and
+																						// ;
+																						// in
+																						// front
+																						// and
+																						// back
+																						// of
+																						// getname
 				visitFieldInsn(PUTFIELD, className, f.name, fieldType.getDescriptor());
 			} else if (fieldType.getSort() == Type.OBJECT && (Instrumenter.instrumentedClasses.containsKey(fieldType.getClassName()))) {
 				loadThis();
@@ -336,8 +333,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 					String hashMapDesc = fieldType.getDescriptor();
 					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
 					this.fastCloneMap(f.name, entryDesc.split(";")[0], entryDesc.split(";")[1]);
-				}
-				else if (className.contains("ArrayList")) {
+				} else if (className.contains("ArrayList")) {
 					String hashMapDesc = fieldType.getDescriptor();
 					String entryDesc = hashMapDesc.substring(hashMapDesc.indexOf("<") + 1, hashMapDesc.lastIndexOf(">"));
 					this.fastCloneList(f.name, entryDesc);
@@ -355,8 +351,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		}
 
 		/*
-		 * If the super class is instrumented, we should probably call that as
-		 * well
+		 * If the super class is instrumented, we should probably call that as well
 		 */
 
 		String parent = Instrumenter.instrumentedClasses.get(className).superName;
@@ -378,27 +373,27 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 	}
 
 	/**
-	 * Precondition: Current element at the top of the stack is the element we
-	 * need cloned Post condition: Current element at the top of the stack is
+	 * Precondition: Current element at the top of the stack is the element we need cloned Post condition: Current element at the top of the stack is
 	 * the cloned element (and non-cloned is removed)
 	 */
 
 	protected void cloneValAtTopOfStack(String typeOfField) {
 		_generateClone(typeOfField, Constants.OUTER_COPY_METHOD_NAME, null);
 	}
-	protected void cloneValAtTopOfStack(String typeOfField,String debug) {
+
+	protected void cloneValAtTopOfStack(String typeOfField, String debug) {
 		_generateClone(typeOfField, Constants.OUTER_COPY_METHOD_NAME, debug);
 	}
 
 	protected void generateCloneInner(String typeOfField) {
 		_generateClone(typeOfField, Constants.INNER_COPY_METHOD_NAME, null);
 	}
-	public void println(String toPrint)
-	{
+
+	public void println(String toPrint) {
 		visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 		visitLdcInsn(toPrint + " : ");
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V");
-		
+
 		visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 		super.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
 		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
@@ -409,13 +404,13 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		Type fieldType = Type.getType(typeOfField);
 
 		if (fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField))) {
-//			println(debug);
-//			println("Doing nothing");
+			//			println(debug);
+			//			println("Doing nothing");
 			return;
 		}
 		if (fieldType.getSort() == Type.ARRAY) {
 			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-//				println(debug);
+				//				println(debug);
 
 				// Just need to duplicate the array
 				dup();
@@ -433,55 +428,56 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 				super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
 				visitLabel(nullContinue);
 
-			} else
-			{
+			} else {
 				// Just use the reflective cloner
 				visitLdcInsn(debug);
 				invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
 				checkCast(fieldType);
 			}
-		} else if(fieldType.getClassName().contains("InputStream") || fieldType.getClassName().contains("OutputStream") || fieldType.getClassName().contains("Socket") )
-		{
+		} else if (fieldType.getClassName().contains("InputStream") || fieldType.getClassName().contains("OutputStream")
+				|| fieldType.getClassName().contains("Socket")) {
 			//Do nothing
-		}
-		else{
+		} else {
 			visitLdcInsn(debug);
 			invokeStatic(Type.getType(CloningUtils.class), Method.getMethod("Object clone(Object, String)"));
 			checkCast(fieldType);
-		
+
 		}
 	}
 
-//	private static Object[] ar;
-//	private void magic()
-//	{
-//		synchronized (ar) {
-//			System.out.println("foo");
-//		}
-//	}
-	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType, boolean isStaticLoggingField, String debug) {
+	//	private static Object[] ar;
+	//	private void magic()
+	//	{
+	//		synchronized (ar) {
+	//			System.out.println("foo");
+	//		}
+	//	}
+	protected void logValueAtTopOfStackToArray(String logFieldOwner, String logFieldName, String logFieldTypeDesc, Type elementType,
+			boolean isStaticLoggingField, String debug) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
 		Label monitorStart = new Label();
 		Label monitorEndLabel = new Label();
-		newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
-		int monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+		int monitorIndx = 0;
+		if (threadSafe) {
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			monitorIndx = newLocal(Type.getType(logFieldTypeDesc));
+			visitLabel(monitorStart);
 
-
-
-		visitLabel(monitorStart);
-		
-		//Lock
-		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
-		dup();
-		super.visitVarInsn(ASTORE,monitorIndx);
-		super.monitorEnter();
-		
+			//Lock
+			super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+			dup();
+			super.visitVarInsn(ASTORE, monitorIndx);
+			super.monitorEnter();
+		}
 		//Also acquire a read lock for the export lock
-//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
-//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
-//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
-		
+		//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
+
 		// Grow the array if necessary
 		if (!isStaticLoggingField)
 			loadThis();
@@ -494,7 +490,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
 		// In this case, it's necessary to grow it
 
-//		println("Growing the array for " + logFieldOwner + logFieldName);
+		//		println("Growing the array for " + logFieldOwner + logFieldName);
 		// Create the new array and initialize its size
 		int newArray = newLocal(Type.getType(logFieldTypeDesc));
 		if (!isStaticLoggingField)
@@ -557,7 +553,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			dupX2();
 			pop();
 		}
-		cloneValAtTopOfStack(elementType.getDescriptor(),debug);
+		cloneValAtTopOfStack(elementType.getDescriptor(), debug);
 
 		super.arrayStore(elementType);
 
@@ -569,17 +565,19 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.visitInsn(Opcodes.ICONST_1);
 		super.visitInsn(Opcodes.IADD);
 		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
-//		println("Incremented fill for " + logFieldOwner+"."+logFieldName);
+		//		println("Incremented fill for " + logFieldOwner+"."+logFieldName);
 		//Release the export lock
-//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
-//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
-//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
-		
-		//Unlock
-		super.visitVarInsn(ALOAD, monitorIndx);
-		super.monitorExit();
-		visitLabel(monitorEndLabel);
-		super.visitLocalVariable(logFieldName+"_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+		//		super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));
+		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
+		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "unlock", "()V");
+
+		if (threadSafe) {
+			//Unlock
+			super.visitVarInsn(ALOAD, monitorIndx);
+			super.monitorExit();
+			visitLabel(monitorEndLabel);
+			super.visitLocalVariable(logFieldName + "_monitor", logFieldTypeDesc, null, monitorStart, monitorEndLabel, monitorIndx);
+		}
 	}
 
 	protected void onMethodEnter() {

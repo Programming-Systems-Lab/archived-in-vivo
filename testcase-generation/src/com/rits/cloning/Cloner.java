@@ -553,7 +553,8 @@ public class Cloner
 		for (final Field field : fields)
 		{
 			if (!field.isAccessible()) field.setAccessible(true);
-			l.add(field);
+			if(!Modifier.isStatic(field.getModifiers()))
+				l.add(field);
 		}
 	}
 

@@ -24,7 +24,6 @@ public class ReaderUser extends FilterInputStream {
 		return super.read(b);
 	}
 	private void go() throws Exception{
-		try {
 			int c = 0;
 			int d = 0;
 			int[] x = new int[4];
@@ -48,9 +47,7 @@ public class ReaderUser extends FilterInputStream {
 			d++;
 			x[2]=2;
 			
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+		
 		throw new Exception("AHHHH i CRASHED");
 	}
 //	private static int proxy(BufferedReader r,char[] cbuf, int o, int n) throws IOException
