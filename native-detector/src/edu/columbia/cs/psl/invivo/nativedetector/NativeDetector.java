@@ -54,7 +54,7 @@ public class NativeDetector {
 
 		// detector.printNativeDeterministic();
 		// System.exit(-1);
-		detector.whyNative("java/nio/channels/Selector");
+		detector.whyNative("org/w3c/dom/Document.createAttributeNS");
 		try {
 			File f = new File("nondeterministic-methods.txt");
 			if (f.exists())

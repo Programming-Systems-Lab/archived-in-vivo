@@ -56,7 +56,6 @@ public class MethodCall {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + lineNumber;
-		result = prime * result + ((methodDesc == null) ? 0 : methodDesc.hashCode());
 		result = prime * result + ((methodName == null) ? 0 : methodName.hashCode());
 		result = prime * result + ((methodOwner == null) ? 0 : methodOwner.hashCode());
 		result = prime * result + pc;

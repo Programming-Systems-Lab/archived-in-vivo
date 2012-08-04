@@ -45,10 +45,11 @@ public class CloningUtils {
 		moreIgnoredImmutables.add(ServerSocket.class);
 		moreIgnoredImmutables.add(Channel.class);
 		moreIgnoredImmutables.add(Closeable.class);
-
+		moreIgnoredImmutables.add(Class.class);
 		cloner.setExtraNullInsteadOfClone(moreIgnoredImmutables);
 		cloner.setExtraImmutables(moreIgnoredImmutables);
 		
+//		cloner.setDumpClonedClasses(true);
 		exporter.start();
 		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
@@ -65,17 +66,7 @@ public class CloningUtils {
 	}
 
 	public static final <T> T clone(T obj, String debug) {
-//				&& !obj.getClass().equals(Object.class) && !obj.getClass().equals(Thread.class)
-
-//		&& !obj.getClass().getName().contains("ClassLoader") && !obj.getClass().getName().contains("InputStream")
-//				&& !obj.getClass().getName().contains("JarURLConnection")
-//				) {
-//			try {
-//				log.append(debug + "->  " + obj.getClass() + "\n");
-//				log.flush();
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//			}
+//		System.out.println("source>"+debug);
 			return cloner.deepClone(obj);
 	}
 
