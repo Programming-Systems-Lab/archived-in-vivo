@@ -87,22 +87,22 @@ public class Instrumenter {
 			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
 			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
 			mvz.visitCode();
-			for (MethodCall call : methodCalls.get(className)) {
-				mvz.push(Constants.DEFAULT_LOG_SIZE);
-				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
-				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
-						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
-
-				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-				for (int i = 0; i < argTypes.length; i++) {
-					if (argTypes[i].getSort() == Type.ARRAY) {
-						mvz.push(Constants.DEFAULT_LOG_SIZE);
-						mvz.newArray(argTypes[i]);
-						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
-								Type.getType("[" + argTypes[i].getDescriptor()));
-					}
-				}
-			}
+//			for (MethodCall call : methodCalls.get(className)) {
+//				mvz.push(Constants.DEFAULT_LOG_SIZE);
+//				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
+//				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
+//						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+//
+//				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
+//				for (int i = 0; i < argTypes.length; i++) {
+//					if (argTypes[i].getSort() == Type.ARRAY) {
+//						mvz.push(Constants.DEFAULT_LOG_SIZE);
+//						mvz.newArray(argTypes[i]);
+//						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
+//								Type.getType("[" + argTypes[i].getDescriptor()));
+//					}
+//				}
+//			}
 			mvz.visitMaxs(0, 0);
 			mvz.returnValue();
 			mvz.visitEnd();
@@ -121,23 +121,38 @@ public class Instrumenter {
 			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V");
 			mvz.visitCode();
 			for (MethodCall call : methodCalls.get(className)) {
+
+				Label cont = new Label();
+				
+				mvz.getStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
+						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
+				mvz.visitJumpInsn(Opcodes.IFNULL, cont);
 				mvz.push(Constants.DEFAULT_LOG_SIZE);
 				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
 				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
 						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
 				mvz.push(0);
 				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_fill", Type.INT_TYPE);
-
+				mvz.visitLabel(cont);
+				
 				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
 				for (int i = 0; i < argTypes.length; i++) {
 					if (argTypes[i].getSort() == Type.ARRAY) {
+						
+						Label cont2 = new Label();
+						mvz.getStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
+								Type.getType("[" + argTypes[i].getDescriptor()));
+						mvz.visitJumpInsn(Opcodes.IFNULL, cont2);
 						mvz.push(Constants.DEFAULT_LOG_SIZE);
 						mvz.newArray(argTypes[i]);
+//						mvz.visitInsn(Opcodes.ACONST_NULL);
 						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
 								Type.getType("[" + argTypes[i].getDescriptor()));
 						mvz.push(0);
 						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i + "_fill",
 								Type.INT_TYPE);
+						mvz.visitLabel(cont2);
+						
 					}
 				}
 			}
@@ -146,28 +161,6 @@ public class Instrumenter {
 			mvz.visitEnd();
 		}
 
-		{
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "clearLogFill", "()V", null, null);
-			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLogFill", "()V");
-			mvz.visitCode();
-			for (MethodCall call : methodCalls.get(className)) {
-				mvz.push(0);
-				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_fill", Type.INT_TYPE);
-
-				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-				for (int i = 0; i < argTypes.length; i++) {
-					if (argTypes[i].getSort() == Type.ARRAY) {
-						mvz.push(0);
-						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i + "_fill",
-								Type.INT_TYPE);
-					}
-				}
-			}
-			mvz.visitMaxs(0, 0);
-			mvz.returnValue();
-			mvz.visitEnd();
-		}
-	
 		for (MethodCall call : methodCalls.get(className)) {
 			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
 			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "["
@@ -310,27 +303,27 @@ public class Instrumenter {
 			mv.visitMaxs(1, 1);
 			mv.visitEnd();
 		}
-//		{
-//			mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-//			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-//			mvz.visitCode();
-//	
-//			for (int i = 0; i < maxLog; i++) {
-//				mvz.visitTypeInsn(Opcodes.NEW,Constants.LOG_DUMP_CLASS + i);
-//				mvz.visitInsn(Opcodes.DUP);
-//				mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, Constants.LOG_DUMP_CLASS + i, "<init>", "()V");
-//				mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i+ ";");
-//			}
-//			mvz.returnValue();
-//			mvz.visitMaxs(0, 0);
-//			mvz.visitEnd();
-//		}
+		{
+			mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
+			mvz.visitCode();
+	
+			for (int i = 0; i < maxLog; i++) {
+				mvz.visitTypeInsn(Opcodes.NEW,Constants.LOG_DUMP_CLASS + i);
+				mvz.visitInsn(Opcodes.DUP);
+				mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, Constants.LOG_DUMP_CLASS + i, "<init>", "()V");
+				mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i+ ";");
+			}
+			mvz.returnValue();
+			mvz.visitMaxs(0, 0);
+			mvz.visitEnd();
+		}
 		{
 			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
 			mv.visitCode();
-//			for (int i = 0; i< maxLog; i++) {
-//				mv.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS + i, "clearLog", "()V");
-//			}
+			for (int i = 0; i< maxLog; i++) {
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS + i, "clearLog", "()V");
+			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
@@ -338,11 +331,11 @@ public class Instrumenter {
 //		/*
 //		 * Create the variable
 //		 */
-//		for (int i = 0; i < maxLog; i++) {
-//			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-//			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i + ";", null, null);
-//			fn.accept(cv);
-//		}
+		for (int i = 0; i < maxLog; i++) {
+			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
+			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i + ";", null, null);
+			fn.accept(cv);
+		}
 		cv.visitEnd();
 
 		try {

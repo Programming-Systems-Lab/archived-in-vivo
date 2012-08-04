@@ -2,6 +2,7 @@ package edu.columbia.cs.psl.invivo.example;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FilterInputStream;
@@ -27,6 +28,9 @@ public class ReaderUser extends FilterInputStream {
 			int c = 0;
 			int d = 0;
 			int[] x = new int[4];
+			File f=  new File("in-vivo.log");
+			f.exists();
+			f.getAbsoluteFile();
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
 			char[] buf = new char[2];
 			int zz = read(new byte[4]);

@@ -459,6 +459,18 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		Label monitorStart = new Label();
 		Label monitorEndLabel = new Label();
 		int monitorIndx = 0;
+		
+		Label dontInit = new Label();
+		//See if the array is initialized
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		super.visitJumpInsn(Opcodes.IFNONNULL, dontInit);
+		super.push(Constants.DEFAULT_LOG_SIZE);
+		super.newArray(elementType);
+		super.putStatic(Type.getType("L" + logFieldOwner + ";"), logFieldName,
+				Type.getType(logFieldTypeDesc));
+		
+		visitLabel(dontInit);
+		
 		if (threadSafe) {
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
@@ -478,6 +490,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(ReadWriteLock.class), "readLock", "()Ljava/util/concurrent/locks/Lock;");
 		//		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
 
+		
 		// Grow the array if necessary
 		if (!isStaticLoggingField)
 			loadThis();

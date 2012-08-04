@@ -50,14 +50,12 @@ public class MethodCall {
 	public String getMethodDesc() {
 		return methodDesc;
 	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + lineNumber;
 		result = prime * result + ((methodName == null) ? 0 : methodName.hashCode());
-		result = prime * result + ((methodOwner == null) ? 0 : methodOwner.hashCode());
 		result = prime * result + pc;
 		result = prime * result + ((sourceClass == null) ? 0 : sourceClass.hashCode());
 		result = prime * result + ((sourceMethodName == null) ? 0 : sourceMethodName.hashCode());
