@@ -593,4 +593,9 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		}
 	}
 
+	protected void onMethodEnter() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
