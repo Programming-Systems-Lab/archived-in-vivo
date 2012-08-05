@@ -97,7 +97,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 				Type[] args = Type.getArgumentTypes(desc);
 				boolean hasArray = false;
 				for(Type t : args)
-					if(t.getSort() == Type.ARRAY)
+					if(t.getSort() == Type.ARRAY && !name.contains("write"))
 						hasArray = true;
 			
 				if(hasArray)

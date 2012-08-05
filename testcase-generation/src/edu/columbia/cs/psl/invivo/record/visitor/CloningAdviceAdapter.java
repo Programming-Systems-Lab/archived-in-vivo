@@ -404,13 +404,14 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		Type fieldType = Type.getType(typeOfField);
 
 		if (fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField))) {
+//			println("reference> " + debug);
 			//			println(debug);
 			//			println("Doing nothing");
 			return;
 		}
 		if (fieldType.getSort() == Type.ARRAY) {
 			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-				//				println(debug);
+//				println("array> " + debug);
 
 				// Just need to duplicate the array
 				dup();
