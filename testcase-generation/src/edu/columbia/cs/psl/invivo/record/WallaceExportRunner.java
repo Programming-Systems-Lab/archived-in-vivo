@@ -61,18 +61,38 @@ public class WallaceExportRunner extends Thread {
 			String xml = "";
 //			System.out.println("Waiting for the lock");
 			synchronized (Log.lock) {
+				ExportedLog.aLog = Log.aLog;
+				ExportedLog.bLog = Log.bLog;
+				ExportedLog.cLog = Log.cLog;
+				ExportedLog.dLog = Log.dLog;
+				ExportedLog.iLog = Log.iLog;
+				ExportedLog.fLog = Log.fLog;
+				ExportedLog.jLog = Log.jLog;
+				ExportedLog.zLog = Log.zLog;
+				ExportedLog.sLog = Log.sLog;
+				
+				ExportedLog.aLog_fill = Log.aLog_fill;
+				ExportedLog.bLog_fill = Log.bLog_fill;
+				ExportedLog.cLog_fill = Log.cLog_fill;
+				ExportedLog.dLog_fill = Log.dLog_fill;
+				ExportedLog.iLog_fill = Log.iLog_fill;
+				ExportedLog.fLog_fill = Log.fLog_fill;
+				ExportedLog.jLog_fill = Log.jLog_fill;
+				ExportedLog.zLog_fill = Log.zLog_fill;
+				ExportedLog.sLog_fill = Log.sLog_fill;
+				Log.clearLog();
+			}
 //				System.err.println("Serializing");
 				try{
 				xml = xstream.toXML(log);
 				}
 				catch(Exception ex)
 				{
-//					System.err.println("NPE" + ex.getMessage());
+					System.err.println("NPE" + ex.getMessage());
 				}
 //				System.err.println("Clearing");
-				Log.clearLog();
+				ExportedLog.clearLog();
 //				System.err.println("Cleared");
-			}
 
 			//CloningUtils.exportLock.writeLock().unlock();
 			File output = new File("wallace_" + System.currentTimeMillis() + ".log");

@@ -473,6 +473,8 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
+			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 			monitorIndx = newLocal(Type.getType("Ljava/lang/Object;"));
 			visitLabel(monitorStart);
 
@@ -500,8 +502,44 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
 		// In this case, it's necessary to grow it
 			// Create the new array and initialize its size
-		super.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Log.class), "grow"+logFieldName, "()V");
-		
+//		super.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Log.class), "grow"+logFieldName, "()V");
+	
+		int newArray = newLocal(Type.getType(logFieldTypeDesc));
+		if (!isStaticLoggingField)
+			loadThis();
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		super.arrayLength();
+		super.visitInsn(Opcodes.I2D);
+		super.visitLdcInsn(Constants.LOG_GROWTH_RATE);
+		super.visitInsn(Opcodes.DMUL);
+		super.visitInsn(Opcodes.D2I);
+		super.newArray(Type.getType(logFieldTypeDesc.substring(1))); // Bug in
+																		// ASM
+																		// prevents
+																		// us
+																		// from
+																		// doing
+																		// type.getElementType
+		super.storeLocal(newArray, Type.getType(logFieldTypeDesc));
+		// Do the copy
+		if (!isStaticLoggingField)
+			loadThis();
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		super.visitInsn(Opcodes.ICONST_0);
+		super.loadLocal(newArray);
+		super.visitInsn(Opcodes.ICONST_0);
+		if (!isStaticLoggingField)
+			super.loadThis();
+		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		super.arrayLength();
+		super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+
+		// array = newarray
+		if (!isStaticLoggingField)
+			super.loadThis();
+		super.loadLocal(newArray);
+		super.visitFieldInsn(putOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+	
 		visitLabel(labelForNoNeedToGrow);
 		// Load this into the end piece of the array
 		if (elementType.getSize() == 1) {
