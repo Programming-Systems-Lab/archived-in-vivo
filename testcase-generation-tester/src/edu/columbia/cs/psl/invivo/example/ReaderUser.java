@@ -15,11 +15,11 @@ import java.util.Arrays;
 
 import edu.columbia.cs.psl.invivo.record.ExportedLog;
 
-public class ReaderUser {
-//	protected ReaderUser(InputStream in) {
-//		super(in);
-		// TODO Auto-generated constructor stub
-//	}
+public class ReaderUser extends FilterInputStream {
+	protected ReaderUser(InputStream in) {
+		super(in);
+//		 TODO Auto-generated constructor stub
+	}
 	int x =0;
 //	@Override
 //	public int read(byte[] b) throws IOException {
@@ -63,6 +63,6 @@ public class ReaderUser {
 //	}
 	public static void main(String[] args) throws Exception{
 		FileInputStream fis = new FileInputStream("in-vivo.log");
-		new ReaderUser().go();
+		new ReaderUser(null).go();
 	}
 }
