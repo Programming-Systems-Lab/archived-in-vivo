@@ -72,46 +72,46 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 	@Override
 	public void visitEnd() {
 		super.visitEnd();
-		for(String logFieldName : captureMethodsToGenerate.keySet())
-		{
-			MethodInsnNode mi = captureMethodsToGenerate.get(logFieldName);
-			String methodDesc = mi.desc;
-
-			String captureDesc = mi.desc;
-			if(mi.getOpcode() != Opcodes.INVOKESTATIC)
-			{
-				//Need to put owner of the method on the top of the args list
-				captureDesc = "(L" +  mi.owner +";";
-				for(Type t : Type.getArgumentTypes(mi.desc))
-					captureDesc += t.getDescriptor();
-				captureDesc+=")"+Type.getReturnType(mi.desc).getDescriptor();
-			}
-			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, logFieldName+"_capture", captureDesc, null, null);
-			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,logFieldName+"_capture", captureDesc, className);
-			Type[] args = Type.getArgumentTypes(captureDesc);
-			for(int i = 0; i < args.length ; i++)
-			{
-				caa.loadArg(i);
-			}
-			mv.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
-			for(int i = 0; i< args.length; i++)
-			{
-				if(args[i].getSort() == Type.ARRAY)
-				{
-					caa.loadArg(i);
-					
-					//caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName+"_"+(i-(mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)), "["+args[i].getDescriptor(), args[i], true);
-					
-					if(args[i].getSize() == 1)
-						caa.pop();
-					else
-						caa.pop2();
-				}
-			}
-			caa.returnValue();
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-		}
+//		for(String logFieldName : captureMethodsToGenerate.keySet())
+//		{
+//			MethodInsnNode mi = captureMethodsToGenerate.get(logFieldName);
+//			String methodDesc = mi.desc;
+//
+//			String captureDesc = mi.desc;
+//			if(mi.getOpcode() != Opcodes.INVOKESTATIC)
+//			{
+//				//Need to put owner of the method on the top of the args list
+//				captureDesc = "(L" +  mi.owner +";";
+//				for(Type t : Type.getArgumentTypes(mi.desc))
+//					captureDesc += t.getDescriptor();
+//				captureDesc+=")"+Type.getReturnType(mi.desc).getDescriptor();
+//			}
+//			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, logFieldName+"_capture", captureDesc, null, null);
+//			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,logFieldName+"_capture", captureDesc, className);
+//			Type[] args = Type.getArgumentTypes(captureDesc);
+//			for(int i = 0; i < args.length ; i++)
+//			{
+//				caa.loadArg(i);
+//			}
+//			mv.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
+//			for(int i = 0; i< args.length; i++)
+//			{
+//				if(args[i].getSort() == Type.ARRAY)
+//				{
+//					caa.loadArg(i);
+//					
+//					//caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName+"_"+(i-(mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)), "["+args[i].getDescriptor(), args[i], true);
+//					
+//					if(args[i].getSize() == 1)
+//						caa.pop();
+//					else
+//						caa.pop2();
+//				}
+//			}
+//			caa.returnValue();
+//			mv.visitMaxs(0, 0);
+//			mv.visitEnd();
+//		}
 
 		/*{
 			MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L"+className+";", null, null);

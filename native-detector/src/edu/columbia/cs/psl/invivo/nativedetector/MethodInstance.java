@@ -1,5 +1,6 @@
 package edu.columbia.cs.psl.invivo.nativedetector;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,6 +43,8 @@ public class MethodInstance {
 
 	public List<Integer> tainted;
 
+	public HashSet<String> fieldsPut = new HashSet<String>();
+	public HashSet<String> fieldsGet = new HashSet<String>();
 	public MethodInstance(String fullName) {
 
 		String[] pieces = fullName.split("\\.|:");

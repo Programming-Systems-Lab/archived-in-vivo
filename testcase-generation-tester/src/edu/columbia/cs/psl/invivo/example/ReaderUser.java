@@ -13,17 +13,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
-public class ReaderUser extends FilterInputStream {
-	protected ReaderUser(InputStream in) {
-		super(in);
+import edu.columbia.cs.psl.invivo.record.ExportedLog;
+
+public class ReaderUser {
+//	protected ReaderUser(InputStream in) {
+//		super(in);
 		// TODO Auto-generated constructor stub
-	}
+//	}
 	int x =0;
-	@Override
-	public int read(byte[] b) throws IOException {
-		x++;
-		return super.read(b);
-	}
+//	@Override
+//	public int read(byte[] b) throws IOException {
+//		x++;
+//		return super.read(b);
+//	}
+	private Object[] alog = ExportedLog.aLog;
 	private void go() throws Exception{
 			int c = 0;
 			int d = 0;
@@ -33,8 +36,8 @@ public class ReaderUser extends FilterInputStream {
 			f.getAbsoluteFile();
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
 			char[] buf = new char[2];
-			int zz = read(new byte[4]);
-			System.out.println("zz: " + zz);
+//			int zz = read(new byte[4]);
+//			System.out.println("zz: " + zz);
 			int charsRead = 0;
 			charsRead = r.read(buf, 0, buf.length);
 			System.out.println(charsRead);
@@ -59,6 +62,7 @@ public class ReaderUser extends FilterInputStream {
 //		return r.read(cbuf, o, n);
 //	}
 	public static void main(String[] args) throws Exception{
-		new ReaderUser(new FileInputStream("in-vivo.log")).go();
+		FileInputStream fis = new FileInputStream("in-vivo.log");
+		new ReaderUser().go();
 	}
 }

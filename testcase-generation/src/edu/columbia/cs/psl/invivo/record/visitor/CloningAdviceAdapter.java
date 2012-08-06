@@ -410,6 +410,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		if (
 //				fieldType.getSort() == Type.ARRAY && fieldType.getElementType().getSort()
 //				||
+				fieldType.getSort() == Type.VOID || 
 				(fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField)))) {
 //			println("reference> " + debug);
 			//			println(debug);
@@ -467,7 +468,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		Label monitorStart = new Label();
 		Label monitorEndLabel = new Label();
 		int monitorIndx = 0;
-
+		
 //		if (threadSafe) {
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
 			newLocal(Type.getType(logFieldTypeDesc)); //Needed for some reason, unkown? Don't remove though, otherwise ASM messes stuff up
@@ -513,6 +514,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.visitLdcInsn(Constants.LOG_GROWTH_RATE);
 		super.visitInsn(Opcodes.DMUL);
 		super.visitInsn(Opcodes.D2I);
+
 		super.newArray(Type.getType(logFieldTypeDesc.substring(1))); // Bug in
 																		// ASM
 																		// prevents

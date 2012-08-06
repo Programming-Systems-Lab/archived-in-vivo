@@ -12,6 +12,8 @@ public class ExportedLog {
 	public static short[] sLog = new short[Constants.DEFAULT_LOG_SIZE];
 	public static Object lock = new Object();
 	public static int aLog_fill, iLog_fill, jLog_fill, fLog_fill, dLog_fill, bLog_fill, zLog_fill, cLog_fill, sLog_fill;
+	public static int aLog_replayIndex , iLog_replayIndex, jLog_replayIndex, fLog_replayIndex, dLog_replayIndex, bLog_replayIndex, zLog_replayIndex, cLog_replayIndex, sLog_replayIndex;
+
 	public static void clearLog() {
 		aLog = new Object[Constants.DEFAULT_LOG_SIZE];
 		iLog = new int[Constants.DEFAULT_LOG_SIZE];

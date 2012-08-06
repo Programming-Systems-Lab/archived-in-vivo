@@ -26,6 +26,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.InstrumenterClassWriter;
@@ -37,7 +38,7 @@ public class Replayer {
 	public static URLClassLoader loader;
 	private static Logger logger = Logger.getLogger(Replayer.class);
 	public static HashMap<String, AnnotatedMethod> annotatedMethods = new HashMap<String, AnnotatedMethod>();
-	public static HashMap<String, String> instrumentedClasses = new HashMap<String, String>();
+	public static HashMap<String, ClassNode> instrumentedClasses = new HashMap<String, ClassNode>();
 
 	private static MutabilityAnalyzer ma = new MutabilityAnalyzer(
 			annotatedMethods);
@@ -60,7 +61,7 @@ public class Replayer {
 	private static void analyzeClass(InputStream inputStream) {
 		try {
 			ClassNode ret = ma.analyzeClass(new ClassReader(inputStream));
-			instrumentedClasses.put(ret.name, ret.superName);
+			instrumentedClasses.put(ret.name, ret);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -143,7 +144,18 @@ public class Replayer {
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
 			methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
 			lastInstrumentedClass = cv.getClassName();
-			return cw.toByteArray();
+			byte[] out = cw.toByteArray();
+			try{
+				 ClassReader cr2 = new ClassReader(out);
+				 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+				}
+				catch(Exception ex)
+				{
+					System.err.println(lastInstrumentedClass);
+					ex.printStackTrace();
+				}
+			
+			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class:", ex);
 			return null;

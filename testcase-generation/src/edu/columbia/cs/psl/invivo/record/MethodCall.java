@@ -92,22 +92,40 @@ public class MethodCall {
 		Type t= Type.getReturnType(methodDesc);
 		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
 			return "aLog";
+		else if(t.getSort() == Type.VOID)
+			return "bLog";
 		else
 			return t.getDescriptor().toLowerCase()+"Log";
-
+	}
+	public Type getReturnType()
+	{
+		return Type.getMethodType(methodDesc).getReturnType();
 	}
 	public Type getLogFieldType() {
 		Type t = Type.getMethodType(methodDesc).getReturnType();
 		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
 			return Type.getType("[Ljava/lang/Object;");
+		else if(t.getSort() == Type.VOID)
+			return Type.getType("["+Type.BYTE);
 		else
 			return Type.getType("["+t.getDescriptor());
 //		return Type.getType("["+Type.getMethodType(methodDesc).getReturnType().getDescriptor());
+	}
+	public static String getLogFieldName(Type t)
+	{
+		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
+			return "aLog";
+		else if(t.getSort() == Type.VOID)
+			return "bLog";
+		else
+			return t.getDescriptor().toLowerCase()+"Log";
 	}
 	public static Type getLogFieldType(Type t)
 	{
 		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
 			return Type.getType("[Ljava/lang/Object;");
+		else if(t.getSort() == Type.VOID)
+			return Type.getType("["+Type.BYTE);
 		else
 			return Type.getType("["+t.getDescriptor());
 	}

@@ -13,6 +13,7 @@ import com.thoughtworks.xstream.XStream;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.ExportedLog;
 import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
 
 public class ReplayRunner {
@@ -33,6 +34,8 @@ public class ReplayRunner {
 		try {
 			XStream xstream = new XStream(new StaticReflectionProvider());
 			Object o = xstream.fromXML(new File(logFiles[nextLog]));
+//			ExportedLog.aLog_replayIndex = 1;
+//			ExportedLog.iLog_replayIndex = 1;
 			nextLog++;
 		} catch (Exception exi) {
 			exi.printStackTrace();

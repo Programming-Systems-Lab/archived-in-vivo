@@ -54,7 +54,12 @@ public class NativeDetector {
 
 		// detector.printNativeDeterministic();
 		// System.exit(-1);
-		detector.whyNative("org/w3c/dom/Document.createAttributeNS");
+//		detector.whyNative("java/io/File.<init>");
+//		Scanner s = new Scanner(System.in);
+//		while(s.hasNextLine())
+//		{
+//			detector.whyNative(s.nextLine());
+//		}
 		try {
 			File f = new File("nondeterministic-methods.txt");
 			if (f.exists())
@@ -121,8 +126,11 @@ public class NativeDetector {
 			return nonDeterministicMethodCache;
 		buildNonDeterministicMethods();
 		for (String s : deterministicNativeMethods) {
-			methodMap.get(s).setNonDeterministic(false);
-			nonDeterministicMethodCache.remove(methodMap.get(s));
+			if(methodMap.get(s) != null)
+			{
+				methodMap.get(s).setNonDeterministic(false);
+				nonDeterministicMethodCache.remove(methodMap.get(s));
+			}
 		}
 		for(String s : methodMap.keySet())
 		{
@@ -151,7 +159,7 @@ public class NativeDetector {
 				continue;
 			if (ci.parent != null && !ci.parent.equals("java/lang/Object") && ! ci.parent.contains("Exception") && ! ci.parent.contains("Throwable") && !mi.getMethod().getName().contains("<init>")) {
 				String fName = ci.parent + "." + mi.getMethod().getName() + ":" + mi.getMethod().getDescriptor();
-				if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic()) {
+				if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic() && !deterministicNativeMethods.contains(fName)) {
 					methodMap.get(fName).setNonDeterministic(true);
 					numChanged++;
 				}
@@ -159,11 +167,34 @@ public class NativeDetector {
 			if (ci.interfaces != null && ci.interfaces.length > 0) {
 				for (String iName : ci.interfaces) {
 					String fName = iName + "." + mi.getMethod().getName() + ":" + mi.getMethod().getDescriptor();
-					if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic()) {
+					if (methodMap.containsKey(fName) && !methodMap.get(fName).isNonDeterministic() && !deterministicNativeMethods.contains(fName)) {
 						methodMap.get(fName).setNonDeterministic(true);
 						numChanged++;
 					}
 				}
+			}
+		}
+		
+		HashSet<String> taintedFields =  new HashSet<String>();
+		for(MethodInstance mi : toReturn.values())
+		{
+			taintedFields.addAll(mi.fieldsPut);
+			taintedFields.addAll(mi.fieldsGet);
+		}
+		
+		for(MethodInstance mi : methodMap.values())
+		{
+			if(!mi.isNonDeterministic() && !deterministicNativeMethods.contains(mi.getFullName()))
+			{
+				for(String s : mi.fieldsGet)
+			{
+				if(taintedFields.contains(s))
+				{
+					numChanged++;
+					mi.setNonDeterministic(true);
+					continue;
+				}
+			}
 			}
 		}
 		if (numChanged != 0)
@@ -198,11 +229,22 @@ public class NativeDetector {
 				printWhatICall(methodMap.get(s), level + 1, alreadyPrinted, s);
 		}
 	}
-
+	private String getParentsOf(String s)
+	{
+		ClassInstance ci = classMap.get(s);
+		String ret = ci.parent;
+		if(ci.parent != null && !ci.parent.equals("java/lang/Object"))
+			ret = ret + " --> " + getParentsOf(ci.parent);
+		return ret;
+	}
 	public void whyNative(String s) {
 		getNonDeterministicMethods();
+		
 		for (MethodInstance mi : methodMap.values())
 			if (mi.getFullName().startsWith(s)) {
+				System.out.println(s);
+				System.out.println("Parent: " + getParentsOf(mi.getClazz()));
+
 				printWhatICall(mi, 0, new HashSet<String>(), mi.getFullName());
 			}
 	}

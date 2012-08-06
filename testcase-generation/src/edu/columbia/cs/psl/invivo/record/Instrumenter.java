@@ -99,6 +99,7 @@ public class Instrumenter {
 			}
 			catch(Exception ex)
 			{
+				System.err.println(lastInstrumentedClass);
 				ex.printStackTrace();
 			}
 			return out;

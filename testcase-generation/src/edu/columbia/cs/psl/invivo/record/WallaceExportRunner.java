@@ -52,8 +52,8 @@ public class WallaceExportRunner extends Thread {
 		setDaemon(true);
 	}
 
-	private static Log	log	= new Log();
-
+	private static ExportedLog	log	= new ExportedLog();
+	
 	public static void export() {
 		shouldExport = 0;
 		try {

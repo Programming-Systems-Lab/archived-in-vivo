@@ -19,6 +19,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 import edu.columbia.cs.psl.invivo.record.visitor.CloningAdviceAdapter;
 
@@ -97,7 +98,28 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 		try {
 			MethodCall m = new MethodCall(this.name, this.desc, this.classDesc, pc, lineNumber, owner, name, desc, isStatic);
 			Type returnType = Type.getMethodType(desc).getReturnType();
-			if ((!constructor || isFirstConstructor || superInitialized) && !returnType.equals(Type.VOID_TYPE)
+			if ((!constructor || isFirstConstructor || superInitialized) && returnType.equals(Type.VOID_TYPE)
+					&& nonDeterministicMethods.contains(owner + "." + name + ":" + desc)) {
+				Type[] args = Type.getArgumentTypes(desc);
+//				logger.warn(owner+"."+name+desc);
+				for (int i = args.length - 1; i >= 0; i--) {
+					Type t = args[i];
+					if(t.getSize() == 2)
+						mv.visitInsn(POP2);
+					else
+						mv.visitInsn(POP);
+				}
+				if(opcode != INVOKESTATIC)
+					mv.visitInsn(POP);
+
+				if(opcode == INVOKESPECIAL && name.equals("<init>") && !Replayer.instrumentedClasses.get(classDesc).superName.equals(owner)
+						)
+				{
+					mv.visitInsn(POP);
+					mv.visitInsn(ACONST_NULL);
+				}
+			}
+			else if ((!constructor || isFirstConstructor || superInitialized) && !returnType.equals(Type.VOID_TYPE)
 					&& nonDeterministicMethods.contains(owner + "." + name + ":" + desc)) {
 				
 				Label startOfPlayBack = new Label();
@@ -117,8 +139,6 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 						hasArray = true;
 							
 				if(hasArray) {
-					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
-
 					
 					Type[] targs = Type.getArgumentTypes(desc);
 					for (int i = targs.length - 1; i >= 0; i--) {
@@ -128,23 +148,28 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							 * stack (grows down):
 							 * dest (fill not incremented yet)
 							 */
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_" + i, 
-									"[" + t.getDescriptor());
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_replayIndex", 
+							mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t), 
+									MethodCall.getLogFieldType(t).getDescriptor());
+							mv.visitFieldInsn(GETSTATIC,Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t)+"_replayIndex", 
 									"I");
 							mv.visitInsn(DUP);
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass()+Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_"+i+"_fill", "I");
+							mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, MethodCall.getLogFieldName(t)+"_fill", "I");
 							Label fallThrough = new Label();
+							
+							
 							mv.visitJumpInsn(Opcodes.IF_ICMPNE, fallThrough);
 							mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ReplayRunner.class), "loadNextLog", "()V");
 							pop();
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass()+ Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_replayIndex", 
+							mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t) +"_replayIndex", 
 									"I");
 							visitLabel(fallThrough);
+							
 							arrayLoad(t);
+//							mv.visitTypeInsn(Opcodes.CHECKCAST, t.getInternalName());
+
 							/*
 							 * stack (grows down):
 							 * dest
@@ -179,19 +204,20 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							 * 0
 							 */
 
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_" + i, 
-									"[" + t.getDescriptor());
-							mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_replayIndex", 
+							mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t), 
+									MethodCall.getLogFieldType(t).getDescriptor());
+							mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t)+"_replayIndex", 
 									"I");
 							mv.visitInsn(DUP);
 							mv.visitInsn(ICONST_1);
 							mv.visitInsn(IADD);
-							mv.visitFieldInsn(PUTSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
-									m.getLogFieldName() + "_"+i+"_replayIndex", 
+							mv.visitFieldInsn(PUTSTATIC, Constants.LOG_REPLAY_CLASS, 
+									MethodCall.getLogFieldName(t) +"_replayIndex", 
 									"I");
 							arrayLoad(t);
+							mv.visitTypeInsn(Opcodes.CHECKCAST, t.getInternalName());
 							mv.visitInsn(ARRAYLENGTH);
 							/*
 							 * stack:
@@ -218,7 +244,7 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 							}
 						}
 					}
-										
+
 				} else {
 					Type[] targs = Type.getArgumentTypes(desc);
 					for (Type t : targs) {
@@ -237,20 +263,21 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 				if(opcode != INVOKESTATIC)
 					mv.visitInsn(POP);
 				
+				
 				if (returnType.getSort() == Type.VOID)
 					mv.visitInsn(NOP);
 				else {
-					mv.visitFieldInsn(GETSTATIC, m.getSourceClass() + Constants.LOG_CLASS_SUFFIX, 
+					mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
 							m.getLogFieldName(), 
 							m.getLogFieldType().getDescriptor());
-					mv.visitFieldInsn(GETSTATIC, m.getSourceClass()+ Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_replayIndex", "I");
+					mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, m.getLogFieldName()+"_replayIndex", "I");
 					mv.visitInsn(DUP);
 					Label fallThrough = new Label();
-					mv.visitFieldInsn(GETSTATIC, m.getSourceClass()+Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_fill", "I");
+					mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, m.getLogFieldName()+"_fill", "I");
 					mv.visitJumpInsn(Opcodes.IF_ICMPNE, fallThrough);
 					mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ReplayRunner.class), "loadNextLog", "()V");
 					mv.visitInsn(POP);
-					mv.visitFieldInsn(GETSTATIC, m.getSourceClass(), 
+					mv.visitFieldInsn(GETSTATIC, Constants.LOG_REPLAY_CLASS, 
 							m.getLogFieldName() +"_replayIndex", 
 							"I");
 
@@ -258,8 +285,8 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 					mv.visitInsn(DUP);
 					mv.visitInsn(ICONST_1);
 					mv.visitInsn(IADD);
-					mv.visitFieldInsn(PUTSTATIC, m.getSourceClass()+ Constants.LOG_CLASS_SUFFIX, m.getLogFieldName()+"_replayIndex", "I");
-					arrayLoad(Type.getType(m.getLogFieldType().getDescriptor().substring(1)));
+					mv.visitFieldInsn(PUTSTATIC, Constants.LOG_REPLAY_CLASS, m.getLogFieldName()+"_replayIndex", "I");
+					arrayLoad(m.getReturnType());
 				}
 				//Release the export lock
 //				super.visitFieldInsn(GETSTATIC, Type.getInternalName(CloningUtils.class), "exportLock", Type.getDescriptor(ReadWriteLock.class));

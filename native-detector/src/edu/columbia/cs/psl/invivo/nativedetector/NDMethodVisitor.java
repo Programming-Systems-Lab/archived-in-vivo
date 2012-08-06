@@ -354,6 +354,12 @@ public class NDMethodVisitor extends MethodVisitor implements Opcodes {
 
 	@Override
 	public void visitFieldInsn(final int opcode, final String owner, final String name, final String desc) {
+		MethodInstance mi = lookupCache.get(methodFullName);
+		if(opcode == GETSTATIC || opcode == GETFIELD)
+			mi.fieldsGet.add(owner+"."+name);
+		else if(opcode == PUTSTATIC|| opcode == PUTFIELD)
+			mi.fieldsPut.add(owner+"."+name);
+		
 		mv.visitFieldInsn(opcode, owner, name, desc);
 		char c = desc.charAt(0);
 		boolean longOrDouble = c == 'J' || c == 'D';
