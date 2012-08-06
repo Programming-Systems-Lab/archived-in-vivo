@@ -40,6 +40,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		immutableClasses.add("Ljava/lang/String;");
 		immutableClasses.add("Ljava/lang/Char;");
 		immutableClasses.add("Ljava/lang/Byte;");
+		immutableClasses.add("Ljava/sql/ResultSet;");
 		immutableClasses.add("Ljava/lang/Class;");
 		immutableClasses.add("Z");
 		immutableClasses.add("B");
