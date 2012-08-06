@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.channels.Channel;
+import java.security.Permissions;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -27,8 +28,10 @@ public class CloningUtils {
 	private static Cloner				cloner				= new Cloner();
 	public static ReadWriteLock		exportLock			= new ReentrantReadWriteLock();
 	private static HashSet<Class<?>>	moreIgnoredImmutables;
+	private static HashSet<Class<?>>	nullInsteads;
+
 //	private static BufferedWriter		log;
-	private static WallaceExportRunner exporter = new WallaceExportRunner();
+	public static WallaceExportRunner exporter = new WallaceExportRunner();
 	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
 		moreIgnoredImmutables.add(ClassLoader.class);
@@ -49,6 +52,9 @@ public class CloningUtils {
 		cloner.setExtraNullInsteadOfClone(moreIgnoredImmutables);
 		cloner.setExtraImmutables(moreIgnoredImmutables);
 		
+		nullInsteads = new HashSet<Class<?>>();
+		nullInsteads.add(Permissions.class);
+		cloner.setExtraNullInsteadOfClone(nullInsteads);
 //		cloner.setDumpClonedClasses(true);
 		exporter.start();
 		if (CATCH_ALL_ERRORS) {

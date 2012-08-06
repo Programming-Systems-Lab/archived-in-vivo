@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.invivo.record;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,287 +75,10 @@ public class Instrumenter {
 			ma.doneSupplyingClasses();
 			break;
 		case PASS_OUTPUT:
-			generateLogOfLogClass();
 			break;
 		}
 	}
 
-	private static byte[] generateLogClass(String className) {
-		ClassWriter cw = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-		cw.visit(49, Opcodes.ACC_PUBLIC, className + Constants.LOG_CLASS_SUFFIX, null, "java/lang/Object", null);
-		cw.visitSource(null, null);
-
-		{
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-			mvz.visitCode();
-//			for (MethodCall call : methodCalls.get(className)) {
-//				mvz.push(Constants.DEFAULT_LOG_SIZE);
-//				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
-//				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
-//						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
-//
-//				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-//				for (int i = 0; i < argTypes.length; i++) {
-//					if (argTypes[i].getSort() == Type.ARRAY) {
-//						mvz.push(Constants.DEFAULT_LOG_SIZE);
-//						mvz.newArray(argTypes[i]);
-//						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
-//								Type.getType("[" + argTypes[i].getDescriptor()));
-//					}
-//				}
-//			}
-			mvz.visitMaxs(0, 0);
-			mvz.returnValue();
-			mvz.visitEnd();
-		}
-		{
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(1, 1);
-			mv.visitEnd();
-		}
-
-		{
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
-			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V");
-			mvz.visitCode();
-			for (MethodCall call : methodCalls.get(className)) {
-
-				Label cont = new Label();
-				
-				mvz.getStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
-						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
-				mvz.visitJumpInsn(Opcodes.IFNULL, cont);
-				mvz.push(Constants.DEFAULT_LOG_SIZE);
-				mvz.newArray(Type.getMethodType(call.getMethodDesc()).getReturnType());
-				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName(),
-						Type.getType("[" + Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor()));
-				mvz.push(0);
-				mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_fill", Type.INT_TYPE);
-				mvz.visitLabel(cont);
-				
-				Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-				for (int i = 0; i < argTypes.length; i++) {
-					if (argTypes[i].getSort() == Type.ARRAY) {
-						
-						Label cont2 = new Label();
-						mvz.getStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
-								Type.getType("[" + argTypes[i].getDescriptor()));
-						mvz.visitJumpInsn(Opcodes.IFNULL, cont2);
-						mvz.push(Constants.DEFAULT_LOG_SIZE);
-						mvz.newArray(argTypes[i]);
-//						mvz.visitInsn(Opcodes.ACONST_NULL);
-						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i,
-								Type.getType("[" + argTypes[i].getDescriptor()));
-						mvz.push(0);
-						mvz.putStatic(Type.getType("L" + className + Constants.LOG_CLASS_SUFFIX + ";"), call.getLogFieldName() + "_" + i + "_fill",
-								Type.INT_TYPE);
-						mvz.visitLabel(cont2);
-						
-					}
-				}
-			}
-			mvz.visitMaxs(0, 0);
-			mvz.returnValue();
-			mvz.visitEnd();
-		}
-
-		for (MethodCall call : methodCalls.get(className)) {
-			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName(), "["
-					+ Type.getMethodType(call.getMethodDesc()).getReturnType().getDescriptor(), null, null);
-			fn.accept(cw);
-			FieldNode fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
-			fn2.accept(cw);
-			FieldNode fn3 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
-			fn3.accept(cw);
-
-			Type[] argTypes = Type.getArgumentTypes(call.getMethodDesc());
-			for (int i = 0; i < argTypes.length; i++) {
-				if (argTypes[i].getSort() == Type.ARRAY) {
-					fn = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_" + i, "[" + argTypes[i].getDescriptor(), null, null);
-					fn.accept(cw);
-					fn2 = new FieldNode(Opcodes.ASM4, opcode, call.getLogFieldName() + "_" + i + "_fill", Type.INT_TYPE.getDescriptor(), null, 0);
-					fn2.accept(cw);
-					fn3 = new FieldNode(Opcodes.ASM4, Opcodes.ACC_STATIC, call.getLogFieldName() + "_"+i+"_replayIndex", Type.INT_TYPE.getDescriptor(), null, 0);
-					fn3.accept(cw);					
-				}
-			}
-		}
-
-		cw.visitEnd();
-		return cw.toByteArray();
-	}
-
-	private static void generateLogOfLogClass(int logSuffix, HashSet<String> methodCalls)
-	{
-
-		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-		// CheckClassAdapter cv = new CheckClassAdapter(cw);
-		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS + logSuffix, null, "java/lang/Object", null);
-		cv.visitSource(null, null);
-
-		MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-		GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-		mvz.visitCode();
-
-		for (String clazz : methodCalls) {
-			if (Instrumenter.methodCalls.get(clazz).size() == 0)
-				continue;
-			mvz.visitTypeInsn(Opcodes.NEW, clazz + Constants.LOG_CLASS_SUFFIX);
-			mvz.visitInsn(Opcodes.DUP);
-			mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, clazz + Constants.LOG_CLASS_SUFFIX, "<init>", "()V");
-			mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS+ logSuffix, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";");
-		}
-		mvz.returnValue();
-		mvz.visitMaxs(0, 0);
-		mvz.visitEnd();
-
-		/*
-		 * We need to generate a constructor for the class that does nothing, to
-		 * allow for serialization/deserialization
-		 */
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitCode();
-			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(1, 1);
-			mv.visitEnd();
-		}
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
-			mv.visitCode();
-			for (String clazz : methodCalls) {
-				if (Instrumenter.methodCalls.get(clazz).size() == 0)
-					continue;
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, clazz + Constants.LOG_CLASS_SUFFIX, "clearLog", "()V");
-			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-		}
-		/*
-		 * Create the variable
-		 */
-		for (String clazz : methodCalls) {
-			if (Instrumenter.methodCalls.get(clazz).size() == 0)
-				continue;
-			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, clazz.replace("/", "_"), "L" + clazz + Constants.LOG_CLASS_SUFFIX + ";", null, null);
-			fn.accept(cv);
-		}
-		cv.visitEnd();
-
-		try {
-			File outputDir = new File(rootOutputDir + File.separator + "bin" + File.separator
-					+ Constants.LOG_DUMP_CLASS.substring(0, Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
-			outputDir.mkdirs();
-			FileOutputStream fos = new FileOutputStream(outputDir + Constants.LOG_DUMP_CLASS.substring(Constants.LOG_DUMP_CLASS.lastIndexOf("/")) + logSuffix
-					+ ".class");
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			bos.write(cv.toByteArray());
-			bos.writeTo(fos);
-			fos.close();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	private static void generateLogOfLogClass() {
-		
-		HashSet<String> calls = new HashSet<String>();
-		int maxLog = 0;
-		for(String clazz : methodCalls.keySet())
-		{
-			calls.add(clazz);
-			if(calls.size() > 500)
-			{
-				generateLogOfLogClass(maxLog,calls);
-				calls.clear();
-				maxLog++;
-			}
-		}
-		if(calls.size() > 0)
-		{
-			generateLogOfLogClass(maxLog, calls);
-			calls.clear();
-			maxLog++;
-		}
-		
-		ClassWriter cv = new InstrumenterClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, loader);
-		// CheckClassAdapter cv = new CheckClassAdapter(cw);
-		cv.visit(49, Opcodes.ACC_PUBLIC, Constants.LOG_DUMP_CLASS, null, "java/lang/Object", null);
-		cv.visitSource(null, null);
-		MethodVisitor mv;
-		/*
-		 * We need to generate a constructor for the class that does nothing, to
-		 * allow for serialization/deserialization
-		 */
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitCode();
-			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(1, 1);
-			mv.visitEnd();
-		}
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-			GeneratorAdapter mvz = new GeneratorAdapter(mv, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "<clinit>", "()V");
-			mvz.visitCode();
-	
-			for (int i = 0; i < maxLog; i++) {
-				mvz.visitTypeInsn(Opcodes.NEW,Constants.LOG_DUMP_CLASS + i);
-				mvz.visitInsn(Opcodes.DUP);
-				mvz.visitMethodInsn(Opcodes.INVOKESPECIAL, Constants.LOG_DUMP_CLASS + i, "<init>", "()V");
-				mvz.visitFieldInsn(Opcodes.PUTSTATIC, Constants.LOG_DUMP_CLASS, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i+ ";");
-			}
-			mvz.returnValue();
-			mvz.visitMaxs(0, 0);
-			mvz.visitEnd();
-		}
-		{
-			mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "clearLog", "()V", null, null);
-			mv.visitCode();
-			for (int i = 0; i< maxLog; i++) {
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, Constants.LOG_DUMP_CLASS + i, "clearLog", "()V");
-			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-		}
-//		/*
-//		 * Create the variable
-//		 */
-		for (int i = 0; i < maxLog; i++) {
-			int opcode = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
-			FieldNode fn = new FieldNode(Opcodes.ASM4, opcode, "log"+i, "L" + Constants.LOG_DUMP_CLASS + i + ";", null, null);
-			fn.accept(cv);
-		}
-		cv.visitEnd();
-
-		try {
-			File outputDir = new File(rootOutputDir + File.separator + "bin" + File.separator
-					+ Constants.LOG_DUMP_CLASS.substring(0, Constants.LOG_DUMP_CLASS.lastIndexOf("/")));
-			outputDir.mkdirs();
-			FileOutputStream fos = new FileOutputStream(outputDir + Constants.LOG_DUMP_CLASS.substring(Constants.LOG_DUMP_CLASS.lastIndexOf("/"))
-					+ ".class");
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			bos.write(cv.toByteArray());
-			bos.writeTo(fos);
-			fos.close();
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-	}
 
 	private static byte[] instrumentClass(InputStream is) {
 		try {
@@ -368,11 +93,17 @@ public class Instrumenter {
 				methodCalls.put(cv.getClassName(), cv.getLoggedMethodCalls());
 			lastInstrumentedClass = cv.getClassName();
 			byte[] out = cw.toByteArray();
-//			 ClassReader cr2 = new ClassReader(out);
-//			 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			try{
+			 ClassReader cr2 = new ClassReader(out);
+			 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			}
+			catch(Exception ex)
+			{
+				ex.printStackTrace();
+			}
 			return out;
 		} catch (Exception ex) {
-			logger.error("Exception processing class:", ex);
+			logger.error("Exception processing class: " + lastInstrumentedClass, ex);
 			return null;
 		}
 	}
@@ -450,17 +181,7 @@ public class Instrumenter {
 					bos.writeTo(fos);
 					fos.close();
 				}
-				{
-					File parentDir = new File(rootOutputDir + File.separator + "bin" + File.separator + lastInstrumentedClass).getParentFile();
-					if (!parentDir.exists())
-						parentDir.mkdirs();
-					FileOutputStream fos = new FileOutputStream(rootOutputDir + File.separator + "bin" + File.separator + lastInstrumentedClass
-							+ Constants.LOG_CLASS_SUFFIX + ".class");
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					bos.write(generateLogClass());
-					bos.writeTo(fos);
-					fos.close();
-				}
+			
 
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -469,9 +190,7 @@ public class Instrumenter {
 		}
 	}
 
-	private static byte[] generateLogClass() {
-		return generateLogClass(lastInstrumentedClass);
-	}
+
 
 	private static void processDirectory(File f, File parentOutputDir, boolean isFirstLevel) {
 		File thisOutputDir;
@@ -553,27 +272,22 @@ public class Instrumenter {
 							JarEntry outEntry = new JarEntry(e.getName());
 							jos.putNextEntry(outEntry);
 							byte[] clazz = instrumentClass(jar.getInputStream(e));
-							jos.write(clazz);
+							if(clazz == null)
+							{
+								InputStream is = jar.getInputStream(e);
+								byte[] buffer = new byte[1024];
+								while (true) {
+									int count = is.read(buffer);
+									if (count == -1)
+										break;
+									jos.write(buffer, 0, count);
+								}	
+							}
+							else
+									jos.write(clazz);
 							jos.closeEntry();
 						}
-						{
-							// JarEntry outEntry = new
-							// JarEntry(e.getName().replace(".class",
-							// Constants.LOG_CLASS_SUFFIX +".class"));
-							// jos.putNextEntry(outEntry);
-							File parentDir = new File(rootOutputDir + File.separator + "bin" + File.separator + e.getName());
-							if (!parentDir.getParentFile().exists())
-								parentDir.getParentFile().mkdirs();
-							// System.out.println(e.getName());
-							FileOutputStream fos = new FileOutputStream(rootOutputDir + File.separator + "bin" + File.separator
-									+ e.getName().replace(".class", "") + Constants.LOG_CLASS_SUFFIX + ".class");
-							ByteArrayOutputStream bos = new ByteArrayOutputStream();
-							bos.write(generateLogClass());
-							bos.writeTo(fos);
-							fos.close();
-							// jos.write(clazz);
-							// jos.closeEntry();
-						}
+
 
 					} else {
 						JarEntry outEntry = new JarEntry(e.getName());

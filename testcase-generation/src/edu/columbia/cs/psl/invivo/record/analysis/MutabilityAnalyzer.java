@@ -27,12 +27,14 @@ public class MutabilityAnalyzer implements Opcodes {
 		this.lookupCache = lookupCache;
 	}
 	private HashMap<String, AnnotatedMethod> lookupCache;
-	
+	private static boolean enabled = false;
 	/**
 	 * Call when done calling analyzeClass
 	 */
 	public void doneSupplyingClasses()
 	{
+		if(!enabled)
+			return;
 		for (String s : lookupCache.keySet()) {
 			AnnotatedMethod method = lookupCache.get(s);
 			if (method.isMutatesFieldsDirectly()) {

@@ -74,19 +74,41 @@ public class MethodCall {
 			return true;
 		return false;
 	}
+	public String getCapturePrefix()
+	{
+		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
+		r += lineNumber+ "$"+pc;
+		return r;
+	}
 	public String getLogFieldName()
 	{
-		Type[] args = Type.getArgumentTypes(methodDesc);
-		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
+//		Type[] args = Type.getArgumentTypes(methodDesc);
+//		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
 //		for(Type t : args)
 //		{
 //			r+=t.getInternalName().replace("/", "$")+"$$";
 //		}
-		r += lineNumber+ "$"+pc;
-		return r;
+//		r += lineNumber+ "$"+pc;
+		Type t= Type.getReturnType(methodDesc);
+		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
+			return "aLog";
+		else
+			return t.getDescriptor().toLowerCase()+"Log";
 
 	}
 	public Type getLogFieldType() {
-		return Type.getType("["+Type.getMethodType(methodDesc).getReturnType().getDescriptor());
+		Type t = Type.getMethodType(methodDesc).getReturnType();
+		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
+			return Type.getType("[Ljava/lang/Object;");
+		else
+			return Type.getType("["+t.getDescriptor());
+//		return Type.getType("["+Type.getMethodType(methodDesc).getReturnType().getDescriptor());
+	}
+	public static Type getLogFieldType(Type t)
+	{
+		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
+			return Type.getType("[Ljava/lang/Object;");
+		else
+			return Type.getType("["+t.getDescriptor());
 	}
 }

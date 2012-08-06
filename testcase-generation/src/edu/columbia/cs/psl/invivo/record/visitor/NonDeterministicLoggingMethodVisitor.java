@@ -84,7 +84,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		lineNumber = line;
 	}
 
-	private HashMap<String, MethodInsnNode> captureMethodsToGenerate = new HashMap<String, MethodInsnNode>();
+	private HashMap<MethodCall, MethodInsnNode> captureMethodsToGenerate = new HashMap<MethodCall, MethodInsnNode>();
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		try {
@@ -102,7 +102,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 			
 				if(hasArray)
 				{	//TODO uncomment this block
-					captureMethodsToGenerate.put(m.getLogFieldName(), new MethodInsnNode(opcode, owner, name, desc));
+					captureMethodsToGenerate.put(m, new MethodInsnNode(opcode, owner, name, desc));
 					String captureDesc = desc;
 					
 					int invokeOpcode = Opcodes.INVOKESTATIC;
@@ -118,14 +118,14 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 							captureDesc += t.getDescriptor();
 						captureDesc+=")"+Type.getReturnType(desc).getDescriptor();
 					}
-					mv.visitMethodInsn(invokeOpcode, classDesc, m.getLogFieldName()+"_capture", captureDesc);
-					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
+					mv.visitMethodInsn(invokeOpcode, classDesc, m.getCapturePrefix()+"_capture", captureDesc);
+					logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							owner+"."+name + "\t" + desc);
 				}
 				else
 				{
 					mv.visitMethodInsn(opcode, owner, name, desc);
-					logValueAtTopOfStackToArray(this.classDesc + Constants.LOG_CLASS_SUFFIX, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
+					logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							owner+"."+name + "\t" + desc);
 				}
 			} else

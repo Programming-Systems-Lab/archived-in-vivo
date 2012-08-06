@@ -45,7 +45,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	public MethodVisitor visitMethod(int acc, String name, String desc, String signature, String[] exceptions) {
 		// TODO need an annotation to disable doing this to some apps
 		if (isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME)
-				&& !className.startsWith("org/apache/juli")
+				&& !className.startsWith("com/thoughtworks")
 				)
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
@@ -66,7 +66,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	}
 
 	private HashSet<MethodCall> loggedMethodCalls = new HashSet<MethodCall>();
-	private HashMap<String, MethodInsnNode> captureMethodsToGenerate = new HashMap<String, MethodInsnNode>();
+	private HashMap<MethodCall, MethodInsnNode> captureMethodsToGenerate = new HashMap<MethodCall, MethodInsnNode>();
 
 	public void addFieldMarkup(Collection<MethodCall> calls) {
 		logger.debug("Received field markup from method visitor (" + calls.size() + ")");
@@ -78,8 +78,8 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	@Override
 	public void visitEnd() {
 		super.visitEnd();
-		for (String logFieldName : captureMethodsToGenerate.keySet()) {
-			MethodInsnNode mi = captureMethodsToGenerate.get(logFieldName);
+		for (MethodCall mc : captureMethodsToGenerate.keySet()) {
+			MethodInsnNode mi = captureMethodsToGenerate.get(mc);
 			String methodDesc = mi.desc;
 
 			String captureDesc = mi.desc;
@@ -94,8 +94,8 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 					captureDesc += t.getDescriptor();
 				captureDesc += ")" + Type.getReturnType(mi.desc).getDescriptor();
 			}
-			MethodVisitor mv = super.visitMethod(opcode, logFieldName + "_capture", captureDesc, null, null);
-			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, opcode, logFieldName + "_capture", captureDesc, className);
+			MethodVisitor mv = super.visitMethod(opcode, mc.getCapturePrefix() + "_capture", captureDesc, null, null);
+			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, opcode, mc.getCapturePrefix() + "_capture", captureDesc, className);
 			Type[] args = Type.getArgumentTypes(captureDesc);
 			if(opcode == Opcodes.ACC_PRIVATE)
 				caa.loadThis();
@@ -107,7 +107,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				if (args[i].getSort() == Type.ARRAY) {
 					caa.loadArg(i);
 					//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
-					caa.logValueAtTopOfStackToArray(className + Constants.LOG_CLASS_SUFFIX, logFieldName + "_" + (i - (mi.getOpcode() == Opcodes.INVOKESTATIC || opcode == Opcodes.ACC_PRIVATE ? 0 : 1)), "[" + args[i].getDescriptor(),
+					caa.logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;",
 							args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
 					if (args[i].getSize() == 1)
 						caa.pop();
@@ -155,7 +155,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 		return className;
 	}
 
-	public void addCaptureMethodsToGenerate(HashMap<String, MethodInsnNode> captureMethodsToGenerate) {
+	public void addCaptureMethodsToGenerate(HashMap<MethodCall, MethodInsnNode> captureMethodsToGenerate) {
 		this.captureMethodsToGenerate.putAll(captureMethodsToGenerate);
 	}
 

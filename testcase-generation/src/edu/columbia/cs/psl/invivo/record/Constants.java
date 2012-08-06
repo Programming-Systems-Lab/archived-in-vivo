@@ -7,9 +7,9 @@ public interface Constants {
 	public static String ARRAY_INIT_METHOD = "__initInvivoLogArrays";
 	public static String STATIC_ARRAY_INIT_METHOD = "__initInvivoLogArraysStatic";
 	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
-	public static int DEFAULT_LOG_SIZE = 20;
+	public static int DEFAULT_LOG_SIZE = 1000;
+	public static int MAX_LOG_SIZE = 500000;
 	public static double LOG_GROWTH_RATE = 1.5;
-	public static String LOG_CLASS_SUFFIX = "InvivoLog";
 	public static String REPLAY_CLASS_SUFFIX = "InvivoReplay";
 	public static String INNER_COPY_METHOD_NAME = "_Invivo___copy";
 	public static String OUTER_COPY_METHOD_NAME = "_Invivo_copy";
