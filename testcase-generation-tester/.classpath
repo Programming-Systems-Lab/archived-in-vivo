@@ -9,5 +9,8 @@
 	<classpathentry kind="lib" path="lib/kxml2-2.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/xstream-1.4.2.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/test case generation"/>
+	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-http-7.5.4.v20111024.jar"/>
+	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-io-7.5.4.v20111024.jar"/>
+	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-util-7.5.4.v20111024.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
