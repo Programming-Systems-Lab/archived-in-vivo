@@ -97,21 +97,21 @@ public class DummyDriver extends SimpleClass {
 		this.sarray[4] = "zz";
 		bar = 6;
 		
-		try{
-		File file = new File("fooObject");
-		if(file.exists())
-			file.delete();
-		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
-		oos.writeObject(f);
-		oos.close();
-		
-		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-		f = (JFrame) ois.readObject();
-		ois.close();
-		}
-		catch(Exception ex){
-			ex.printStackTrace();
-		}
+//		try{
+//		File file = new File("fooObject");
+//		if(file.exists())
+//			file.delete();
+//		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+//		oos.writeObject(f);
+//		oos.close();
+//		
+//		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+//		f = (JFrame) ois.readObject();
+//		ois.close();
+//		}
+//		catch(Exception ex){
+//			ex.printStackTrace();
+//		}
 		
 //		vm_Version = System.getProperty("java.runtime.version");
 //		System.out.println(vm_Version);

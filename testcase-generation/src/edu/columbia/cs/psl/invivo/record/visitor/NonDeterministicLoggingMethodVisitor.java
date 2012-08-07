@@ -13,9 +13,11 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
 
 public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter implements Constants {
@@ -28,7 +30,15 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	private boolean					isStatic;
 	private boolean					constructor;
 	private boolean					superInitialized;
-
+	private AnalyzerAdapter analyzer;
+	public static boolean isND(String owner, String name, String desc)
+	{
+		return nonDeterministicMethods.contains(owner + "." + name + ":" + desc);
+	}
+	public static void registerNDMethod(String owner, String name, String desc)
+	{
+		nonDeterministicMethods.add(owner + "." + name + ":" + desc);
+	}
 	static {
 		File f = new File("nondeterministic-methods.txt");
 		Scanner s;
@@ -59,6 +69,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		this.isStatic = (access & Opcodes.ACC_STATIC) != 0;
 		this.constructor = "<init>".equals(name);
 		this.isFirstConstructor = isFirstConstructor;
+		this.analyzer = (AnalyzerAdapter) mv;
 	}
 
 	private NonDeterministicLoggingClassVisitor	parent;
@@ -71,7 +82,13 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	@Override
 	public void visitEnd() {
 //		System.out.println(classDesc + " " + name);
+		try{
 		super.visitEnd();
+		}
+		catch(ArrayIndexOutOfBoundsException ex)
+		{
+			throw new ArrayIndexOutOfBoundsException("Processing maxs on " +classDesc + "."+ name);
+		}
 		parent.addFieldMarkup(methodCallsToClear);
 		parent.addCaptureMethodsToGenerate(captureMethodsToGenerate);
 	}
@@ -128,7 +145,16 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 					logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
 							owner+"."+name + "\t" + desc);
 				}
-			} else
+			} 
+			else if(opcode == INVOKESPECIAL && name.equals("<init>") && nonDeterministicMethods.contains(owner + "." + name + ":" + desc) && !(owner.equals(Instrumenter.instrumentedClasses.get(classDesc).superName)
+					&& this.name.equals("<init>"))) {
+				super.visitMethodInsn(opcode, owner, name, desc);
+				if(analyzer.stack != null && analyzer.stack.size() > 0 && analyzer.stack.get(analyzer.stack.size()-1).equals(owner))
+					logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;", Type.getType("L"+owner+";"), true,
+							owner+"."+name + "\t" + desc);
+
+			}
+			else
 				mv.visitMethodInsn(opcode, owner, name, desc);
 			pc++;
 		} catch (Exception ex) {
