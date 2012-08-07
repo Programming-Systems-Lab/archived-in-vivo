@@ -61,7 +61,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	private boolean	isFirstConstructor;
 
 	protected NonDeterministicLoggingMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc,
-			boolean isFirstConstructor) {
+			boolean isFirstConstructor, AnalyzerAdapter analyzer) {
 		super(api, mv, access, name, desc,classDesc);
 		this.name = name;
 		this.desc = desc;
@@ -69,7 +69,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 		this.isStatic = (access & Opcodes.ACC_STATIC) != 0;
 		this.constructor = "<init>".equals(name);
 		this.isFirstConstructor = isFirstConstructor;
-		this.analyzer = (AnalyzerAdapter) mv;
+		this.analyzer = analyzer;
 	}
 
 	private NonDeterministicLoggingClassVisitor	parent;

@@ -50,11 +50,12 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				)
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
-			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, smv);
+			JSRInlinerAdapter mv = new JSRInlinerAdapter(analyzer, acc, name, desc, signature, exceptions);
 			LocalVariablesSorter sorter  = new LocalVariablesSorter(acc, desc, mv);
 			// CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
-			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, sorter);
-			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, analyzer, acc, name, desc, className, isFirstConstructor);
+
+			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor, analyzer);
 			if (name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
