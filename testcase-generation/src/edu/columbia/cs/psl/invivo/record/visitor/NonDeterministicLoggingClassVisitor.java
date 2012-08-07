@@ -10,6 +10,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -49,10 +50,12 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				)
 		{
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
-			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, smv);
+			JSRInlinerAdapter mv = new JSRInlinerAdapter(analyzer, acc, name, desc, signature, exceptions);
 			LocalVariablesSorter sorter  = new LocalVariablesSorter(acc, desc, mv);
 			// CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
-			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor);
+
+			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor, analyzer);
 			if (name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
@@ -84,9 +87,9 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 
 			String captureDesc = mi.desc;
 			
-			int opcode = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
+			int opcode = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
 			if(mi.getOpcode() == Opcodes.INVOKESPECIAL && !mi.name.equals("<init>"))
-				opcode = Opcodes.ACC_PRIVATE;
+				opcode = Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL;
 			else if (mi.getOpcode() != Opcodes.INVOKESTATIC) {
 				// Need to put owner of the method on the top of the args list
 				captureDesc = "(L" + mi.owner + ";";
@@ -97,57 +100,38 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			MethodVisitor mv = super.visitMethod(opcode, mc.getCapturePrefix() + "_capture", captureDesc, null, null);
 			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, opcode, mc.getCapturePrefix() + "_capture", captureDesc, className);
 			Type[] args = Type.getArgumentTypes(captureDesc);
-			if(opcode == Opcodes.ACC_PRIVATE)
-				caa.loadThis();
-			for (int i = 0; i < args.length; i++) {
-				caa.loadArg(i);
-			}
-			mv.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
-			for (int i = 0; i < args.length; i++) {
-				if (args[i].getSort() == Type.ARRAY) {
+			if(mi.name.equals("<init>"))
+			{
+				for (int i = 0; i < args.length; i++) {
 					caa.loadArg(i);
-					//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
-					caa.logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;",
-							args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
-					if (args[i].getSize() == 1)
-						caa.pop();
-					else
-						caa.pop2();
+				}
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, mi.owner, mi.name, mi.desc);
+				caa.loadArg(0);
+			}
+			else
+			{
+				if(opcode == Opcodes.ACC_PRIVATE)
+					caa.loadThis();
+				for (int i = 0; i < args.length; i++) {
+					caa.loadArg(i);
+				}
+				mv.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
+				for (int i = 0; i < args.length; i++) {
+					if (args[i].getSort() == Type.ARRAY) {
+						caa.loadArg(i);
+						//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
+						caa.logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;",
+								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
+						if (args[i].getSize() == 1)
+							caa.pop();
+						else
+							caa.pop2();
+					}
 				}
 			}
 			caa.returnValue();
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
-		}
-		
-		
-		if (isAClass) {
-			//TODO re-enable this
-//			{
-//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
-//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.INNER_COPY_METHOD_NAME, "()L" + className + ";", className);
-//				cloningAdapter.generateCopyMethod();
-//				mv.visitMaxs(0, 0);
-//				cloningAdapter.returnValue();
-//				mv.visitEnd();
-//			}
-//			{
-//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", null, null);
-//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.OUTER_COPY_METHOD_NAME, "()L" + className + ";", className);
-//				cloningAdapter.generateOuterCopyMethod();
-//				mv.visitMaxs(0, 0);
-//				cloningAdapter.returnValue();
-//				mv.visitEnd();
-//			}
-//			{
-//				MethodVisitor mv = this.visitMethod(Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";", null, null);
-//				CloningAdviceAdapter cloningAdapter = new CloningAdviceAdapter(Opcodes.ASM4, mv, Opcodes.ACC_PUBLIC, Constants.SET_FIELDS_METHOD_NAME, "(L" + className + ";)L" + className + ";",
-//						className);
-//				cloningAdapter.generateSetFieldsMethod();
-//				mv.visitMaxs(0, 0);
-//				cloningAdapter.returnValue();
-//				mv.visitEnd();
-//			}
 		}
 	}
 

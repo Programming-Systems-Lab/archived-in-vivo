@@ -175,18 +175,15 @@ public class Instrumenter {
 			break;
 		case PASS_OUTPUT:
 			try {
-				{
 					FileOutputStream fos = new FileOutputStream(outputDir.getPath() + File.separator + name);
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					bos.write(instrumentClass(is));
 					bos.writeTo(fos);
 					fos.close();
-				}
 			
 
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				System.exit(-1);
 			}
 		}
 	}

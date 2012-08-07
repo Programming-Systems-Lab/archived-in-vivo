@@ -413,7 +413,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 				fieldType.getSort() == Type.VOID || 
 				(fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField)))) {
 //			println("reference> " + debug);
-			//			println(debug);
+//						println(debug);
 			//			println("Doing nothing");
 			return;
 		}

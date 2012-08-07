@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -15,9 +16,10 @@ import java.util.Arrays;
 
 import edu.columbia.cs.psl.invivo.record.ExportedLog;
 
-public class ReaderUser extends FilterInputStream {
+public class ReaderUser extends InputStreamReader {
 	protected ReaderUser(InputStream in) {
 		super(in);
+
 //		 TODO Auto-generated constructor stub
 	}
 	int x =0;
@@ -62,7 +64,8 @@ public class ReaderUser extends FilterInputStream {
 //		return r.read(cbuf, o, n);
 //	}
 	public static void main(String[] args) throws Exception{
+//		new ReaderUser(null);
 		FileInputStream fis = new FileInputStream("in-vivo.log");
-		new ReaderUser(null).go();
+		new ReaderUser(fis).go();
 	}
 }

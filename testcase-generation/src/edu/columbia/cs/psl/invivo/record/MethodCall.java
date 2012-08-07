@@ -76,7 +76,7 @@ public class MethodCall {
 	}
 	public String getCapturePrefix()
 	{
-		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName+"$$$$";
+		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName.replace("<", "___").replace(">", "___")+"$$$$";
 		r += lineNumber+ "$"+pc;
 		return r;
 	}
@@ -90,7 +90,7 @@ public class MethodCall {
 //		}
 //		r += lineNumber+ "$"+pc;
 		Type t= Type.getReturnType(methodDesc);
-		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY)
+		if(t.getSort() == Type.OBJECT || t.getSort() == Type.ARRAY || methodName.equals("<init>"))
 			return "aLog";
 		else if(t.getSort() == Type.VOID)
 			return "bLog";

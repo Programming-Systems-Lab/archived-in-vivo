@@ -14,11 +14,14 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import edu.columbia.cs.psl.invivo.record.Instrumenter;
 import edu.columbia.cs.psl.invivo.record.struct.AnnotatedMethod;
 import edu.columbia.cs.psl.invivo.record.struct.Expression;
 import edu.columbia.cs.psl.invivo.record.struct.FieldExpression;
 import edu.columbia.cs.psl.invivo.record.struct.MethodExpression;
 import edu.columbia.cs.psl.invivo.record.struct.SimpleExpression;
+import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingClassVisitor;
+import edu.columbia.cs.psl.invivo.record.visitor.NonDeterministicLoggingMethodVisitor;
 
 public class MutabilityAnalyzer implements Opcodes {
 
@@ -104,13 +107,18 @@ public class MutabilityAnalyzer implements Opcodes {
 	public ClassNode analyzeClass(ClassReader cr) {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, ClassReader.SKIP_DEBUG);
-		
+
 		for (Object o : cn.methods) {
 			MethodNode thisMethodNode = (MethodNode) o;
 			AnnotatedMethod thisMethod = findOrAddMethod(cn.name, thisMethodNode);
 			thisMethod.setFullyDiscovered(true);
 			thisMethod.setAccess(thisMethodNode.access);
+			
+			if((thisMethodNode.access & ACC_NATIVE) != 0) // is native
+					NonDeterministicLoggingMethodVisitor.registerNDMethod(cn.name, thisMethodNode.name, thisMethodNode.desc);
+			
 			ListIterator<?> i = thisMethodNode.instructions.iterator();
+			boolean isFirstInsn = true;
 			while (i.hasNext()) {
 				AbstractInsnNode n = (AbstractInsnNode) i.next();
 				if (n.getType() == AbstractInsnNode.FIELD_INSN) // Field
@@ -145,7 +153,15 @@ public class MutabilityAnalyzer implements Opcodes {
 					if(whatWeCall.getOpcode() != Opcodes.INVOKESTATIC)
 						otherMethodExp.setParent(parentInstructionOf(thisMethodNode, otherMethodExp, thisMethodNode.instructions.iterator(i.previousIndex())));
 					
+					if(NonDeterministicLoggingMethodVisitor.isND(whatWeCall.owner, whatWeCall.name, whatWeCall.desc) && 
+							whatWeCall.name.equals("<init>") && whatWeCall.owner.equals(cn.superName) && thisMethodNode.name.equals("<init>") && isFirstInsn)
+					{
+						NonDeterministicLoggingMethodVisitor.registerNDMethod(cn.name, thisMethodNode.name, thisMethodNode.desc);
+					}
+						
 					thisMethod.functionsThatICall.add(otherMethodExp);
+					
+					isFirstInsn = false;
 				} else if (n.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) // Invoke
 																				// dynamic
 				{
