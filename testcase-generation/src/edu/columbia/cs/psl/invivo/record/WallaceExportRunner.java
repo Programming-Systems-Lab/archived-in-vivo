@@ -59,6 +59,7 @@ public class WallaceExportRunner extends Thread {
 	static WallaceExportRunner inst = new WallaceExportRunner();
 	public WallaceExportRunner() {
 		setDaemon(true);
+		setPriority(Thread.MAX_PRIORITY);
 	}
 
 	private static ExportedLog	log	= new ExportedLog();
@@ -68,15 +69,14 @@ public class WallaceExportRunner extends Thread {
 			XStream xstream = new XStream(new StaticReflectionProvider());
 			String xml = "";
 //			System.out.println("Waiting for the lock");
-			synchronized (Log.lock) {
-				ExportedLog.aLog = Log.aLog;
-			
+			Log.logLock.lock();
+			ExportedLog.aLog = Log.aLog;
 				
 				ExportedLog.aLog_fill = Log.aLog_fill;
 				Log.logsize = 0;
 				Log.aLog = new Object[Constants.DEFAULT_LOG_SIZE];
 				Log.aLog_fill = 0;
-			}
+			Log.logLock.unlock();
 				System.err.println("Serializing");
 				try{
 				xml = xstream.toXML(log);
@@ -94,12 +94,12 @@ public class WallaceExportRunner extends Thread {
 			FileWriter fw = new FileWriter(output);
 			fw.write(xml);
 			fw.close();
-			synchronized (Log.lock) {
-				Log.lock.notifyAll();				
-			}
-			synchronized (Log.lock) {
-				Log.lock.notifyAll();				
-			}
+//			synchronized (Log.lock) {
+//				Log.lock.notifyAll();				
+//			}
+//			synchronized (Log.lock) {
+//				Log.lock.notifyAll();				
+//			}
 
 
 		} catch (Exception exi) {
@@ -113,7 +113,8 @@ public class WallaceExportRunner extends Thread {
 		shouldExportSerializable = 0;
 		try {
 			
-			synchronized (Log.lock) {
+			Log.logLock.lock();
+			{
 				ExportedSerializableLog.aLog = SerializableLog.aLog;
 				ExportedSerializableLog.aLog_fill = SerializableLog.aLog_fill;
 				ExportedSerializableLog.bLog = SerializableLog.bLog;
@@ -155,6 +156,7 @@ public class WallaceExportRunner extends Thread {
 				SerializableLog.sLog_fill = 0;
 				SerializableLog.aLog_fill = 0;
 			}
+			Log.logLock.unlock();
 //				System.err.println("Serializing serializable");
 				File output = new File("wallace_serializable_" + System.currentTimeMillis() + ".log");
 
@@ -166,12 +168,12 @@ public class WallaceExportRunner extends Thread {
 				ExportedLog.clearLog();
 //				System.err.println("Cleared serializable");
 //				System.out.println("Notifying; " + Log.logsize +";"+SerializableLog.logsize);
-				synchronized (Log.lock) {
-					Log.lock.notifyAll();				
-				}
-				synchronized (Log.lock) {
-					Log.lock.notifyAll();				
-				}
+//				synchronized (Log.lock) {
+//					Log.lock.notifyAll();				
+//				}
+//				synchronized (Log.lock) {
+//					Log.lock.notifyAll();				
+//				}
 		} catch (Exception exi) {
 //			System.err.println(exi.getMessage());
 		}
@@ -183,7 +185,8 @@ public class WallaceExportRunner extends Thread {
 	public static void _exportSerializable() {
 		if(shouldExportSerializable == -1)
 		{
-			System.out.println("Flagged shouldexport serializble");
+//			System.out.println("Flagged shouldexport serializble");
+			Thread.yield();
 			shouldExportSerializable = 1;
 			inst.interrupt();
 		}
@@ -192,6 +195,7 @@ public class WallaceExportRunner extends Thread {
 	public static void _export() {
 		if(shouldExport == -1)
 		{
+			Thread.yield();
 			shouldExport = 1;
 			inst.interrupt();
 		}

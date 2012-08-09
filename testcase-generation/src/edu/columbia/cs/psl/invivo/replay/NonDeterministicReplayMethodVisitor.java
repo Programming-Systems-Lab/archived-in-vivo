@@ -57,7 +57,7 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 
 	protected NonDeterministicReplayMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc,
 			boolean isFirstConstructor) {
-		super(api, mv, access, name, desc,classDesc);
+		super(api, mv, access, name, desc,classDesc, null);
 		this.name = name;
 		this.desc = desc;
 		this.classDesc = classDesc;

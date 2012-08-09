@@ -50,7 +50,7 @@ public class ReaderUser extends InputStreamReader {
 				charsRead = r.read(buf, 0, buf.length);
 				System.out.println(charsRead);
 //				System.out.println(buf);
-				Thread.sleep(100);
+//				Thread.sleep(100);
 //				System.out.println("Size" + Log.logsize);
 			}
 			c++;

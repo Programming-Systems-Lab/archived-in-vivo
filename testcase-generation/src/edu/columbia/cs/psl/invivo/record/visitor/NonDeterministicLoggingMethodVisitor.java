@@ -14,6 +14,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
@@ -61,8 +62,8 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	private boolean	isFirstConstructor;
 
 	protected NonDeterministicLoggingMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String classDesc,
-			boolean isFirstConstructor, AnalyzerAdapter analyzer) {
-		super(api, mv, access, name, desc,classDesc);
+			boolean isFirstConstructor, AnalyzerAdapter analyzer, LocalVariablesSorter lvs) {
+		super(api, mv, access, name, desc,classDesc, lvs);
 		this.name = name;
 		this.desc = desc;
 		this.classDesc = classDesc;
@@ -82,13 +83,8 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	@Override
 	public void visitEnd() {
 //		System.out.println(classDesc + " " + name);
-		try{
 		super.visitEnd();
-		}
-		catch(ArrayIndexOutOfBoundsException ex)
-		{
-			throw new ArrayIndexOutOfBoundsException("Processing maxs on " +classDesc + "."+ name);
-		}
+
 		parent.addFieldMarkup(methodCallsToClear);
 		parent.addCaptureMethodsToGenerate(captureMethodsToGenerate);
 	}
@@ -137,13 +133,13 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 					}
 					mv.visitMethodInsn(invokeOpcode, classDesc, m.getCapturePrefix()+"_capture", captureDesc);
 					logValueAtTopOfStackToArray(m.getLogClassNmae(), m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
-							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name,false);
 				}
 				else
 				{
 					mv.visitMethodInsn(opcode, owner, name, desc);
 					logValueAtTopOfStackToArray(m.getLogClassNmae(), m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
-							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name,false);
 				}
 			} 
 			else if(opcode == INVOKESPECIAL && name.equals("<init>") && nonDeterministicMethods.contains(owner + "." + name + ":" + desc) && !(owner.equals(Instrumenter.instrumentedClasses.get(classDesc).superName)
@@ -151,7 +147,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 				super.visitMethodInsn(opcode, owner, name, desc);
 				if(analyzer.stack != null && analyzer.stack.size() > 0 && analyzer.stack.get(analyzer.stack.size()-1).equals(owner))
 					logValueAtTopOfStackToArray(MethodCall.getLogClassName(Type.getType("L"+owner+";")), "aLog", "[Ljava/lang/Object;", Type.getType("L"+owner+";"), true,
-							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name,false);
 
 			}
 			else

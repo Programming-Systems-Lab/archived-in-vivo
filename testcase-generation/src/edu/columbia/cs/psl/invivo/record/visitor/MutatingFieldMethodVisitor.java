@@ -29,7 +29,7 @@ public class MutatingFieldMethodVisitor extends CloningAdviceAdapter {
 	private String name;
 	private int access;
 	protected MutatingFieldMethodVisitor(int api, MethodVisitor mv, int access, String name, String desc, String owner) {
-		super(api, mv, access, name, desc,owner);
+		super(api, mv, access, name, desc,owner, null);
 		thisMethod = Instrumenter.getAnnotatedMethod(owner, name, desc);
 		this.owner = owner;
 		this.name = name;
