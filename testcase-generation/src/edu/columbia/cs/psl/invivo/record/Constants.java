@@ -5,12 +5,14 @@ public interface Constants {
 	public static String PREV_VALUE_PREFIX = "__origValue_";
 //	public static String LOGGED_CALL_PREFIX = "__loggedValueAt_";
 
-	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
-	public static String LOG_REPLAY_CLASS = "edu/columbia/cs/psl/invivo/record/ExportedLog";
+//	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
+//	public static String LOG_REPLAY_CLASS = "edu/columbia/cs/psl/invivo/record/ExportedLog";
 
-	public static int DEFAULT_LOG_SIZE = 1000;
-	public static int MAX_LOG_SIZE = 500000;
-	public static double LOG_GROWTH_RATE = 1.5;
+	public static int DEFAULT_LOG_SIZE = 2000;
+	public static int MAX_LOG_SIZE = 40000000;
+	public static int VERY_MAX_LOG_SIZE = 400000000;
+
+	public static double LOG_GROWTH_RATE = 2.5;
 	public static String REPLAY_CLASS_SUFFIX = "InvivoReplay";
 	public static String INNER_COPY_METHOD_NAME = "_Invivo___copy";
 	public static String OUTER_COPY_METHOD_NAME = "_Invivo_copy";

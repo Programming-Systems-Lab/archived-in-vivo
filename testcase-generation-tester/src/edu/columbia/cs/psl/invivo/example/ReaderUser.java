@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 import edu.columbia.cs.psl.invivo.record.ExportedLog;
+import edu.columbia.cs.psl.invivo.record.Log;
 
 public class ReaderUser extends InputStreamReader {
 	protected ReaderUser(InputStream in) {
@@ -37,7 +38,7 @@ public class ReaderUser extends InputStreamReader {
 			f.exists();
 			f.getAbsoluteFile();
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
-			char[] buf = new char[2];
+			char[] buf = new char[5000];
 //			int zz = read(new byte[4]);
 //			System.out.println("zz: " + zz);
 			int charsRead = 0;
@@ -48,8 +49,9 @@ public class ReaderUser extends InputStreamReader {
 			{
 				charsRead = r.read(buf, 0, buf.length);
 				System.out.println(charsRead);
-				System.out.println(buf);
-				Thread.sleep(100);
+//				System.out.println(buf);
+//				Thread.sleep(100);
+//				System.out.println("Size" + Log.logsize);
 			}
 			c++;
 			System.out.println(c);

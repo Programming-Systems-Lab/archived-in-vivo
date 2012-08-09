@@ -7,6 +7,7 @@ import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -55,7 +56,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			LocalVariablesSorter sorter  = new LocalVariablesSorter(acc, desc, mv);
 			// CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
 
-			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor, analyzer);
+			NonDeterministicLoggingMethodVisitor cloningMV = new NonDeterministicLoggingMethodVisitor(Opcodes.ASM4, sorter, acc, name, desc, className, isFirstConstructor, analyzer, sorter);
 			if (name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
@@ -98,14 +99,15 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				captureDesc += ")" + Type.getReturnType(mi.desc).getDescriptor();
 			}
 			MethodVisitor mv = super.visitMethod(opcode, mc.getCapturePrefix() + "_capture", captureDesc, null, null);
-			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, mv, opcode, mc.getCapturePrefix() + "_capture", captureDesc, className);
+			LocalVariablesSorter lvs = new LocalVariablesSorter(opcode, captureDesc, mv);
+			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, lvs, opcode, mc.getCapturePrefix() + "_capture", captureDesc, className,lvs);
 			Type[] args = Type.getArgumentTypes(captureDesc);
 			if(mi.name.equals("<init>"))
 			{
 				for (int i = 0; i < args.length; i++) {
 					caa.loadArg(i);
 				}
-				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, mi.owner, mi.name, mi.desc);
+				caa.visitMethodInsn(Opcodes.INVOKESPECIAL, mi.owner, mi.name, mi.desc);
 				caa.loadArg(0);
 			}
 			else
@@ -115,13 +117,26 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				for (int i = 0; i < args.length; i++) {
 					caa.loadArg(i);
 				}
-				mv.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
+				caa.visitMethodInsn(mi.getOpcode(), mi.owner, mi.name, mi.desc);
 				for (int i = 0; i < args.length; i++) {
 					if (args[i].getSort() == Type.ARRAY) {
+						boolean minimalCopy = (Type.getReturnType(methodDesc).getSort() == Type.INT);
+						if(minimalCopy)
+						{
+							caa.dup();
+							Label isNegative = new Label();
+							Label notNegative = new Label();
+							caa.visitJumpInsn(Opcodes.IFLT, isNegative);
+							caa.dup();
+							caa.visitJumpInsn(Opcodes.GOTO, notNegative);
+							caa.visitLabel(isNegative);
+							caa.visitInsn(ICONST_0);
+							caa.visitLabel(notNegative);
+						}
 						caa.loadArg(i);
 						//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
-						caa.logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;",
-								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
+						caa.logValueAtTopOfStackToArray(MethodCall.getLogClassName(args[i]), "aLog", "[Ljava/lang/Object;",
+								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor()+"\t\t"+className,minimalCopy);
 						if (args[i].getSize() == 1)
 							caa.pop();
 						else
@@ -130,8 +145,8 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 				}
 			}
 			caa.returnValue();
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
+			caa.visitMaxs(0, 0);
+			caa.visitEnd();
 		}
 	}
 

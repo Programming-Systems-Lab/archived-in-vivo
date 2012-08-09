@@ -16,6 +16,7 @@ public class WallaceUncaughtExceptionHandler implements Thread.UncaughtException
 			e.printStackTrace();
 			System.err.println("Writing log");
 			WallaceExportRunner.export();
+			WallaceExportRunner.exportSerializable();
 			}
 		catch(Exception exi)
 		{
