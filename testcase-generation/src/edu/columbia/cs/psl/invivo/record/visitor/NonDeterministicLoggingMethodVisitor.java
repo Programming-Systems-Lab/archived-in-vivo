@@ -137,13 +137,13 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 					}
 					mv.visitMethodInsn(invokeOpcode, classDesc, m.getCapturePrefix()+"_capture", captureDesc);
 					logValueAtTopOfStackToArray(m.getLogClassNmae(), m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
-							owner+"."+name + "\t" + desc);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
 				}
 				else
 				{
 					mv.visitMethodInsn(opcode, owner, name, desc);
 					logValueAtTopOfStackToArray(m.getLogClassNmae(), m.getLogFieldName(), m.getLogFieldType().getDescriptor(), returnType, true,
-							owner+"."+name + "\t" + desc);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
 				}
 			} 
 			else if(opcode == INVOKESPECIAL && name.equals("<init>") && nonDeterministicMethods.contains(owner + "." + name + ":" + desc) && !(owner.equals(Instrumenter.instrumentedClasses.get(classDesc).superName)
@@ -151,7 +151,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 				super.visitMethodInsn(opcode, owner, name, desc);
 				if(analyzer.stack != null && analyzer.stack.size() > 0 && analyzer.stack.get(analyzer.stack.size()-1).equals(owner))
 					logValueAtTopOfStackToArray(MethodCall.getLogClassName(Type.getType("L"+owner+";")), "aLog", "[Ljava/lang/Object;", Type.getType("L"+owner+";"), true,
-							owner+"."+name + "\t" + desc);
+							owner+"."+name + "\t" + desc+"\t\t"+classDesc+"."+this.name);
 
 			}
 			else

@@ -164,7 +164,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			visitLabel(monitorStart);
 
 			//Lock
-			super.visitFieldInsn(Opcodes.GETSTATIC, logFieldOwner, "lock", "Ljava/lang/Object;");
+			super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Log.class), "lock", "Ljava/lang/Object;");
 			dup();
 			super.visitVarInsn(ASTORE, monitorIndx);
 			super.monitorEnter();
@@ -284,22 +284,59 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			}
 			else
 				super.visitInsn(ICONST_1);
+			super.visitVarInsn(ALOAD, monitorIndx);
+			super.monitorEnter();
 			super.visitFieldInsn(getOpcode, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
 			super.visitInsn(IADD);
 			super.visitInsn(DUP);
 			super.visitFieldInsn(PUTSTATIC, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
+			
 			super.visitLdcInsn(Constants.MAX_LOG_SIZE);
 //			super.visitInsn(ISUB);
 			super.visitJumpInsn(IF_ICMPLE, endLbl);
 //			super.ifCmp(Type.INT_TYPE, Opcodes.IFGE, endLbl);
+			super.visitVarInsn(ALOAD, monitorIndx);
+			super.monitorExit();
 			if(logFieldOwner.equals(Type.getInternalName(SerializableLog.class)))
 				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_exportSerializable", "()V");
 			else
 				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_export", "()V");
+			super.visitVarInsn(ALOAD, monitorIndx);
+			super.monitorEnter();
+			super.visitFieldInsn(getOpcode, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
+			super.visitLdcInsn(Constants.VERY_MAX_LOG_SIZE);
+			super.visitJumpInsn(IF_ICMPLE, endLbl);
 			
+
+//println("GOing to wait for " + logFieldOwner);
+//			super.visitLabel(tryStart);
+			
+			super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Log.class), "lock", "Ljava/lang/Object;");
+			super.visitLdcInsn(500L);
+			super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "wait", "(J)V");
+
+//			super.visitLabel(tryEnd);
+
+//			super.visitJumpInsn(GOTO, endLbl);
+//			super.visitLabel(handlerStart);
+//			int n = newLocal(Type.getType(InterruptedException.class));
+//			super.visitVarInsn(ASTORE, n);
+//			super.visitInsn(POP);
 			visitLabel(endLbl);
+			super.visitVarInsn(ALOAD, monitorIndx);
+			super.monitorExit();
 //			super.visitLocalVariable(logFieldName + "_monitor", "Ljava/lang/Object;", null, monitorStart, monitorEndLabel, monitorIndx);
 //		}
 
+	}
+	private void magic()
+	{
+		try{
+		Log.lock.wait(500);
+		}
+		catch(InterruptedException ex)
+		{
+			
+		}
 	}
 }

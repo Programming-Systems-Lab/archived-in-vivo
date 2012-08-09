@@ -41,12 +41,18 @@ public class WallaceExportRunner extends Thread {
 //							System.out.println("Waking up checking flag");
 							if(shouldExport == 1)
 								export();
+							if(shouldExportSerializable == 1)
+								exportSerializable();
+							if(shouldExport == 1)
+								export();
 
 		} catch (InterruptedException e) {
 			if(shouldExport == 1)
 				export();
 			if(shouldExportSerializable == 1)
 				exportSerializable();
+			if(shouldExport == 1)
+				export();
 		}
 				}
 	}
@@ -64,25 +70,12 @@ public class WallaceExportRunner extends Thread {
 //			System.out.println("Waiting for the lock");
 			synchronized (Log.lock) {
 				ExportedLog.aLog = Log.aLog;
-				ExportedLog.bLog = Log.bLog;
-				ExportedLog.cLog = Log.cLog;
-				ExportedLog.dLog = Log.dLog;
-				ExportedLog.iLog = Log.iLog;
-				ExportedLog.fLog = Log.fLog;
-				ExportedLog.jLog = Log.jLog;
-				ExportedLog.zLog = Log.zLog;
-				ExportedLog.sLog = Log.sLog;
+			
 				
 				ExportedLog.aLog_fill = Log.aLog_fill;
-				ExportedLog.bLog_fill = Log.bLog_fill;
-				ExportedLog.cLog_fill = Log.cLog_fill;
-				ExportedLog.dLog_fill = Log.dLog_fill;
-				ExportedLog.iLog_fill = Log.iLog_fill;
-				ExportedLog.fLog_fill = Log.fLog_fill;
-				ExportedLog.jLog_fill = Log.jLog_fill;
-				ExportedLog.zLog_fill = Log.zLog_fill;
-				ExportedLog.sLog_fill = Log.sLog_fill;
-				Log.clearLog();
+				Log.logsize = 0;
+				Log.aLog = new Object[Constants.DEFAULT_LOG_SIZE];
+				Log.aLog_fill = 0;
 			}
 				System.err.println("Serializing");
 				try{
@@ -92,15 +85,22 @@ public class WallaceExportRunner extends Thread {
 				{
 					System.err.println("NPE" + ex.getMessage());
 				}
-				System.err.println("Clearing");
+//				System.err.println("Clearing");
 				ExportedLog.clearLog();
-				System.err.println("Cleared");
+//				System.err.println("Cleared");
 
 			//CloningUtils.exportLock.writeLock().unlock();
 			File output = new File("wallace_" + System.currentTimeMillis() + ".log");
 			FileWriter fw = new FileWriter(output);
 			fw.write(xml);
 			fw.close();
+			synchronized (Log.lock) {
+				Log.lock.notifyAll();				
+			}
+			synchronized (Log.lock) {
+				Log.lock.notifyAll();				
+			}
+
 
 		} catch (Exception exi) {
 //			System.err.println(exi.getMessage());
@@ -116,23 +116,66 @@ public class WallaceExportRunner extends Thread {
 			synchronized (Log.lock) {
 				ExportedSerializableLog.aLog = SerializableLog.aLog;
 				ExportedSerializableLog.aLog_fill = SerializableLog.aLog_fill;
-				SerializableLog.clearLog();
+				ExportedSerializableLog.bLog = SerializableLog.bLog;
+				ExportedSerializableLog.cLog = SerializableLog.cLog;
+				ExportedSerializableLog.dLog = SerializableLog.dLog;
+				ExportedSerializableLog.iLog = SerializableLog.iLog;
+				ExportedSerializableLog.fLog = SerializableLog.fLog;
+				ExportedSerializableLog.jLog = SerializableLog.jLog;
+				ExportedSerializableLog.zLog = SerializableLog.zLog;
+				ExportedSerializableLog.sLog = SerializableLog.sLog;
+
+				ExportedSerializableLog.bLog_fill = SerializableLog.bLog_fill;
+				ExportedSerializableLog.cLog_fill = SerializableLog.cLog_fill;
+				ExportedSerializableLog.dLog_fill = SerializableLog.dLog_fill;
+				ExportedSerializableLog.iLog_fill = SerializableLog.iLog_fill;
+				ExportedSerializableLog.fLog_fill = SerializableLog.fLog_fill;
+				ExportedSerializableLog.jLog_fill = SerializableLog.jLog_fill;
+				ExportedSerializableLog.zLog_fill = SerializableLog.zLog_fill;
+				ExportedSerializableLog.sLog_fill = SerializableLog.sLog_fill;
+
+				
+				SerializableLog.aLog = new Object[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.iLog = new int[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.jLog = new long[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.fLog = new float[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.dLog = new double[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.bLog = new byte[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.zLog = new boolean[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.cLog = new char[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.sLog = new short[Constants.DEFAULT_LOG_SIZE];
+				SerializableLog.logsize = 0;
+				SerializableLog.iLog_fill = 0;
+				SerializableLog.jLog_fill = 0;
+				SerializableLog.fLog_fill = 0;
+				SerializableLog.dLog_fill = 0;
+				SerializableLog.bLog_fill = 0;
+				SerializableLog.zLog_fill = 0;
+				SerializableLog.cLog_fill = 0;
+				SerializableLog.sLog_fill = 0;
+				SerializableLog.aLog_fill = 0;
 			}
-				System.err.println("Serializing serializable");
+//				System.err.println("Serializing serializable");
 				File output = new File("wallace_serializable_" + System.currentTimeMillis() + ".log");
 
 				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(output));
 				oos.writeObject(logS);
 				oos.flush();
 				oos.close();
-				System.err.println("Clearing serializable");
+//				System.err.println("Clearing serializable");
 				ExportedLog.clearLog();
-				System.err.println("Cleared serializable");
-
+//				System.err.println("Cleared serializable");
+//				System.out.println("Notifying; " + Log.logsize +";"+SerializableLog.logsize);
+				synchronized (Log.lock) {
+					Log.lock.notifyAll();				
+				}
+				synchronized (Log.lock) {
+					Log.lock.notifyAll();				
+				}
 		} catch (Exception exi) {
 //			System.err.println(exi.getMessage());
 		}
-		shouldExport = -1;
+		shouldExportSerializable = -1;
 	}
 	
 	private static int	shouldExport	= -1;
@@ -140,6 +183,7 @@ public class WallaceExportRunner extends Thread {
 	public static void _exportSerializable() {
 		if(shouldExportSerializable == -1)
 		{
+			System.out.println("Flagged shouldexport serializble");
 			shouldExportSerializable = 1;
 			inst.interrupt();
 		}

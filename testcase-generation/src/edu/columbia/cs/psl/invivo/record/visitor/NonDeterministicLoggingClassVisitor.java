@@ -121,7 +121,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 						caa.loadArg(i);
 						//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
 						caa.logValueAtTopOfStackToArray(MethodCall.getLogClassName(args[i]), "aLog", "[Ljava/lang/Object;",
-								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
+								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor()+"\t\t"+className);
 						if (args[i].getSize() == 1)
 							caa.pop();
 						else

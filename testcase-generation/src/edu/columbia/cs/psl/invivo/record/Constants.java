@@ -9,7 +9,9 @@ public interface Constants {
 	public static String LOG_REPLAY_CLASS = "edu/columbia/cs/psl/invivo/record/ExportedLog";
 
 	public static int DEFAULT_LOG_SIZE = 1000;
-	public static int MAX_LOG_SIZE = 50000;
+	public static int MAX_LOG_SIZE = 40000000;
+	public static int VERY_MAX_LOG_SIZE = 400000000;
+
 	public static double LOG_GROWTH_RATE = 1.5;
 	public static String REPLAY_CLASS_SUFFIX = "InvivoReplay";
 	public static String INNER_COPY_METHOD_NAME = "_Invivo___copy";

@@ -1,5 +1,7 @@
 package edu.columbia.cs.psl.invivo.record;
 
+import java.util.HashSet;
+
 import org.objectweb.asm.Type;
 
 public class MethodCall {
@@ -12,6 +14,11 @@ public class MethodCall {
 	private String methodName;
 	private String methodDesc;
 	private boolean isStatic;
+	
+	private static HashSet<String> serializableClasses = new HashSet<String>();
+	static{
+		serializableClasses.add(Type.getType(String.class).getInternalName());
+	}
 	public MethodCall(String sourceMethodName, String sourceMethodDesc, String sourceClass, int pc, int lineNumber, String methodOwner, String methodName, String methodDesc, boolean isStatic) {
 		this.sourceMethodName = sourceMethodName;
 		this.sourceMethodDesc = sourceMethodDesc;
@@ -76,7 +83,9 @@ public class MethodCall {
 	}
 	public static String getLogClassName(Type t)
 	{
-		if(t.getSort() == Type.ARRAY)
+		if((t.getSort() != Type.OBJECT  && t.getSort() != Type.ARRAY)|| //primitives
+				(t.getSort() == Type.OBJECT && serializableClasses.contains(t.getInternalName())) || //serializble
+				(t.getSort() == Type.ARRAY && ((t.getElementType().getSort() != Type.OBJECT && t.getElementType().getSort() != Type.ARRAY)|| serializableClasses.contains(t.getElementType().getInternalName())))) // array of prims or array of serializable
 			return Type.getInternalName(SerializableLog.class);
 		else
 			return Type.getInternalName(Log.class);
