@@ -12,5 +12,7 @@
 	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-http-7.5.4.v20111024.jar"/>
 	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-io-7.5.4.v20111024.jar"/>
 	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-util-7.5.4.v20111024.jar"/>
+	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-server-7.5.4.v20111024.jar"/>
+	<classpathentry kind="lib" path="/home/nikhil/in-vivo/testcase-generation-tester/lib/jetty-servlet-7.5.4.v20111024.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
