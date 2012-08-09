@@ -23,7 +23,16 @@ public class ExportedSerializableLog implements Serializable {
 	public static int aLog_fill, iLog_fill, jLog_fill, fLog_fill, dLog_fill, bLog_fill, zLog_fill, cLog_fill, sLog_fill;
 	public static int aLog_replayIndex , iLog_replayIndex, jLog_replayIndex, fLog_replayIndex, dLog_replayIndex, bLog_replayIndex, zLog_replayIndex, cLog_replayIndex, sLog_replayIndex;
 
-
+	public static String[] aLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] iLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] jLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] fLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] dLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] bLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] zLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] cLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+	public static String[] sLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
+					
 	public static void clearLog() {
 		aLog = new Serializable[Constants.DEFAULT_LOG_SIZE];
 		aLog_fill = 0;
@@ -49,6 +58,17 @@ public class ExportedSerializableLog implements Serializable {
 		oos.writeObject(cLog);
 		oos.writeInt(sLog_fill);
 		oos.writeObject(sLog);
+		
+		oos.writeObject(aLog_owners);
+		oos.writeObject(iLog_owners);
+		oos.writeObject(jLog_owners);
+		oos.writeObject(fLog_owners);
+		oos.writeObject(dLog_owners);
+		oos.writeObject(bLog_owners);
+		oos.writeObject(zLog_owners);
+		oos.writeObject(cLog_owners);
+		oos.writeObject(sLog_owners);
+		
 	}
 
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
@@ -71,5 +91,15 @@ public class ExportedSerializableLog implements Serializable {
 		cLog = (char[]) ois.readObject();
 		sLog_fill = ois.readInt();
 		sLog = (short[]) ois.readObject();
+		
+		aLog_owners = (String[]) ois.readObject();
+		iLog_owners = (String[]) ois.readObject();
+		jLog_owners = (String[]) ois.readObject();
+		fLog_owners = (String[]) ois.readObject();
+		dLog_owners = (String[]) ois.readObject();
+		bLog_owners = (String[]) ois.readObject();
+		zLog_owners = (String[]) ois.readObject();
+		cLog_owners = (String[]) ois.readObject();
+		sLog_owners = (String[]) ois.readObject();
 	}
 }

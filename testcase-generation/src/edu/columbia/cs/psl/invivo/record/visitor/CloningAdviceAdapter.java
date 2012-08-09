@@ -228,23 +228,16 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
 
 		// Grow the array if necessary
-		if (!isStaticLoggingField)
-			loadThis();
+
 		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
-		if (!isStaticLoggingField)
-			loadThis();
 		super.visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		super.arrayLength();
 		Label labelForNoNeedToGrow = new Label();
 		super.ifCmp(Type.INT_TYPE, Opcodes.IFNE, labelForNoNeedToGrow);
 		// In this case, it's necessary to grow it
 		// Create the new array and initialize its size
-		// super.visitMethodInsn(Opcodes.INVOKESTATIC,
-		// Type.getInternalName(Log.class), "grow"+logFieldName, "()V");
 
 		int newArray = lvsorter.newLocal(Type.getType(logFieldTypeDesc));
-		if (!isStaticLoggingField)
-			loadThis();
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		arrayLength();
 		visitInsn(Opcodes.I2D);
@@ -260,14 +253,10 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 																// doing
 																// type.getElementType
 		storeLocal(newArray, Type.getType(logFieldTypeDesc));
-		// Do the copy
-		if (!isStaticLoggingField)
-			loadThis();
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		visitInsn(Opcodes.ICONST_0);
 		loadLocal(newArray);
 		visitInsn(Opcodes.ICONST_0);
-
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		arrayLength();
 		visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
@@ -276,6 +265,30 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 
 		loadLocal(newArray);
 		visitFieldInsn(putOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
+		
+		int newArray2 = lvsorter.newLocal(Type.getType("[Ljava/lang/String;"));
+		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
+		arrayLength();
+		visitInsn(Opcodes.I2D);
+		visitLdcInsn(Constants.LOG_GROWTH_RATE);
+		visitInsn(Opcodes.DMUL);
+		visitInsn(Opcodes.D2I);
+
+		newArray(Type.getType("Ljava/lang/String;"));
+		
+		storeLocal(newArray2, Type.getType("[Ljava/lang/String;"));
+		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
+		visitInsn(Opcodes.ICONST_0);
+		loadLocal(newArray2);
+		visitInsn(Opcodes.ICONST_0);
+		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
+		arrayLength();
+		visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+
+		// array = newarray
+
+		loadLocal(newArray2);
+		visitFieldInsn(putOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
 
 		visitLabel(labelForNoNeedToGrow);
 		// Load this into the end piece of the array
@@ -323,9 +336,13 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		cloneValAtTopOfStack(elementType.getDescriptor(), debug, secondElHasArrayLen);
 
 		arrayStore(elementType);
-		// if(secondElHasArrayLen)
-		// super.visitInsn(POP)
+		
+		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
+		visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 
+		visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
+		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
+		arrayStore(Type.getType(String.class));
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 
 		super.visitInsn(Opcodes.ICONST_1);
