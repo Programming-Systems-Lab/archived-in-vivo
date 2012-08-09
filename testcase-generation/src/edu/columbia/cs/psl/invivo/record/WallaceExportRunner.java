@@ -1,7 +1,9 @@
 package edu.columbia.cs.psl.invivo.record;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 
 import com.thoughtworks.xstream.XStream;
@@ -43,6 +45,8 @@ public class WallaceExportRunner extends Thread {
 		} catch (InterruptedException e) {
 			if(shouldExport == 1)
 				export();
+			if(shouldExportSerializable == 1)
+				exportSerializable();
 		}
 				}
 	}
@@ -104,19 +108,49 @@ public class WallaceExportRunner extends Thread {
 		shouldExport = -1;
 	}
 
-	private static int	shouldExport	= -1;
+	private static ExportedSerializableLog logS = new ExportedSerializableLog();
+	public static void exportSerializable() {
+		shouldExportSerializable = 0;
+		try {
+			
+			synchronized (Log.lock) {
+				ExportedSerializableLog.aLog = SerializableLog.aLog;
+				ExportedSerializableLog.aLog_fill = SerializableLog.aLog_fill;
+				SerializableLog.clearLog();
+			}
+				System.err.println("Serializing serializable");
+				File output = new File("wallace_serializable_" + System.currentTimeMillis() + ".log");
 
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(output));
+				oos.writeObject(logS);
+				oos.flush();
+				oos.close();
+				System.err.println("Clearing serializable");
+				ExportedLog.clearLog();
+				System.err.println("Cleared serializable");
+
+		} catch (Exception exi) {
+//			System.err.println(exi.getMessage());
+		}
+		shouldExport = -1;
+	}
+	
+	private static int	shouldExport	= -1;
+	private static int	shouldExportSerializable	= -1;
+	public static void _exportSerializable() {
+		if(shouldExportSerializable == -1)
+		{
+			shouldExportSerializable = 1;
+			inst.interrupt();
+		}
+	}
+	
 	public static void _export() {
-//		System.err.println("flag export");
 		if(shouldExport == -1)
 		{
 			shouldExport = 1;
 			inst.interrupt();
 		}
-//		if(inst.isAlive())
-//			System.out.println("Alive still!");
-//		else
-//			System.out.println("Its dead");
 	}
 
 }

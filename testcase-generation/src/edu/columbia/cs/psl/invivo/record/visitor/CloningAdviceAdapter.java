@@ -17,6 +17,7 @@ import edu.columbia.cs.psl.invivo.record.CloningUtils;
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.Instrumenter;
 import edu.columbia.cs.psl.invivo.record.Log;
+import edu.columbia.cs.psl.invivo.record.SerializableLog;
 import edu.columbia.cs.psl.invivo.record.WallaceExportRunner;
 
 public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
@@ -291,10 +292,13 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 //			super.visitInsn(ISUB);
 			super.visitJumpInsn(IF_ICMPLE, endLbl);
 //			super.ifCmp(Type.INT_TYPE, Opcodes.IFGE, endLbl);
-			super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_export", "()V");
-
+			if(logFieldOwner.equals(Type.getInternalName(SerializableLog.class)))
+				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_exportSerializable", "()V");
+			else
+				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_export", "()V");
+			
 			visitLabel(endLbl);
-			super.visitLocalVariable(logFieldName + "_monitor", "Ljava/lang/Object;", null, monitorStart, monitorEndLabel, monitorIndx);
+//			super.visitLocalVariable(logFieldName + "_monitor", "Ljava/lang/Object;", null, monitorStart, monitorEndLabel, monitorIndx);
 //		}
 
 	}

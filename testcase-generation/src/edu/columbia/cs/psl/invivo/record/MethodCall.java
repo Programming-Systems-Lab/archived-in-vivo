@@ -74,6 +74,17 @@ public class MethodCall {
 			return true;
 		return false;
 	}
+	public static String getLogClassName(Type t)
+	{
+		if(t.getSort() == Type.ARRAY)
+			return Type.getInternalName(SerializableLog.class);
+		else
+			return Type.getInternalName(Log.class);
+	}
+	public String getLogClassNmae()
+	{
+		return getLogClassName(Type.getReturnType(methodDesc));
+	}
 	public String getCapturePrefix()
 	{
 		String r = sourceMethodName.replace("<", "___").replace(">", "___")+"$$$$"+methodName.replace("<", "___").replace(">", "___")+"$$$$";

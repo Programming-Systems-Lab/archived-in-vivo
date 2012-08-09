@@ -120,7 +120,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 					if (args[i].getSort() == Type.ARRAY) {
 						caa.loadArg(i);
 						//- (mi.getOpcode() == Opcodes.INVOKESTATIC ? 0 : 1)
-						caa.logValueAtTopOfStackToArray(Constants.LOG_DUMP_CLASS, "aLog", "[Ljava/lang/Object;",
+						caa.logValueAtTopOfStackToArray(MethodCall.getLogClassName(args[i]), "aLog", "[Ljava/lang/Object;",
 								args[i], true, mi.owner+"."+mi.name+"->_"+i+"\t"+args[i].getDescriptor());
 						if (args[i].getSize() == 1)
 							caa.pop();
