@@ -46,9 +46,8 @@ public class WallaceExportRunner extends Thread {
 		}
 				}
 	}
-	private static WallaceExportRunner inst;
+	static WallaceExportRunner inst = new WallaceExportRunner();
 	public WallaceExportRunner() {
-		inst = this;
 		setDaemon(true);
 	}
 

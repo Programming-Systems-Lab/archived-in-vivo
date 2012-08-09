@@ -31,7 +31,6 @@ public class CloningUtils {
 	private static HashSet<Class<?>>	nullInsteads;
 
 //	private static BufferedWriter		log;
-	public static WallaceExportRunner exporter = new WallaceExportRunner();
 	static {
 		moreIgnoredImmutables = new HashSet<Class<?>>();
 		moreIgnoredImmutables.add(ClassLoader.class);
@@ -56,7 +55,7 @@ public class CloningUtils {
 		nullInsteads.add(Permissions.class);
 		cloner.setExtraNullInsteadOfClone(nullInsteads);
 //		cloner.setDumpClonedClasses(true);
-		exporter.start();
+		WallaceExportRunner.inst.start();
 		if (CATCH_ALL_ERRORS) {
 			Thread.setDefaultUncaughtExceptionHandler(new WallaceUncaughtExceptionHandler());
 		}
