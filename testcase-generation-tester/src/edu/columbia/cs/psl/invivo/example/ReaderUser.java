@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 import edu.columbia.cs.psl.invivo.record.ExportedLog;
+import edu.columbia.cs.psl.invivo.record.Log;
 
 public class ReaderUser extends InputStreamReader {
 	protected ReaderUser(InputStream in) {
@@ -49,7 +50,8 @@ public class ReaderUser extends InputStreamReader {
 				charsRead = r.read(buf, 0, buf.length);
 				System.out.println(charsRead);
 				System.out.println(buf);
-				Thread.sleep(100);
+//				Thread.sleep(100);
+				System.out.println("Size" + Log.logsize);
 			}
 			c++;
 			System.out.println(c);

@@ -72,10 +72,7 @@ public class NonDeterministicReplayMethodVisitor extends CloningAdviceAdapter im
 		this.parent = coaClassVisitor;
 	}
 
-	@Override
-	protected void onMethodEnter() {
-		super.onMethodEnter();
-	}
+
 
 	@Override
 	public void visitEnd() {

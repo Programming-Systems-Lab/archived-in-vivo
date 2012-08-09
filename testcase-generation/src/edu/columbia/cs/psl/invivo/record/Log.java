@@ -11,6 +11,7 @@ public class Log {
 	public static char[] cLog = new char[Constants.DEFAULT_LOG_SIZE];
 	public static short[] sLog = new short[Constants.DEFAULT_LOG_SIZE];
 	public static Object lock = new Object();
+	public static int logsize = 0;
 	public static int aLog_fill, iLog_fill, jLog_fill, fLog_fill, dLog_fill, bLog_fill, zLog_fill, cLog_fill, sLog_fill;
 	public static void growaLog()
 	{
@@ -68,6 +69,7 @@ public class Log {
 	}
 	public static void clearLog() {
 //		System.err.println("start cl");
+		logsize = 0;
 		aLog = new Object[Constants.DEFAULT_LOG_SIZE];
 		iLog = new int[Constants.DEFAULT_LOG_SIZE];
 		jLog = new long[Constants.DEFAULT_LOG_SIZE];

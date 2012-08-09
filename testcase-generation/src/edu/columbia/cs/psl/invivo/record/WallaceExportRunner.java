@@ -53,7 +53,6 @@ public class WallaceExportRunner extends Thread {
 	}
 
 	private static ExportedLog	log	= new ExportedLog();
-	
 	public static void export() {
 		shouldExport = 0;
 		try {
@@ -82,7 +81,7 @@ public class WallaceExportRunner extends Thread {
 				ExportedLog.sLog_fill = Log.sLog_fill;
 				Log.clearLog();
 			}
-//				System.err.println("Serializing");
+				System.err.println("Serializing");
 				try{
 				xml = xstream.toXML(log);
 				}
@@ -90,9 +89,9 @@ public class WallaceExportRunner extends Thread {
 				{
 					System.err.println("NPE" + ex.getMessage());
 				}
-//				System.err.println("Clearing");
+				System.err.println("Clearing");
 				ExportedLog.clearLog();
-//				System.err.println("Cleared");
+				System.err.println("Cleared");
 
 			//CloningUtils.exportLock.writeLock().unlock();
 			File output = new File("wallace_" + System.currentTimeMillis() + ".log");
