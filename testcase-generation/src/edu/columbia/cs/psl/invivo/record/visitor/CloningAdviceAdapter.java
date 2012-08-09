@@ -175,55 +175,8 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			boolean secondElHasArrayLen) {
 		int getOpcode = (isStaticLoggingField ? Opcodes.GETSTATIC : Opcodes.GETFIELD);
 		int putOpcode = (isStaticLoggingField ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD);
-		Label monitorStart = new Label();
-		Label monitorEndLabel = new Label();
-		int monitorIndx = 0;
 
-		// if (threadSafe) {
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// newLocal(Type.getType(logFieldTypeDesc)); // Needed for some reason,
-		// // unkown? Don't remove
-		// // though, otherwise ASM
-		// // messes stuff up
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// monitorIndx = lvsorter.newLocal(Type.getType("Ljava/lang/Object;"));
-		// visitLabel(monitorStart);
-
-		// Lock
-		// super.visitFieldInsn(Opcodes.GETSTATIC,
-		// Type.getInternalName(Log.class), "lock", "Ljava/lang/Object;");
-		// dup();
-		// super.visitVarInsn(ASTORE, monitorIndx);
-		// super.monitorEnter();
-		// }
-		// Also acquire a read lock for the export lock
+		//Lock
 		super.visitFieldInsn(GETSTATIC, Type.getInternalName(Log.class), "logLock", Type.getDescriptor(Lock.class));
 		super.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(Lock.class), "lock", "()V");
 

@@ -90,7 +90,18 @@ public class MethodCall {
 		else
 			return Type.getInternalName(Log.class);
 	}
-	public String getLogClassNmae()
+	public static String getReplayClassName(Type t)
+	{
+		if(getLogClassName(t).equals(Type.getInternalName(SerializableLog.class)))
+			return Type.getInternalName(ExportedSerializableLog.class);
+		else
+			return Type.getInternalName(ExportedLog.class);
+	}
+	public String getReplayClassName()
+	{
+		return getReplayClassName(Type.getReturnType(methodDesc));
+	}
+	public String getLogClassName()
 	{
 		return getLogClassName(Type.getReturnType(methodDesc));
 	}

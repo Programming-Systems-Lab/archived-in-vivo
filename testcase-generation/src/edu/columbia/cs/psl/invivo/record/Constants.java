@@ -5,8 +5,8 @@ public interface Constants {
 	public static String PREV_VALUE_PREFIX = "__origValue_";
 //	public static String LOGGED_CALL_PREFIX = "__loggedValueAt_";
 
-	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
-	public static String LOG_REPLAY_CLASS = "edu/columbia/cs/psl/invivo/record/ExportedLog";
+//	public static String LOG_DUMP_CLASS = "edu/columbia/cs/psl/invivo/record/Log";
+//	public static String LOG_REPLAY_CLASS = "edu/columbia/cs/psl/invivo/record/ExportedLog";
 
 	public static int DEFAULT_LOG_SIZE = 2000;
 	public static int MAX_LOG_SIZE = 40000000;

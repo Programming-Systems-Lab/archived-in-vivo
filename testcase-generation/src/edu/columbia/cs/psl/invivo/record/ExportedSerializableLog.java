@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 
 public class ExportedSerializableLog implements Serializable {
 	/**
@@ -21,8 +22,17 @@ public class ExportedSerializableLog implements Serializable {
 	public static short[] sLog = new short[Constants.DEFAULT_LOG_SIZE];
 	public static Object lock = new Object();
 	public static int aLog_fill, iLog_fill, jLog_fill, fLog_fill, dLog_fill, bLog_fill, zLog_fill, cLog_fill, sLog_fill;
-	public static int aLog_replayIndex , iLog_replayIndex, jLog_replayIndex, fLog_replayIndex, dLog_replayIndex, bLog_replayIndex, zLog_replayIndex, cLog_replayIndex, sLog_replayIndex;
 
+	public static HashMap<String,Integer> aLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> iLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> jLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> fLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> dLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> bLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> zLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> cLog_replayIndex = new HashMap<String,Integer>();
+	public static HashMap<String,Integer> sLog_replayIndex = new HashMap<String,Integer>();
+	
 	public static String[] aLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
 	public static String[] iLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
 	public static String[] jLog_owners = new String[Constants.DEFAULT_LOG_SIZE];
@@ -101,5 +111,15 @@ public class ExportedSerializableLog implements Serializable {
 		zLog_owners = (String[]) ois.readObject();
 		cLog_owners = (String[]) ois.readObject();
 		sLog_owners = (String[]) ois.readObject();
+		
+		ExportedSerializableLog.aLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.iLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.jLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.fLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.dLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.bLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.zLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.cLog_replayIndex = new HashMap<String,Integer>();
+		ExportedSerializableLog.sLog_replayIndex = new HashMap<String,Integer>();
 	}
 }
