@@ -289,7 +289,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			super.visitFieldInsn(PUTSTATIC, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
 			super.visitLdcInsn(Constants.MAX_LOG_SIZE);
 //			super.visitInsn(ISUB);
-			super.visitJumpInsn(IF_ICMPGE, endLbl);
+			super.visitJumpInsn(IF_ICMPLE, endLbl);
 //			super.ifCmp(Type.INT_TYPE, Opcodes.IFGE, endLbl);
 			super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_export", "()V");
 
