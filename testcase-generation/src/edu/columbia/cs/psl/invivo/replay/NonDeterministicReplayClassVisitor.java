@@ -9,9 +9,11 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.util.CheckMethodAdapter;
 
 import edu.columbia.cs.psl.invivo.record.Constants;
 import edu.columbia.cs.psl.invivo.record.MethodCall;
@@ -41,13 +43,15 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 	public MethodVisitor visitMethod(int acc, String name, String desc,
 			String signature, String[] exceptions) {
 		//TODO need an annotation to disable doing this to some apps
-		if(isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME))// && className.startsWith("edu"))
+		if(isAClass)// && className.startsWith("edu"))
 		{
-			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature,
-					exceptions);
-			JSRInlinerAdapter  mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+			
+			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
+			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
 
-			NonDeterministicReplayMethodVisitor cloningMV = new NonDeterministicReplayMethodVisitor(Opcodes.ASM4, mv, acc, name, desc,className,isFirstConstructor);
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, mv);
+			CheckMethodAdapter cm = new CheckMethodAdapter(analyzer);
+			NonDeterministicReplayMethodVisitor cloningMV = new NonDeterministicReplayMethodVisitor(Opcodes.ASM4, cm, acc, name, desc,className,isFirstConstructor, analyzer);
 			if(name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);

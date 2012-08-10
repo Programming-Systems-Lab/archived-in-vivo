@@ -95,7 +95,7 @@ public class Instrumenter {
 			byte[] out = cw.toByteArray();
 			try{
 			 ClassReader cr2 = new ClassReader(out);
-			 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+			 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), ClassReader.EXPAND_FRAMES);
 			}
 			catch(Exception ex)
 			{

@@ -62,6 +62,6 @@ public class StaticReflectionProvider extends Sun14ReflectionProvider {
 	@Override
 	protected boolean fieldModifiersSupported(Field field) {
 		int modifiers = field.getModifiers();
-		return !(Modifier.isTransient(modifiers));
+		return !(Modifier.isTransient(modifiers) || (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) ));
 	}
 }

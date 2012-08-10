@@ -27,7 +27,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	private String					desc;
 	private String					classDesc;
 	private int						pc;
-	private static HashSet<String>	nonDeterministicMethods	= new HashSet<String>();
+	public static HashSet<String>	nonDeterministicMethods	= new HashSet<String>();
 	private boolean					isStatic;
 	private boolean					constructor;
 	private boolean					superInitialized;
@@ -101,6 +101,7 @@ public class NonDeterministicLoggingMethodVisitor extends CloningAdviceAdapter i
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		try {
+
 			MethodCall m = new MethodCall(this.name, this.desc, this.classDesc, pc, lineNumber, owner, name, desc, isStatic);
 			Type returnType = Type.getMethodType(desc).getReturnType();
 			if ((!constructor || isFirstConstructor || superInitialized) && !returnType.equals(Type.VOID_TYPE)

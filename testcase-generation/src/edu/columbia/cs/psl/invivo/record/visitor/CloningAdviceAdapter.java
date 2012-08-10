@@ -190,7 +190,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		// In this case, it's necessary to grow it
 		// Create the new array and initialize its size
 
-		int newArray = lvsorter.newLocal(Type.getType(logFieldTypeDesc));
+		int newArray = newLocal(Type.getType(logFieldTypeDesc));
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		arrayLength();
 		visitInsn(Opcodes.I2D);
@@ -219,7 +219,7 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		loadLocal(newArray);
 		visitFieldInsn(putOpcode, logFieldOwner, logFieldName, logFieldTypeDesc);
 		
-		int newArray2 = lvsorter.newLocal(Type.getType("[Ljava/lang/String;"));
+		int newArray2 = newLocal(Type.getType("[Ljava/lang/String;"));
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
 		arrayLength();
 		visitInsn(Opcodes.I2D);
@@ -343,16 +343,16 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 			super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(WallaceExportRunner.class), "_export", "()V");
 		// super.visitVarInsn(ALOAD, monitorIndx);
 		// super.monitorEnter();
-		super.visitFieldInsn(getOpcode, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
-		super.visitLdcInsn(Constants.VERY_MAX_LOG_SIZE);
-		super.visitJumpInsn(IF_ICMPLE, endLbl);
+//		super.visitFieldInsn(getOpcode, logFieldOwner, "logsize", Type.INT_TYPE.getDescriptor());
+//		super.visitLdcInsn(Constants.VERY_MAX_LOG_SIZE);
+//		super.visitJumpInsn(IF_ICMPLE, endLbl);
 
 		// println("GOing to wait for " + logFieldOwner);
 		// super.visitLabel(tryStart);
 
-		super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Log.class), "lock", "Ljava/lang/Object;");
-		super.visitLdcInsn(500L);
-		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "wait", "(J)V");
+//		super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Log.class), "lock", "Ljava/lang/Object;");
+//		super.visitLdcInsn(500L);
+//		super.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "wait", "(J)V");
 
 		// super.visitLabel(tryEnd);
 

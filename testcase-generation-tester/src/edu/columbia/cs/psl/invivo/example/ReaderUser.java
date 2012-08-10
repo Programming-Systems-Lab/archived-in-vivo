@@ -35,7 +35,7 @@ public class ReaderUser extends InputStreamReader {
 			int d = 0;
 			int[] x = new int[4];
 			File f=  new File("in-vivo.log");
-			f.exists();
+//			f.exists();
 			f.getAbsoluteFile();
 			BufferedReader r = new BufferedReader(new FileReader("in-vivo.log"));
 			char[] buf = new char[5000];
