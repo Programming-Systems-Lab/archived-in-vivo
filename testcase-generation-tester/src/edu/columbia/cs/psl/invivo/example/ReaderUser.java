@@ -14,8 +14,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
-import edu.columbia.cs.psl.invivo.record.ExportedLog;
-import edu.columbia.cs.psl.invivo.record.Log;
+import edu.columbia.cs.psl.wallace.ExportedLog;
+import edu.columbia.cs.psl.wallace.Log;
 
 public class ReaderUser extends InputStreamReader {
 	protected ReaderUser(InputStream in) {

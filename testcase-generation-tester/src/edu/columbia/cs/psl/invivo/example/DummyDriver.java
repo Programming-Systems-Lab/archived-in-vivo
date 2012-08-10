@@ -21,8 +21,8 @@ import javax.swing.JPanel;
 
 import com.thoughtworks.xstream.XStream;
 
-import edu.columbia.cs.psl.invivo.record.Constants;
-import edu.columbia.cs.psl.invivo.record.xstream.StaticReflectionProvider;
+import edu.columbia.cs.psl.wallace.Constants;
+import edu.columbia.cs.psl.wallace.xstream.StaticReflectionProvider;
 
 
 public class DummyDriver extends SimpleClass {
