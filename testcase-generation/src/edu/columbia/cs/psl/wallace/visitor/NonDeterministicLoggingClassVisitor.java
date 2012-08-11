@@ -46,11 +46,17 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	@Override
 	public MethodVisitor visitMethod(int acc, String name, String desc, String signature, String[] exceptions) {
 		// TODO need an annotation to disable doing this to some apps
+		MethodVisitor primaryMV = cv.visitMethod(acc, name, desc, signature, exceptions);
+		MethodVisitor smv = primaryMV;
+		if(name.equals("main") && desc.equals("([Ljava/lang/String;)V"))
+		{
+			smv = new MainLoggingMethodVisitor(Opcodes.ASM4, primaryMV, acc, name, desc, className);
+		}
 		if (isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME)
 				&& !className.startsWith("com/thoughtworks")
 				)
 		{
-			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
+
 			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
 
 			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, mv);
@@ -64,7 +70,7 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			cloningMV.setClassVisitor(this);
 			return cloningMV;
 		} else
-			return cv.visitMethod(acc, name, desc, signature, exceptions);
+			return smv;
 	}
 
 	public HashSet<MethodCall> getLoggedMethodCalls() {

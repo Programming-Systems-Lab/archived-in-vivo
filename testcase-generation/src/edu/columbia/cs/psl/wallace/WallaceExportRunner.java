@@ -1,43 +1,107 @@
 package edu.columbia.cs.psl.wallace;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import com.thoughtworks.xstream.XStream;
 
 import edu.columbia.cs.psl.wallace.xstream.StaticReflectionProvider;
 
 public class WallaceExportRunner extends Thread {
-	// static Class<?> logger;
-	static {
-		// try {
-		// // System.err.println("Loading log class");
-		// logger = Class.forName(Constants.LOG_DUMP_CLASS.replace("/", "."));
-		// // System.err.println("Loaded");
-		// } catch (ClassNotFoundException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-	}
 
+	private static String mainClass;
+	private static String[] mainArgs;
+
+	private static ArrayList<String> serializableLogs = new ArrayList<>();
+	private static ArrayList<String> otherLogs = new ArrayList<>();
+	
+	public static void logMain(String main, String[] args)
+	{
+		mainClass = main;
+		mainArgs = new String[args.length];
+		System.arraycopy(args, 0, mainArgs, 0, args.length);
+	}
+	
+	public static void genTestCase()
+	{
+		export();
+		exportSerializable();
+		try {
+			File logFile = new File("wallace-crash-"+System.currentTimeMillis());
+			JarOutputStream zos = new JarOutputStream(new FileOutputStream(logFile));
+			JarEntry mainEntry = new JarEntry("main-info");
+			zos.putNextEntry(mainEntry);
+			zos.write(mainClass.getBytes());
+			zos.write("\n".getBytes());
+			for(String s : mainArgs)
+			{
+				zos.write((s+"\n").getBytes());
+			}
+			zos.closeEntry();
+			for(String s : serializableLogs)
+			{
+				JarEntry e = new JarEntry(s);
+				zos.putNextEntry(e);
+				InputStream is = new FileInputStream(s);
+				byte[] buffer = new byte[1024];
+				while (true) {
+					int count = is.read(buffer);
+					if (count == -1)
+						break;
+					zos.write(buffer, 0, count);
+				}
+			}
+			for(String s : otherLogs)
+			{
+				JarEntry e = new JarEntry(s);
+				zos.putNextEntry(e);
+				InputStream is = new FileInputStream(s);
+				byte[] buffer = new byte[1024];
+				while (true) {
+					int count = is.read(buffer);
+					if (count == -1)
+						break;
+					zos.write(buffer, 0, count);
+				}
+			}
+			zos.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(mainClass +" "+
+		toStringSpace((String[]) serializableLogs.toArray()) +
+		toStringSpace((String[]) otherLogs.toArray()) + " " + toStringSpace(mainArgs));
+	}
+	
+	private static String toStringSpace(String[] ar)
+	{
+		String r = "";
+		for(String s : ar)
+		{
+			r += s + " ";
+		}
+		return r;
+	}
+	
 	@Override
 	public void run() {
-		// System.err.println("Export runner started");
 		while (1 == 1) {
-			// System.out.println("Exporting");
-			// System.err.println("Exporting");
-			// export(); //TODO uncomment
-			// System.err.println("Exported");
 			try {
-				// Thread.sleep(60000); //1 minute
-				// Thread.sleep(300000); //5 minutes
 				Thread.sleep(10000); // 10 seconds
-				// Thread.sleep(5000); //5 seconds
-				// Thread.sleep(1000); //1 seconds
-				// System.out.println("Waking up checking flag");
 				if (shouldExport == 1)
 					export();
 				if (shouldExportSerializable == 1)
@@ -70,7 +134,6 @@ public class WallaceExportRunner extends Thread {
 		try {
 			XStream xstream = new XStream(new StaticReflectionProvider());
 			String xml = "";
-			// System.out.println("Waiting for the lock");
 			Log.logLock.lock();
 			ExportedLog.aLog = Log.aLog;
 			ExportedLog.aLog_owners = Log.aLog_owners;
@@ -79,30 +142,22 @@ public class WallaceExportRunner extends Thread {
 			Log.aLog = new Object[Constants.DEFAULT_LOG_SIZE];
 			Log.aLog_fill = 0;
 			Log.logLock.unlock();
-//			System.err.println("Serializing");
+
 			try {
 				xml = xstream.toXML(log);
 			} catch (Exception ex) {
 				System.err.println("NPE" + ex.getMessage());
 			}
-			// System.err.println("Clearing");
-			ExportedLog.clearLog();
-			// System.err.println("Cleared");
 
-			// CloningUtils.exportLock.writeLock().unlock();
-			File output = new File("wallace_" + System.currentTimeMillis() + ".log");
+			ExportedLog.clearLog();
+			String name = "wallace_" + System.currentTimeMillis() + ".log";
+			otherLogs.add(name);
+			File output = new File(name);
 			FileWriter fw = new FileWriter(output);
 			fw.write(xml);
 			fw.close();
-			// synchronized (Log.lock) {
-			// Log.lock.notifyAll();
-			// }
-			// synchronized (Log.lock) {
-			// Log.lock.notifyAll();
-			// }
-
 		} catch (Exception exi) {
-			// System.err.println(exi.getMessage());
+
 		}
 		shouldExport = -1;
 	}
@@ -175,26 +230,16 @@ public class WallaceExportRunner extends Thread {
 				SerializableLog.aLog_fill = 0;
 			}
 			Log.logLock.unlock();
-			// System.err.println("Serializing serializable");
-			File output = new File("wallace_serializable_" + System.currentTimeMillis() + ".log");
-
+			String name = "wallace_serializable_" + System.currentTimeMillis() + ".log";
+			File output = new File(name);
+			serializableLogs.add(name);
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(output));
 			oos.writeObject(logS);
 			oos.flush();
 			oos.close();
-			// System.err.println("Clearing serializable");
 			ExportedLog.clearLog();
-			// System.err.println("Cleared serializable");
-			// System.out.println("Notifying; " + Log.logsize
-			// +";"+SerializableLog.logsize);
-			// synchronized (Log.lock) {
-			// Log.lock.notifyAll();
-			// }
-			// synchronized (Log.lock) {
-			// Log.lock.notifyAll();
-			// }
 		} catch (Exception exi) {
-			// System.err.println(exi.getMessage());
+
 		}
 		shouldExportSerializable = -1;
 	}
@@ -204,7 +249,6 @@ public class WallaceExportRunner extends Thread {
 
 	public static void _exportSerializable() {
 		if (shouldExportSerializable == -1) {
-			// System.out.println("Flagged shouldexport serializble");
 			Thread.yield();
 			shouldExportSerializable = 1;
 			inst.interrupt();
