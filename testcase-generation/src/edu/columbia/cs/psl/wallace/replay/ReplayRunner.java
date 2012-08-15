@@ -10,11 +10,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.objectweb.asm.Type;
 
 import com.thoughtworks.xstream.XStream;
 
+import edu.columbia.cs.psl.wallace.CallbackInvocation;
 import edu.columbia.cs.psl.wallace.CloningUtils;
 import edu.columbia.cs.psl.wallace.Constants;
 import edu.columbia.cs.psl.wallace.ExportedLog;
@@ -49,6 +51,16 @@ public class ReplayRunner {
 				XStream xstream = new XStream(new StaticReflectionProvider());
 				Object o = xstream.fromXML(new File(logFiles[nextLog]));
 				nextLog++;
+				
+				ReplayUtils.dispatchesToRun = new HashMap<Integer,CallbackInvocation>();
+				for(Object e : ExportedLog.aLog)
+				{
+					if(e != null && e.getClass().equals(CallbackInvocation.class))
+					{
+						CallbackInvocation ci = (CallbackInvocation) e;
+						ReplayUtils.dispatchesToRun.put(ci.getClock(), ci);
+					}
+				}
 			}
 		} catch (Exception exi) {
 			exi.printStackTrace();

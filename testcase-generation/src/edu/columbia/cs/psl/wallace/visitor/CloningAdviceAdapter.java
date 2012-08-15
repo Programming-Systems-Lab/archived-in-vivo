@@ -101,14 +101,12 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		// fieldType.getElementType().getSort()
 		// ||
 		fieldType.getSort() == Type.VOID || (fieldType.getSort() != Type.ARRAY && (fieldType.getSort() != Type.OBJECT || immutableClasses.contains(typeOfField)))) {
-			// println("reference> " + debug);
-			// println(debug);
-			// println("Doing nothing");
+			 println("reference> " + debug);
 			return;
 		}
 		if (fieldType.getSort() == Type.ARRAY) {
 			if (fieldType.getElementType().getSort() != Type.OBJECT || immutableClasses.contains(fieldType.getElementType().getDescriptor())) {
-				// println("array> " + debug);
+				 println("array> " + debug);
 
 				// Just need to duplicate the array
 				dup();
@@ -116,14 +114,6 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 				ifNull(nullContinue);
 				if (secondElHasArrayLen) {
 					swap();
-					// pop();
-					// swap();
-					// dup();
-					// visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-					// "Ljava/io/PrintStream;");
-					// swap();
-					// super.visitMethodInsn(INVOKEVIRTUAL,
-					// "java/io/PrintStream", "println", "(I)V");
 				} else {
 					dup();
 					visitInsn(ARRAYLENGTH);
@@ -293,8 +283,13 @@ public class CloningAdviceAdapter extends GeneratorAdapter implements Opcodes {
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName+"_owners", "[Ljava/lang/String;");
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 
-		visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
-		visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
+		if(debug.startsWith("callback"))
+			visitLdcInsn("callback-handler");
+		else
+		{
+			visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;");
+			visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getName", "()Ljava/lang/String;");
+		}
 		arrayStore(Type.getType(String.class));
 		visitFieldInsn(getOpcode, logFieldOwner, logFieldName + "_fill", Type.INT_TYPE.getDescriptor());
 

@@ -146,8 +146,8 @@ public class Replayer {
 			lastInstrumentedClass = cv.getClassName();
 			byte[] out = cw.toByteArray();
 			try{
-				 ClassReader cr2 = new ClassReader(out);
-				 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
+//				 ClassReader cr2 = new ClassReader(out);
+//				 cr2.accept(new CheckClassAdapter(new ClassWriter(0)), 0);
 				}
 				catch(Exception ex)
 				{
@@ -355,7 +355,19 @@ public class Replayer {
 							jos.putNextEntry(outEntry);
 							byte[] clazz = instrumentClass(jar
 									.getInputStream(e));
-							jos.write(clazz);
+							if(clazz == null)
+							{
+								InputStream is = jar.getInputStream(e);
+								byte[] buffer = new byte[1024];
+								while (true) {
+									int count = is.read(buffer);
+									if (count == -1)
+										break;
+									jos.write(buffer, 0, count);
+								}	
+							}
+							else
+									jos.write(clazz);
 							jos.closeEntry();
 						}
 						{

@@ -43,9 +43,9 @@ public class StaticReflectionProvider extends Sun14ReflectionProvider {
 			try {
 				Object value = field.get(object);
 				if (value != null)
-					synchronized (value) {
+//					synchronized (value) {
 						visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
-					}
+//					}
 				else
 					visitor.visit(field.getName(), field.getType(), field.getDeclaringClass(), value);
 

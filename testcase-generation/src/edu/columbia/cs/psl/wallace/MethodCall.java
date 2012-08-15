@@ -2,6 +2,8 @@ package edu.columbia.cs.psl.wallace;
 
 import java.util.HashSet;
 
+import javax.swing.JFrame;
+
 import org.objectweb.asm.Type;
 
 public class MethodCall {
@@ -18,6 +20,8 @@ public class MethodCall {
 	private static HashSet<String> serializableClasses = new HashSet<String>();
 	static{
 		serializableClasses.add(Type.getType(String.class).getInternalName());
+		serializableClasses.add(Type.getType(JFrame.class).getInternalName());
+
 	}
 	public MethodCall(String sourceMethodName, String sourceMethodDesc, String sourceClass, int pc, int lineNumber, String methodOwner, String methodName, String methodDesc, boolean isStatic) {
 		this.sourceMethodName = sourceMethodName;

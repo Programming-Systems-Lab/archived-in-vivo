@@ -152,6 +152,7 @@ public class MutabilityAnalyzer implements Opcodes {
 		ret.name = cn.name;
 		ret.fields = cn.fields;
 		ret.superName = cn.superName;
+		ret.interfaces = cn.interfaces;
 		return ret;
 	}
 

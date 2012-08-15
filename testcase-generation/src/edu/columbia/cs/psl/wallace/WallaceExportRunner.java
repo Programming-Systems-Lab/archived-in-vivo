@@ -131,6 +131,7 @@ public class WallaceExportRunner extends Thread {
 
 	public static void export() {
 		shouldExport = 0;
+		System.out.println("Export");
 		try {
 			XStream xstream = new XStream(new StaticReflectionProvider());
 			String xml = "";
@@ -167,6 +168,7 @@ public class WallaceExportRunner extends Thread {
 	public static void exportSerializable() {
 		shouldExportSerializable = 0;
 		try {
+			System.out.println("Export_s");
 
 			Log.logLock.lock();
 			{

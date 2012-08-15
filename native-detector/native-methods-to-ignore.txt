@@ -5546,3 +5546,5 @@ java/awt/Rectangle.setSize:(Ljava/awt/Dimension;)V
 java/awt/Rectangle.toString:()Ljava/lang/String;
 java/awt/Rectangle.translate:(II)V
 java/awt/Rectangle.union:(Ljava/awt/Rectangle;)Ljava/awt/Rectangle;
+java/lang/Throwable.printStackTrace:(Ljava/io/PrintStream;)V
+java/lang/Comparable.compareTo:(Ljava/lang/Object;)I

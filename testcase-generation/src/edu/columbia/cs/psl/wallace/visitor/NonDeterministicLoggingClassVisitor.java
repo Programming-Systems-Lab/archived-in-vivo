@@ -1,9 +1,12 @@
 package edu.columbia.cs.psl.wallace.visitor;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassVisitor;
@@ -14,9 +17,13 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
+import com.sun.corba.se.impl.resolver.INSURLOperationImpl;
+
 import edu.columbia.cs.psl.wallace.Constants;
+import edu.columbia.cs.psl.wallace.Instrumenter;
 import edu.columbia.cs.psl.wallace.MethodCall;
 
 public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements Opcodes {
@@ -24,6 +31,24 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 	private String className;
 	private boolean isAClass = true;
 
+	public static HashSet<String> callbackClasses = new HashSet<String>();
+	public static HashSet<String> callbackMethods = new HashSet<String>();
+	static
+	{
+		File f = new File("listenerMethods.txt");
+		Scanner s;
+		try {
+			s = new Scanner(f);
+			while (s.hasNextLine())
+			{
+				String l = s.nextLine();
+				callbackMethods.add(l);
+				callbackClasses.add(l.substring(0,l.indexOf(".")));
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
 	public NonDeterministicLoggingClassVisitor(int api, ClassVisitor cv) {
 		super(api, cv);
 
@@ -43,6 +68,39 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 
 	private boolean isFirstConstructor = true;
 
+	private boolean classIsCallback(String className)
+	{
+		if(callbackClasses.contains(className))
+			return true;
+		if(!Instrumenter.instrumentedClasses.containsKey(className))
+			return false;
+		ClassNode cn = Instrumenter.instrumentedClasses.get(className);
+		for(Object s : cn.interfaces)
+		{
+			if(callbackClasses.contains(((String)s)))
+				return true;
+		}
+		return classIsCallback(cn.superName);
+	}
+	public static boolean methodIsCallback(String className, String name, String desc)
+	{
+		if(name.equals("warning"))
+		{
+			System.out.println(name);
+		}
+		String key = "."+name +":"+desc;
+		if(callbackMethods.contains(className + key))
+			return true;
+		if(!Instrumenter.instrumentedClasses.containsKey(className))
+			return false;
+		ClassNode cn = Instrumenter.instrumentedClasses.get(className);
+		for(Object s : cn.interfaces)
+		{
+			if(callbackMethods.contains(((String)s) + key))
+				return true;
+		}
+		return methodIsCallback(cn.superName, name, desc);
+	}
 	@Override
 	public MethodVisitor visitMethod(int acc, String name, String desc, String signature, String[] exceptions) {
 		// TODO need an annotation to disable doing this to some apps
@@ -52,14 +110,22 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 		{
 			smv = new MainLoggingMethodVisitor(Opcodes.ASM4, primaryMV, acc, name, desc, className);
 		}
+		
+		if(classIsCallback(className))
+		{
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, smv);
+			CloningAdviceAdapter caa = new CloningAdviceAdapter(Opcodes.ASM4, analyzer, acc, name, desc, className, null);
+			smv = new CallbackLoggingMethodVisitor(Opcodes.ASM4,analyzer, acc, name, desc, className, null,caa);
+			smv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+
+		}
 		if (isAClass && !name.equals(Constants.INNER_COPY_METHOD_NAME) && !name.equals(Constants.OUTER_COPY_METHOD_NAME) && !name.equals(Constants.SET_FIELDS_METHOD_NAME)
 				&& !className.startsWith("com/thoughtworks")
 				)
 		{
 
-			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, smv);
 
-			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, mv);
 //			LocalVariablesSorter sorter  = new LocalVariablesSorter(acc, desc, analyzer);
 
 			// CheckMethodAdapter cmv = new CheckMethodAdapter(mv);
@@ -68,7 +134,9 @@ public class NonDeterministicLoggingClassVisitor extends ClassVisitor implements
 			if (name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
-			return cloningMV;
+			JSRInlinerAdapter mv = new JSRInlinerAdapter(cloningMV, acc, name, desc, signature, exceptions);
+
+			return mv;
 		} else
 			return smv;
 	}

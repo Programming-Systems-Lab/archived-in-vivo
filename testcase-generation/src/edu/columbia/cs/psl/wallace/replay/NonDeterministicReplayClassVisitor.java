@@ -11,13 +11,16 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.util.CheckMethodAdapter;
 
 import edu.columbia.cs.psl.wallace.Constants;
+import edu.columbia.cs.psl.wallace.Instrumenter;
 import edu.columbia.cs.psl.wallace.MethodCall;
 import edu.columbia.cs.psl.wallace.visitor.CloningAdviceAdapter;
+import edu.columbia.cs.psl.wallace.visitor.NonDeterministicLoggingClassVisitor;
 
 public class NonDeterministicReplayClassVisitor extends ClassVisitor implements Opcodes{
 
@@ -47,15 +50,17 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 		{
 			
 			MethodVisitor smv = cv.visitMethod(acc, name, desc, signature, exceptions);
-			JSRInlinerAdapter mv = new JSRInlinerAdapter(smv, acc, name, desc, signature, exceptions);
 
-			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, mv);
-			CheckMethodAdapter cm = new CheckMethodAdapter(analyzer);
-			NonDeterministicReplayMethodVisitor cloningMV = new NonDeterministicReplayMethodVisitor(Opcodes.ASM4, cm, acc, name, desc,className,isFirstConstructor, analyzer);
+			AnalyzerAdapter analyzer = new AnalyzerAdapter(className, acc, name, desc, smv);
+//CheckMethodAdapter cm = new CheckMethodAdapter(analyzer);
+			NonDeterministicReplayMethodVisitor cloningMV = new NonDeterministicReplayMethodVisitor(Opcodes.ASM4, analyzer, acc, name, desc,className,isFirstConstructor, analyzer,
+					classIsCallback(className) && name.equals("<init>"));
 			if(name.equals("<init>"))
 				isFirstConstructor = false;
 			cloningMV.setClassVisitor(this);
-			return cloningMV;
+			JSRInlinerAdapter mv = new JSRInlinerAdapter(cloningMV, acc, name, desc, signature, exceptions);
+
+			return mv;
 		}
 		else
 			return 	cv.visitMethod(acc, name, desc, signature,
@@ -73,6 +78,35 @@ public class NonDeterministicReplayClassVisitor extends ClassVisitor implements 
 		//TODO also setup the new method to retrieve the list of replacements for the method
 	}
 
+	private boolean classIsCallback(String className)
+	{
+		if(NonDeterministicLoggingClassVisitor.callbackClasses.contains(className))
+			return true;
+		if(!Replayer.instrumentedClasses.containsKey(className))
+			return false;
+		ClassNode cn = Replayer.instrumentedClasses.get(className);
+		for(Object s : cn.interfaces)
+		{
+			if(NonDeterministicLoggingClassVisitor.callbackClasses.contains(((String)s)))
+				return true;
+		}
+		return classIsCallback(cn.superName);
+	}
+	public static boolean methodIsCallback(String className, String name, String desc)
+	{
+		String key = "."+name +":"+desc;
+		if(NonDeterministicLoggingClassVisitor.callbackMethods.contains(className + key))
+			return true;
+		if(!Replayer.instrumentedClasses.containsKey(className))
+			return false;
+		ClassNode cn = Replayer.instrumentedClasses.get(className);
+		for(Object s : cn.interfaces)
+		{
+			if(NonDeterministicLoggingClassVisitor.callbackMethods.contains(((String)s) + key))
+				return true;
+		}
+		return methodIsCallback(cn.superName, name, desc);
+	}
 	@Override
 	public void visitEnd() {
 		super.visitEnd();

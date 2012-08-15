@@ -6,7 +6,7 @@ public class SerializableLog implements Serializable{
 
 	private static final long	serialVersionUID	= 4627796984904522647L;
 	public static Object[] aLog = new Object[Constants.DEFAULT_LOG_SIZE];
-	
+
 	public static int[] iLog = new int[Constants.DEFAULT_LOG_SIZE];
 	public static long[] jLog = new long[Constants.DEFAULT_LOG_SIZE];
 	public static float[] fLog = new float[Constants.DEFAULT_LOG_SIZE];

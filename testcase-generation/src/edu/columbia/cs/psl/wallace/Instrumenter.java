@@ -105,6 +105,7 @@ public class Instrumenter {
 			return out;
 		} catch (Exception ex) {
 			logger.error("Exception processing class: " + lastInstrumentedClass, ex);
+			ex.printStackTrace();
 			return null;
 		}
 	}
@@ -177,6 +178,7 @@ public class Instrumenter {
 			try {
 					FileOutputStream fos = new FileOutputStream(outputDir.getPath() + File.separator + name);
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					lastInstrumentedClass = outputDir.getPath() + File.separator + name;
 					bos.write(instrumentClass(is));
 					bos.writeTo(fos);
 					fos.close();
